@@ -6,7 +6,7 @@ export function nutritionRule(twin: DigitalTwin, now: string): Recommendation | 
   const weightKg = twin.profile.weightKg;
   const proteinAverage = twin.nutrition.proteinAverage7d;
 
-  if (weightKg == null || proteinAverage == null || twin.nutrition.adherenceDays7d < 3) {
+  if (weightKg == null || proteinAverage == null || twin.nutrition.proteinAdherenceDays7d < 3) {
     return undefined;
   }
 
@@ -18,17 +18,17 @@ export function nutritionRule(twin: DigitalTwin, now: string): Recommendation | 
   }
 
   return {
-    id: `nutrition-protein-${now}`,
+    id: `rec_nutrition_protein_${twin.profile.id}_${now.slice(0, 10)}`,
     category: 'nutrition',
     title: 'Bring protein up today',
     action: `Aim for about ${targetProtein} g of protein today.`,
     reason: `Your 7-day protein average is about ${proteinAverage} g, which is below the current bodyweight-based target.`,
-    confidence: Math.min(95, 70 + twin.nutrition.adherenceDays7d * 3),
+    confidence: Math.min(95, 70 + twin.nutrition.proteinAdherenceDays7d * 3),
     evidence: [
       { key: 'weightKg', label: 'Current weight', value: weightKg },
       { key: 'proteinAverage7d', label: '7-day protein average', value: proteinAverage },
       { key: 'proteinTargetG', label: 'Protein target', value: targetProtein },
-      { key: 'nutritionAdherenceDays7d', label: 'Logged nutrition days', value: twin.nutrition.adherenceDays7d },
+      { key: 'proteinAdherenceDays7d', label: 'Logged protein days', value: twin.nutrition.proteinAdherenceDays7d },
     ],
     createdAt: now,
   };

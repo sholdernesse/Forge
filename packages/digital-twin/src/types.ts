@@ -3,6 +3,7 @@ import type { Confidence, ISODate, ISODateTime } from '@forge/shared';
 export type Sex = 'female' | 'male' | 'intersex' | 'unspecified';
 export type PrimaryGoal = 'fat-loss' | 'muscle-gain' | 'recomposition' | 'performance' | 'maintenance';
 export type RecommendationCategory = 'training' | 'nutrition' | 'recovery' | 'sleep' | 'habit';
+export type DataQualityStatus = 'sufficient' | 'partial' | 'insufficient-data';
 
 export interface UserProfile {
   id: string;
@@ -45,6 +46,9 @@ export interface RecoveryState {
   sorenessScore: number;
   stressScore: number;
   rationale: string[];
+  status: DataQualityStatus;
+  dataCompleteness: number;
+  latestSignalDate?: ISODate;
 }
 
 export interface TrainingState {
@@ -58,6 +62,7 @@ export interface NutritionState {
   calorieAverage7d?: number;
   proteinAverage7d?: number;
   adherenceDays7d: number;
+  proteinAdherenceDays7d: number;
 }
 
 export interface Evidence {

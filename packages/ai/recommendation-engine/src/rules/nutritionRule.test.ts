@@ -19,6 +19,8 @@ function makeTwin(overrides: Partial<DigitalTwin> = {}): DigitalTwin {
       sorenessScore: 20,
       stressScore: 25,
       rationale: [],
+      status: 'sufficient',
+      dataCompleteness: 100,
     },
     training: {
       sevenDayLoad: 300,
@@ -29,6 +31,7 @@ function makeTwin(overrides: Partial<DigitalTwin> = {}): DigitalTwin {
       calorieAverage7d: 2400,
       proteinAverage7d: 120,
       adherenceDays7d: 6,
+      proteinAdherenceDays7d: 6,
     },
     history: [],
     recommendations: [],
@@ -58,6 +61,7 @@ describe('nutritionRule', () => {
         calorieAverage7d: 2400,
         proteinAverage7d: 155,
         adherenceDays7d: 6,
+        proteinAdherenceDays7d: 6,
       },
     });
 
@@ -70,6 +74,7 @@ describe('nutritionRule', () => {
         calorieAverage7d: 2400,
         proteinAverage7d: 100,
         adherenceDays7d: 2,
+        proteinAdherenceDays7d: 2,
       },
     });
 

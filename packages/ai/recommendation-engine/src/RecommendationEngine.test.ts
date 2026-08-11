@@ -24,6 +24,7 @@ describe('RecommendationEngine', () => {
     const twin = buildDigitalTwin({
       profile,
       goals,
+      now: '2026-08-08T12:00:00Z',
       history: [
         { date: '2026-08-07', sleepScore: 90, soreness: 2, stress: 2, trainingMinutes: 45, trainingRpe: 7 },
       ],
