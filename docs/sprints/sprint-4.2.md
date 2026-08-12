@@ -17,6 +17,10 @@ Turn Forge's decision engine into a browser-based coaching experience that users
 - automatic rest countdown with skip control
 - resumable workout state across refreshes
 - completed workout minutes written back to Digital Twin history
+- prior-performance context and progressive-overload targets
+- one-tap application of recommended reps and load
+- estimated one-rep-max calculations and personal-record detection
+- strength-progress dashboard ranked by improvement
 - immediate Digital Twin recalculation through the production domain packages
 - explainable recommendation evidence and confidence
 - seven-day weight trend and weekly training progress
@@ -46,6 +50,8 @@ Open `http://localhost:4173`.
 - changing morning check-in values recalculates guidance
 - workout sets can be edited, completed, paused, and resumed
 - finishing a workout updates weekly training progress
+- loaded sets extend exercise history and update strength trends
+- progression targets follow the latest completed performance
 - recommendation reasons, evidence count, and confidence are visible
 - workspace lint, typecheck, tests, and production build pass
 
@@ -54,6 +60,7 @@ Open `http://localhost:4173`.
 - persist profile, goals, history, and decisions in PostgreSQL
 - make Today use the authenticated user's local date and stored history
 - expand workout planning beyond the current recovery-session template
-- add exercise history, progression targets, and personal records
+- expand exercise history into per-movement detail pages
+- add readiness-aware progression adjustments and deload recommendations
 - add adaptive calorie and body-composition targets
 - add accessibility and browser interaction tests
