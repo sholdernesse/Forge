@@ -51,6 +51,11 @@ export class DashboardSyncClient {
     return { ...payload, state: parseDashboardState(payload.state)! };
   }
 
+  async initialize(localState: DashboardState, localUpdatedAt: string): Promise<RemoteDashboard> {
+    const remote = await this.load();
+    return remote ?? this.save(localState, localUpdatedAt);
+  }
+
   save(state: DashboardState, updatedAt: string): Promise<RemoteDashboard> {
     const operation = this.saveQueue.then(() => this.performSave(state, updatedAt));
     this.saveQueue = operation.then(() => undefined, () => undefined);
