@@ -7,6 +7,7 @@ import {
   type WorkoutSetLog,
 } from './workoutSession.js';
 import { progressionTarget, type ExercisePerformance } from './progression.js';
+import { useAccessibleDialog } from './useAccessibleDialog.js';
 
 interface WorkoutPlayerProps {
   session: WorkoutSession;
@@ -17,6 +18,7 @@ interface WorkoutPlayerProps {
 }
 
 export function WorkoutPlayer({ session, onChange, onClose, onFinish, exerciseHistory }: WorkoutPlayerProps) {
+  const dialogRef = useAccessibleDialog(onClose);
   const firstIncomplete = session.exercises.findIndex((exercise) => exercise.sets.some((set) => !set.completedAt));
   const [activeExercise, setActiveExercise] = useState(Math.max(0, firstIncomplete));
   const [restRemaining, setRestRemaining] = useState(0);
@@ -60,11 +62,11 @@ export function WorkoutPlayer({ session, onChange, onClose, onFinish, exerciseHi
     if (!set.completedAt) setRestRemaining(exercise.restSeconds);
   }
 
-  return <div className="workout-backdrop">
-    <section className="workout-player" aria-label="Active workout">
+  return <div className="workout-backdrop" onMouseDown={onClose}>
+    <section ref={dialogRef} className="workout-player" role="dialog" aria-modal="true" aria-labelledby="workout-title" tabIndex={-1} onMouseDown={(event) => event.stopPropagation()}>
       <header className="workout-player-header">
         <button className="icon-button" onClick={onClose} aria-label="Close workout"><X size={21} /></button>
-        <div><span className="section-label">ACTIVE WORKOUT</span><h2>{session.title}</h2></div>
+        <div><span className="section-label">ACTIVE WORKOUT</span><h2 id="workout-title">{session.title}</h2></div>
         <div className="elapsed"><Clock3 size={17} /><span>{elapsed}</span></div>
       </header>
 
