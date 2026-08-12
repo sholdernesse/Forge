@@ -2,6 +2,7 @@ import { normalizeSnapshots, type DailySnapshot } from '@forge/digital-twin';
 import { isWorkoutSession, type WorkoutSession } from './workoutSession.js';
 import type { ExercisePerformance } from './progression.js';
 import type { TrainingSessionRecord } from './volumeLedger.js';
+import type { ScheduleOverrides } from './schedulePolicy.js';
 
 export type CheckIn = Required<
   Pick<DailySnapshot, 'sleepScore' | 'sleepHours' | 'soreness' | 'stress' | 'weightKg'>
@@ -14,10 +15,11 @@ export interface DashboardState {
   workoutSession?: WorkoutSession;
   exerciseHistory?: ExercisePerformance[];
   sessionHistory?: TrainingSessionRecord[];
+  scheduleOverrides?: ScheduleOverrides;
 }
 
 interface StoredDashboardState extends DashboardState {
-  version: 4;
+  version: 5;
 }
 
 export interface DashboardStorage {
@@ -47,7 +49,7 @@ export function loadDashboardState(storage: DashboardStorage, fallback: Dashboar
     const raw = storage.getItem(DASHBOARD_STORAGE_KEY);
     if (!raw) return fallback;
     const stored = JSON.parse(raw) as Partial<Omit<StoredDashboardState, 'version'>> & { version?: number };
-    if (![1, 2, 3, 4].includes(stored.version ?? 0) || !Array.isArray(stored.history) || !isCheckIn(stored.checkIn)) {
+    if (![1, 2, 3, 4, 5].includes(stored.version ?? 0) || !Array.isArray(stored.history) || !isCheckIn(stored.checkIn)) {
       return fallback;
     }
     return {
@@ -57,6 +59,7 @@ export function loadDashboardState(storage: DashboardStorage, fallback: Dashboar
       ...(isWorkoutSession(stored.workoutSession) ? { workoutSession: stored.workoutSession } : {}),
       ...(Array.isArray(stored.exerciseHistory) ? { exerciseHistory: stored.exerciseHistory } : {}),
       ...(Array.isArray(stored.sessionHistory) ? { sessionHistory: stored.sessionHistory } : {}),
+      ...(stored.scheduleOverrides && typeof stored.scheduleOverrides === 'object' ? { scheduleOverrides: stored.scheduleOverrides } : {}),
     };
   } catch {
     return fallback;
@@ -64,7 +67,7 @@ export function loadDashboardState(storage: DashboardStorage, fallback: Dashboar
 }
 
 export function saveDashboardState(storage: DashboardStorage, state: DashboardState): void {
-  const stored: StoredDashboardState = { version: 4, ...state };
+  const stored: StoredDashboardState = { version: 5, ...state };
   storage.setItem(DASHBOARD_STORAGE_KEY, JSON.stringify(stored));
 }
 
