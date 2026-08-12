@@ -74,6 +74,19 @@ main { margin-left: 228px; padding: 38px clamp(28px, 4vw, 64px) 64px; max-width:
 .workout-footer small { color: #708e82; font-size: 10px; }
 .workout-footer > button { border: 0; border-radius: 10px; background: #76fba5; color: #06120d; font-weight: 900; display: flex; align-items: center; gap: 8px; padding: 12px 16px; }
 .workout-footer > button:disabled { opacity: .35; cursor: not-allowed; }
+.progression-tip { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; margin: 0 0 10px; padding: 11px 12px; border: 1px solid #2f5b4a; border-radius: 10px; background: linear-gradient(120deg, #143326, #10271f); color: #77fba5; }
+.progression-tip span { display: grid; gap: 2px; }
+.progression-tip b { color: #dbf7e5; font-size: 12px; }
+.progression-tip small { color: #78968a; font-size: 10px; }
+.progression-tip button { border: 1px solid #4b8068; border-radius: 8px; background: #1d4936; color: #91ffb9; font-size: 10px; font-weight: 900; padding: 7px 10px; }
+.strength-panel { grid-column: span 2; }
+.strength-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 18px; }
+.strength-list > div { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; padding: 14px; border: 1px solid #1e3e33; border-radius: 11px; background: #0d211a; }
+.strength-list span { display: grid; gap: 5px; }
+.strength-list b { color: #dbefe2; font-size: 12px; }
+.strength-list small { color: #718e83; font-size: 10px; line-height: 1.45; }
+.strength-list strong { color: #8da99e; font-size: 15px; }
+.strength-list strong.positive { color: #76fba5; }
 .eyebrow, .section-label { color: #739086; letter-spacing: .14em; font-weight: 700; font-size: 10px; }
 h1, h2, h3 { font-family: 'Space Grotesk'; margin: 0; }
 h1 { font-size: clamp(28px, 3vw, 40px); letter-spacing: -.04em; margin-top: 5px; }
@@ -117,3 +130,4 @@ h1 { font-size: clamp(28px, 3vw, 40px); letter-spacing: -.04em; margin-top: 5px;
 @media(max-width:1050px){.sidebar{width:78px;align-items:center}.brand strong,.sidebar a span,.profile-chip div{display:none}.brand{padding-inline:0}.sidebar a{justify-content:center}.profile-chip{padding-inline:0}main{margin-left:78px}.hero-grid{grid-template-columns:1fr}.metric-strip{grid-template-columns:repeat(2,1fr)}.metric-strip>div:nth-child(2){border-right:0}.metric-strip>div:nth-child(-n+2){border-bottom:1px solid #1b392f}}
 @media(max-width:720px){.sidebar{display:none}main{margin-left:0;padding:24px 16px 96px}.topbar{align-items:flex-start}.topbar-actions{align-items:flex-end;flex-direction:column-reverse;gap:7px}.save-status{font-size:10px}.topbar .checkin-button{width:42px;height:42px;padding:0;font-size:0}.hero-card{padding:20px}.readiness-content{grid-template-columns:1fr}.readiness-ring{margin:auto}.metric-strip{grid-template-columns:1fr 1fr}.metric-strip>div{padding:14px}.content-grid{grid-template-columns:1fr}.workout-panel{grid-row:auto}.mobile-nav{position:fixed;z-index:50;bottom:0;left:0;right:0;height:67px;background:#091914eF;border-top:1px solid #22443a;display:grid;grid-template-columns:repeat(5,1fr);align-items:center;backdrop-filter:blur(20px)}.mobile-nav a{display:grid;justify-items:center;gap:3px;color:#67857a;text-decoration:none;font-size:9px}.mobile-nav a.active{color:#78fba5}.mobile-nav button{width:44px;height:44px;border-radius:14px;border:0;background:#73fca4;color:#06160f;display:grid;place-items:center;margin:auto}.drawer{padding:24px 20px}.topbar p{max-width:250px}}
 @media(max-width:600px){.workout-backdrop{padding:0;place-items:stretch}.workout-player{width:100%;height:100dvh;max-height:none;border:0;border-radius:0}.workout-player-header{padding:16px;grid-template-columns:38px 1fr auto}.workout-player-header h2{font-size:17px}.elapsed{font-size:12px}.workout-progress{margin-inline:16px}.workout-progress-label{padding-inline:16px}.rest-timer{margin-inline:16px}.exercise-stack{padding-inline:12px}.set-row{grid-template-columns:34px 1.4fr .9fr 38px;gap:6px;padding-inline:3px}.set-table{padding-inline:8px}.workout-footer{padding:12px 14px}.workout-footer>div{display:none}.workout-footer>button{width:100%;justify-content:center}.exercise-heading{padding:13px 12px}}
+@media(max-width:720px){.strength-panel{grid-column:auto}.strength-list{grid-template-columns:1fr}}
