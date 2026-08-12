@@ -1,4 +1,5 @@
 import type { WorkoutSession } from './workoutSession.js';
+import type { ScheduleOverrides } from './schedulePolicy.js';
 
 export type MuscleGroup = 'chest' | 'back' | 'shoulders' | 'biceps' | 'triceps' | 'quads' | 'hamstrings' | 'glutes' | 'calves' | 'core' | 'cardio';
 
@@ -52,7 +53,7 @@ export function weeklyVolume(records: TrainingSessionRecord[], asOfDate: string)
   return (Object.entries(targets) as Array<[MuscleGroup, number]>).map(([muscle, target]) => ({ muscle, completed: totals.get(muscle) ?? 0, target }));
 }
 
-export function trainingWeek(records: TrainingSessionRecord[], asOfDate: string, currentTitle: string) {
+export function trainingWeek(records: TrainingSessionRecord[], asOfDate: string, currentTitle: string, overrides: ScheduleOverrides = {}) {
   const anchor = new Date(`${asOfDate}T12:00:00Z`);
   const monday = new Date(anchor);
   monday.setUTCDate(anchor.getUTCDate() - ((anchor.getUTCDay() + 6) % 7));
@@ -60,6 +61,8 @@ export function trainingWeek(records: TrainingSessionRecord[], asOfDate: string,
     const date = new Date(monday); date.setUTCDate(monday.getUTCDate() + index);
     const iso = date.toISOString().slice(0, 10);
     const record = records.find((item) => item.date === iso);
-    return { date: iso, day: date.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' }), title: record?.title ?? (iso === asOfDate ? currentTitle : 'Rest / adaptive'), status: record ? 'completed' as const : iso === asOfDate ? 'today' as const : iso < asOfDate ? 'rest' as const : 'planned' as const };
+    const intent = overrides[iso] ?? 'adaptive';
+    const status = record ? 'completed' as const : iso === asOfDate ? 'today' as const : iso < asOfDate || intent === 'rest' ? 'rest' as const : 'planned' as const;
+    return { date: iso, day: date.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' }), title: record?.title ?? (iso === asOfDate ? currentTitle : intent === 'train' ? 'Training' : intent === 'rest' ? 'Rest' : 'Adaptive'), status, intent };
   });
 }
