@@ -46,6 +46,11 @@ Turn Forge's decision engine into a browser-based coaching experience that users
 - custom calories, protein, carbohydrate, and fat entry
 - per-item removal and live daily macro totals
 - food log persistence and automatic Digital Twin nutrition updates
+- searchable local food catalog with favorite-first results
+- quarter-serving quantity scaling with reconciled calories and macros
+- persisted favorite foods and reusable saved meals
+- provider-neutral barcode lookup boundary with manual prototype entry
+- independently removable entries when a saved meal is logged
 - immediate Digital Twin recalculation through the production domain packages
 - explainable recommendation evidence and confidence
 - seven-day weight trend and weekly training progress
@@ -83,6 +88,7 @@ Open `http://localhost:4173`.
 - a requested training day cannot override critically low readiness
 - incomplete current-day food logging does not distort calorie adaptation
 - food changes immediately update Today while completed days drive future adherence
+- unknown barcodes fail safely without inventing nutrition data
 - recommendation reasons, evidence count, and confidence are visible
 - workspace lint, typecheck, tests, and production build pass
 
@@ -95,7 +101,7 @@ Open `http://localhost:4173`.
 - add formal deload blocks and plan-level progression across mesocycles
 - add drag-and-drop session moves and recurring schedule templates
 - add mesocycle-level deload timing beyond signal-triggered daily deloads
-- add barcode capture, serving scaling, and external food search
+- add camera barcode capture and an external verified food provider
 - add expenditure calibration from longer weight and intake history
 - add adaptive calorie and body-composition targets
 - add accessibility and browser interaction tests
