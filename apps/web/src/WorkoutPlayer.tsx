@@ -1,20 +1,22 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Check, ChevronDown, Clock3, Minus, Plus, Trophy, X } from 'lucide-react';
+import { Check, ChevronDown, Clock3, Minus, Plus, Sparkles, Trophy, X } from 'lucide-react';
 import {
   completedSetCount,
   totalSetCount,
   type WorkoutSession,
   type WorkoutSetLog,
 } from './workoutSession.js';
+import { progressionTarget, type ExercisePerformance } from './progression.js';
 
 interface WorkoutPlayerProps {
   session: WorkoutSession;
   onChange(session: WorkoutSession): void;
   onClose(): void;
   onFinish(): void;
+  exerciseHistory: ExercisePerformance[];
 }
 
-export function WorkoutPlayer({ session, onChange, onClose, onFinish }: WorkoutPlayerProps) {
+export function WorkoutPlayer({ session, onChange, onClose, onFinish, exerciseHistory }: WorkoutPlayerProps) {
   const firstIncomplete = session.exercises.findIndex((exercise) => exercise.sets.some((set) => !set.completedAt));
   const [activeExercise, setActiveExercise] = useState(Math.max(0, firstIncomplete));
   const [restRemaining, setRestRemaining] = useState(0);
@@ -75,6 +77,7 @@ export function WorkoutPlayer({ session, onChange, onClose, onFinish }: WorkoutP
         {session.exercises.map((exercise, exerciseIndex) => {
           const exerciseComplete = exercise.sets.every((set) => set.completedAt);
           const expanded = exerciseIndex === activeExercise;
+          const target = progressionTarget(exerciseHistory, exercise.id);
           return <article className={`exercise-card ${expanded ? 'expanded' : ''}`} key={exercise.id}>
             <button className="exercise-heading" onClick={() => setActiveExercise(exerciseIndex)}>
               <span className={`exercise-number ${exerciseComplete ? 'complete' : ''}`}>{exerciseComplete ? <Check size={17} /> : exerciseIndex + 1}</span>
@@ -82,6 +85,7 @@ export function WorkoutPlayer({ session, onChange, onClose, onFinish }: WorkoutP
               <ChevronDown size={19} />
             </button>
             {expanded && <div className="set-table">
+              {target && <div className="progression-tip"><Sparkles size={16} /><span><b>Forge target: {target.loadKg} kg × {target.reps}</b><small>{target.reason}</small></span><button onClick={() => onChange({ ...session, exercises: session.exercises.map((item, index) => index === exerciseIndex ? { ...item, sets: item.sets.map((set) => ({ ...set, reps: target.reps, loadKg: target.loadKg })) } : item) })}>Apply</button></div>}
               <div className="set-row set-labels"><span>SET</span><span>{exercise.mode === 'duration' ? 'MINUTES' : 'REPS'}</span><span>{exercise.mode === 'duration' ? 'PACE' : 'LOAD KG'}</span><span>DONE</span></div>
               {exercise.sets.map((set, setIndex) => <div className={`set-row ${set.completedAt ? 'done' : ''}`} key={set.id}>
                 <strong>{setIndex + 1}</strong>
