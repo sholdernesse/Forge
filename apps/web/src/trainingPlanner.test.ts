@@ -23,7 +23,9 @@ describe('adaptive training planner', () => {
   });
 
   it('selects back-conscious lower exercises on the alternating session', () => {
-    const plan = generateTrainingPlan(twinWith(95, 3), demoTrainingPreferences);
+    const plan = generateTrainingPlan(twinWith(95, 3), demoTrainingPreferences, [
+      { workoutId: 'upper', date: '2026-08-10', title: 'Upper', durationMinutes: 50, muscleSets: { chest: 10, back: 10, shoulders: 12 } },
+    ]);
     expect(plan.planType).toBe('lower-strength');
     expect(plan.exercises.map((exercise) => exercise.id)).toContain('hip-thrust');
     expect(plan.exercises.map((exercise) => exercise.id)).not.toContain('romanian-deadlift');
