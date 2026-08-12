@@ -16,7 +16,8 @@ import { demoSessionHistory, summarizeWorkout, trainingWeek, weeklyVolume, type 
 import { assessDeload, nextScheduleIntent, type ScheduleOverrides } from './schedulePolicy.js';
 import { calculateNutritionTargets } from './nutritionPlanner.js';
 import { FoodLogger } from './FoodLogger.js';
-import { demoFoodEntries, foodTotals, type FoodEntry } from './foodLog.js';
+import { demoFoodEntries, foodTotals, type FoodEntry, type SavedMeal } from './foodLog.js';
+import { demoSavedMeals } from './foodCatalog.js';
 
 const TODAY = '2026-08-12' as const;
 const NOW = '2026-08-12T11:30:00.000Z';
@@ -79,6 +80,8 @@ export function App() {
   const [scheduleOverrides, setScheduleOverrides] = useState<ScheduleOverrides>(initialState.scheduleOverrides ?? {});
   const [foodEntries, setFoodEntries] = useState<FoodEntry[]>(initialState.foodEntries ?? demoFoodEntries);
   const [foodLoggerOpen, setFoodLoggerOpen] = useState(false);
+  const [favoriteFoodIds, setFavoriteFoodIds] = useState<string[]>(initialState.favoriteFoodIds ?? ['eggs-whites', 'chicken-breast', 'protein-shake']);
+  const [savedMeals, setSavedMeals] = useState<SavedMeal[]>(initialState.savedMeals ?? demoSavedMeals);
 
   const evaluation = useMemo(() => {
     const twin = buildDigitalTwin({ profile: { ...demoProfile, weightKg: checkIn.weightKg }, goals: demoGoals, history, asOfDate: TODAY, now: NOW });
@@ -111,9 +114,11 @@ export function App() {
       sessionHistory,
       scheduleOverrides,
       foodEntries,
+      favoriteFoodIds,
+      savedMeals,
       ...(savedAt ? { savedAt } : {}),
     });
-  }, [generatedPlan, workout, history, checkIn, exerciseHistory, sessionHistory, scheduleOverrides, foodEntries, savedAt]);
+  }, [generatedPlan, workout, history, checkIn, exerciseHistory, sessionHistory, scheduleOverrides, foodEntries, favoriteFoodIds, savedMeals, savedAt]);
 
   function saveCheckIn() {
     const nextHistory = history.map((day) => day.date === TODAY ? { ...day, ...checkInDraft } : day);
@@ -130,6 +135,8 @@ export function App() {
       sessionHistory,
       scheduleOverrides,
       foodEntries,
+      favoriteFoodIds,
+      savedMeals,
     });
     setSaved(true);
     setCheckInOpen(false);
@@ -151,6 +158,8 @@ export function App() {
       sessionHistory,
       scheduleOverrides,
       foodEntries,
+      favoriteFoodIds,
+      savedMeals,
       ...(savedAt ? { savedAt } : {}),
     });
   }
@@ -197,7 +206,7 @@ export function App() {
     if (workout.status !== 'not-started' && date === TODAY) return;
     const nextOverrides = { ...scheduleOverrides, [date]: nextScheduleIntent(scheduleOverrides[date]) };
     setScheduleOverrides(nextOverrides);
-    saveDashboardState(window.localStorage, { history, checkIn, workoutSession: workout, exerciseHistory, sessionHistory, scheduleOverrides: nextOverrides, foodEntries, ...(savedAt ? { savedAt } : {}) });
+    saveDashboardState(window.localStorage, { history, checkIn, workoutSession: workout, exerciseHistory, sessionHistory, scheduleOverrides: nextOverrides, foodEntries, favoriteFoodIds, savedMeals, ...(savedAt ? { savedAt } : {}) });
   }
 
   function updateFoodEntries(nextEntries: FoodEntry[]) {
@@ -205,7 +214,13 @@ export function App() {
     const nextHistory = history.map((day) => day.date === TODAY ? { ...day, caloriesKcal: totals.caloriesKcal, proteinG: totals.proteinG } : day);
     setFoodEntries(nextEntries);
     setHistory(nextHistory);
-    saveDashboardState(window.localStorage, { history: nextHistory, checkIn, workoutSession: workout, exerciseHistory, sessionHistory, scheduleOverrides, foodEntries: nextEntries, ...(savedAt ? { savedAt } : {}) });
+    saveDashboardState(window.localStorage, { history: nextHistory, checkIn, workoutSession: workout, exerciseHistory, sessionHistory, scheduleOverrides, foodEntries: nextEntries, favoriteFoodIds, savedMeals, ...(savedAt ? { savedAt } : {}) });
+  }
+
+  function updateFoodPreferences(nextFavorites: string[], nextMeals: SavedMeal[]) {
+    setFavoriteFoodIds(nextFavorites);
+    setSavedMeals(nextMeals);
+    saveDashboardState(window.localStorage, { history, checkIn, workoutSession: workout, exerciseHistory, sessionHistory, scheduleOverrides, foodEntries, favoriteFoodIds: nextFavorites, savedMeals: nextMeals, ...(savedAt ? { savedAt } : {}) });
   }
 
   return (
@@ -334,7 +349,7 @@ export function App() {
       </div>}
 
       {workoutOpen && <WorkoutPlayer session={workout} exerciseHistory={exerciseHistory} onChange={persistWorkout} onClose={() => setWorkoutOpen(false)} onFinish={finishWorkout} />}
-      {foodLoggerOpen && <FoodLogger date={TODAY} entries={foodEntries} onChange={updateFoodEntries} onClose={() => setFoodLoggerOpen(false)} />}
+      {foodLoggerOpen && <FoodLogger date={TODAY} entries={foodEntries} favoriteFoodIds={favoriteFoodIds} savedMeals={savedMeals} onChange={updateFoodEntries} onPreferencesChange={updateFoodPreferences} onClose={() => setFoodLoggerOpen(false)} />}
 
       <nav className="mobile-nav"><a className="active" href="#today"><Home size={20} /><span>Today</span></a><a href="#training"><Dumbbell size={20} /><span>Train</span></a><button onClick={openCheckIn}><Plus size={22} /></button><a href="#nutrition"><Apple size={20} /><span>Nutrition</span></a><a href="#coach"><Brain size={20} /><span>Coach</span></a></nav>
     </div>
