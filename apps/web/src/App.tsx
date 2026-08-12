@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { CoachService } from '@forge/coach';
 import { buildDigitalTwin, type DailySnapshot, type Recommendation } from '@forge/digital-twin';
 import {
-  Activity, Apple, ArrowRight, Brain, ChevronRight, CircleUserRound, Dumbbell,
+  Activity, Apple, ArrowRight, Award, Brain, ChevronRight, CircleUserRound, Dumbbell,
   Flame, Footprints, Gauge, HeartPulse, Home, Moon, Plus, Settings, Sparkles,
   Save, Target, TrendingDown, Utensils, X,
 } from 'lucide-react';
@@ -10,6 +10,7 @@ import { demoGoals, demoHistory, demoProfile } from './demoData.js';
 import { loadDashboardState, saveDashboardState, type CheckIn } from './dashboardStorage.js';
 import { WorkoutPlayer } from './WorkoutPlayer.js';
 import { completedSetCount, createTodayWorkout, totalSetCount, workoutMinutes, type WorkoutSession } from './workoutSession.js';
+import { demoExerciseHistory, recordPerformances, strongestMovements, type ExercisePerformance } from './progression.js';
 
 const TODAY = '2026-08-12' as const;
 const NOW = '2026-08-12T11:30:00.000Z';
@@ -67,6 +68,7 @@ export function App() {
   const [savedAt, setSavedAt] = useState(initialState.savedAt);
   const [workout, setWorkout] = useState<WorkoutSession>(initialState.workoutSession ?? createTodayWorkout(TODAY));
   const [workoutOpen, setWorkoutOpen] = useState(false);
+  const [exerciseHistory, setExerciseHistory] = useState<ExercisePerformance[]>(initialState.exerciseHistory ?? demoExerciseHistory);
 
   const evaluation = useMemo(() => {
     const twin = buildDigitalTwin({ profile: { ...demoProfile, weightKg: checkIn.weightKg }, goals: demoGoals, history, asOfDate: TODAY, now: NOW });
@@ -78,6 +80,7 @@ export function App() {
   const targetProtein = Math.round(checkIn.weightKg * 1.8);
   const calorieTarget = 2200;
   const weights = history.map((day) => day.weightKg ?? checkIn.weightKg);
+  const strengthLeaders = strongestMovements(exerciseHistory).slice(0, 3);
 
   function saveCheckIn() {
     const nextHistory = history.map((day) => day.date === TODAY ? { ...day, ...checkInDraft } : day);
@@ -90,6 +93,7 @@ export function App() {
       checkIn: checkInDraft,
       savedAt: nextSavedAt,
       workoutSession: workout,
+      exerciseHistory,
     });
     setSaved(true);
     setCheckInOpen(false);
@@ -107,6 +111,7 @@ export function App() {
       history: nextHistory,
       checkIn,
       workoutSession: nextWorkout,
+      exerciseHistory,
       ...(savedAt ? { savedAt } : {}),
     });
   }
@@ -127,7 +132,17 @@ export function App() {
       ? { ...day, trainingMinutes: minutes, trainingRpe: 5 }
       : day);
     setHistory(nextHistory);
-    persistWorkout(nextWorkout, nextHistory);
+    const performances = recordPerformances(nextWorkout, exerciseHistory);
+    const nextExerciseHistory = [...exerciseHistory, ...performances];
+    setExerciseHistory(nextExerciseHistory);
+    setWorkout(nextWorkout);
+    saveDashboardState(window.localStorage, {
+      history: nextHistory,
+      checkIn,
+      workoutSession: nextWorkout,
+      exerciseHistory: nextExerciseHistory,
+      ...(savedAt ? { savedAt } : {}),
+    });
     setWorkoutOpen(false);
     setSaved(true);
     window.setTimeout(() => setSaved(false), 2600);
@@ -221,6 +236,12 @@ export function App() {
               </div>
             )) : <div className="empty-state">No adjustment is needed. Keep following your plan.</div>}
           </article>
+
+          <article className="panel strength-panel">
+            <div className="panel-heading"><div><span className="section-label">STRENGTH PROGRESS</span><h3>Your estimated strength is climbing</h3></div><Award size={22} className="trend-icon" /></div>
+            <p className="panel-copy">Forge compares quality reps and load—not just the heaviest number you entered.</p>
+            <div className="strength-list">{strengthLeaders.map((movement) => <div key={movement.exerciseId}><span><b>{movement.exerciseName}</b><small>{movement.loadKg} kg × {movement.reps} · est. max {movement.estimatedOneRepMax} kg</small></span><strong className={movement.gainPct > 0 ? 'positive' : ''}>{movement.gainPct > 0 ? '+' : ''}{movement.gainPct}%</strong></div>)}</div>
+          </article>
         </section>
       </main>
 
@@ -237,7 +258,7 @@ export function App() {
         </aside>
       </div>}
 
-      {workoutOpen && <WorkoutPlayer session={workout} onChange={persistWorkout} onClose={() => setWorkoutOpen(false)} onFinish={finishWorkout} />}
+      {workoutOpen && <WorkoutPlayer session={workout} exerciseHistory={exerciseHistory} onChange={persistWorkout} onClose={() => setWorkoutOpen(false)} onFinish={finishWorkout} />}
 
       <nav className="mobile-nav"><a className="active" href="#today"><Home size={20} /><span>Today</span></a><a href="#training"><Dumbbell size={20} /><span>Train</span></a><button onClick={openCheckIn}><Plus size={22} /></button><a href="#nutrition"><Apple size={20} /><span>Nutrition</span></a><a href="#coach"><Brain size={20} /><span>Coach</span></a></nav>
     </div>
