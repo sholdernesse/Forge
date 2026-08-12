@@ -21,6 +21,12 @@ Turn Forge's decision engine into a browser-based coaching experience that users
 - one-tap application of recommended reps and load
 - estimated one-rep-max calculations and personal-record detection
 - strength-progress dashboard ranked by improvement
+- adaptive recovery, upper-strength, and lower-strength plan generation
+- plan selection from readiness, recent frequency, and weekly target
+- home-gym equipment awareness
+- elbow- and lower-back-conscious exercise substitutions
+- visible plan rationale and intended intensity
+- automatic replanning after check-in while preserving active sessions
 - immediate Digital Twin recalculation through the production domain packages
 - explainable recommendation evidence and confidence
 - seven-day weight trend and weekly training progress
@@ -52,6 +58,8 @@ Open `http://localhost:4173`.
 - finishing a workout updates weekly training progress
 - loaded sets extend exercise history and update strength trends
 - progression targets follow the latest completed performance
+- Today explains why the generated session matches current recovery and load
+- an active workout is never replaced by a later signal refresh
 - recommendation reasons, evidence count, and confidence are visible
 - workspace lint, typecheck, tests, and production build pass
 
@@ -61,6 +69,7 @@ Open `http://localhost:4173`.
 - make Today use the authenticated user's local date and stored history
 - expand workout planning beyond the current recovery-session template
 - expand exercise history into per-movement detail pages
-- add readiness-aware progression adjustments and deload recommendations
+- add a weekly schedule and muscle-group volume ledger
+- add formal deload blocks and plan-level progression across mesocycles
 - add adaptive calorie and body-composition targets
 - add accessibility and browser interaction tests
