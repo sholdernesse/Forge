@@ -5,6 +5,11 @@ export interface JwtAuthConfig {
   issuer: string;
   audience: string;
   jwksUrl: string;
+  requiredScope: string;
+}
+
+export function hasRequiredScope(scopeClaim: unknown, requiredScope: string): boolean {
+  return typeof scopeClaim === 'string' && scopeClaim.split(/\s+/).includes(requiredScope);
 }
 
 function bearerToken(authorization: string | null): string | null {
@@ -28,7 +33,9 @@ export class JwtAuthVerifier implements AuthVerifier {
         issuer: this.config.issuer,
         audience: this.config.audience,
       });
-      return typeof payload.sub === 'string' && payload.sub ? { id: payload.sub } : null;
+      return typeof payload.sub === 'string' && payload.sub && hasRequiredScope(payload.scp, this.config.requiredScope)
+        ? { id: payload.sub }
+        : null;
     } catch {
       return null;
     }
@@ -51,6 +58,7 @@ export function authVerifierFromEnvironment(environment: NodeJS.ProcessEnv): Aut
   const issuer = environment.OIDC_ISSUER;
   const audience = environment.OIDC_AUDIENCE;
   const jwksUrl = environment.OIDC_JWKS_URL;
-  if (!issuer || !audience || !jwksUrl) throw new Error('OIDC_ISSUER, OIDC_AUDIENCE, and OIDC_JWKS_URL are required');
-  return new JwtAuthVerifier({ issuer, audience, jwksUrl });
+  const requiredScope = environment.OIDC_REQUIRED_SCOPE;
+  if (!issuer || !audience || !jwksUrl || !requiredScope) throw new Error('OIDC_ISSUER, OIDC_AUDIENCE, OIDC_JWKS_URL, and OIDC_REQUIRED_SCOPE are required');
+  return new JwtAuthVerifier({ issuer, audience, jwksUrl, requiredScope });
 }
