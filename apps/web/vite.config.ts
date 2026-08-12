@@ -16,5 +16,12 @@ export default defineConfig({
       '@forge/shared': fileURLToPath(new URL('../../packages/shared/src/index.ts', import.meta.url)),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: { auth: ['@azure/msal-browser'] },
+      },
+    },
+  },
   server: { port: 4173 },
 });
