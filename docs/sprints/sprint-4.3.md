@@ -38,10 +38,21 @@ Copy `apps/web/.env.example` to `apps/web/.env.local` and set the service URL an
 
 Production authentication must issue a short-lived, user-scoped token from an identity provider. The persistence service must derive the user ID from the verified token and must never accept a user ID from the request body.
 
+## Slice 2: authenticated persistence API
+
+- Node 22 HTTP adapter around a runtime-neutral Fetch handler
+- production JWT validation through issuer, audience, and remote JWKS
+- development-only bearer-token verifier for local integration
+- PostgreSQL `JSONB` dashboard snapshots keyed by verified token subject
+- opaque UUID revisions with atomic conditional updates
+- one-megabyte request limit and server-side dashboard validation
+- exact-origin CORS policy and unauthenticated health endpoint
+- idempotent database migration and container image
+- Docker Compose PostgreSQL and API development stack
+- integration coverage for authentication, reads, writes, conflicts, validation, and CORS
+
 ## Next slice
 
-- implement the authenticated API service
-- store versioned dashboard snapshots in PostgreSQL
-- add per-user authorization and token verification
 - return conflict details and offer an explicit refresh/retry path
 - add API integration and multi-device browser tests
+- deploy the API and database, then replace the development token with interactive sign-in
