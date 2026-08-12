@@ -9,6 +9,9 @@ Turn Forge's decision engine into a browser-based coaching experience that users
 - responsive React and Vite application shell
 - Today readiness, recovery, activity, nutrition, and training views
 - live morning check-in with sleep, soreness, stress, and bodyweight inputs
+- versioned on-device persistence so saved check-ins survive refreshes
+- draft isolation so dismissing a check-in does not change the active plan
+- safe fallback when stored prototype data is invalid or outdated
 - immediate Digital Twin recalculation through the production domain packages
 - explainable recommendation evidence and confidence
 - seven-day weight trend and weekly training progress
@@ -19,7 +22,7 @@ Turn Forge's decision engine into a browser-based coaching experience that users
 
 The web application renders decisions but does not own coaching calculations. Check-in values are normalized into `DailySnapshot`, passed to `buildDigitalTwin`, and evaluated by `CoachService`.
 
-Sprint 4.2 uses in-browser demonstration state. The `CoachRepository` persistence contract remains the boundary for the production database adapter planned next.
+Sprint 4.2 uses versioned on-device persistence behind a small storage adapter. The `CoachRepository` contract remains the boundary for the authenticated production database adapter planned next.
 
 ## Run locally
 
