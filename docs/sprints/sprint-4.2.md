@@ -36,6 +36,11 @@ Turn Forge's decision engine into a browser-based coaching experience that users
 - multi-signal fatigue scoring from readiness, sleep, soreness, and stress
 - formal deloads that reduce strength volume 35% and load 10%
 - visible deload explanation while keeping safety authoritative
+- adaptive calories from metabolic estimate, goal, weight trend, training demand, and recovery
+- protein, carbohydrate, and fat targets that reconcile to the calorie budget
+- smoothed multi-day weight trend rather than single-weigh-in reactions
+- minimum weigh-in and nutrition-adherence gates before calorie adjustments
+- explicit target confidence, safeguards, and daily adjustment explanation
 - immediate Digital Twin recalculation through the production domain packages
 - explainable recommendation evidence and confidence
 - seven-day weight trend and weekly training progress
@@ -71,6 +76,7 @@ Open `http://localhost:4173`.
 - an active workout is never replaced by a later signal refresh
 - finishing sets updates the weekly muscle ledger and subsequent plan selection
 - a requested training day cannot override critically low readiness
+- incomplete current-day food logging does not distort calorie adaptation
 - recommendation reasons, evidence count, and confidence are visible
 - workspace lint, typecheck, tests, and production build pass
 
@@ -83,5 +89,7 @@ Open `http://localhost:4173`.
 - add formal deload blocks and plan-level progression across mesocycles
 - add drag-and-drop session moves and recurring schedule templates
 - add mesocycle-level deload timing beyond signal-triggered daily deloads
+- add meal logging, barcode capture, and food search
+- add expenditure calibration from longer weight and intake history
 - add adaptive calorie and body-composition targets
 - add accessibility and browser interaction tests
