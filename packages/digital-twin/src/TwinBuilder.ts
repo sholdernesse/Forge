@@ -13,16 +13,18 @@ export interface TwinBuilderInput {
   recommendations?: Recommendation[];
   decisionTimeline?: DecisionEvent[];
   now?: string;
-  asOfDate?: ISODate;
+  /** User-local calendar date used to anchor all rolling windows. */
+  asOfDate: ISODate;
 }
 
 export function buildDigitalTwin(input: TwinBuilderInput): DigitalTwin {
   const now = input.now ?? new Date().toISOString();
-  const asOfDate = input.asOfDate ?? now.slice(0, 10) as ISODate;
+  const asOfDate = input.asOfDate;
   const history = normalizeSnapshots(input.history ?? []);
 
   return {
     version: 1,
+    asOfDate,
     profile: input.profile,
     goals: input.goals,
     history,

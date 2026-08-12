@@ -6,7 +6,7 @@ export class CoachService {
   constructor(private readonly engine = new RecommendationEngine()) {}
 
   getToday(twin: DigitalTwin, now = twin.updatedAt): TodayBrief {
-    const recommendations = twin.recommendations.length ? twin.recommendations : this.engine.generate(twin, { now });
+    const recommendations = twin.recommendations.length ? twin.recommendations : this.engine.generate(twin, { now, asOfDate: twin.asOfDate });
     const top = recommendations[0];
     return {
       readiness: twin.recovery.readiness,
@@ -19,7 +19,7 @@ export class CoachService {
   }
 
   evaluateToday(twin: DigitalTwin, now = twin.updatedAt): CoachingEvaluation {
-    const recommendations = this.engine.generate(twin, { now });
+    const recommendations = this.engine.generate(twin, { now, asOfDate: twin.asOfDate });
     const existingIds = new Set(twin.decisionTimeline.map((event) => event.recommendationId));
     const newRecommendations = recommendations.filter((recommendation) => !existingIds.has(recommendation.id));
     const decisionTimeline = newRecommendations.reduce(

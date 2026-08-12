@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@forge/coach": "workspace:*",
-    "@forge/digital-twin": "workspace:*"
+    "@forge/digital-twin": "workspace:*",
+    "@forge/shared": "workspace:*"
   }
 }

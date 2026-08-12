@@ -10,6 +10,7 @@ describe('CoachService', () => {
       profile: { id: 'u1', sex: 'unspecified' },
       goals: { primary: 'performance', weeklyTrainingTarget: 4 },
       now,
+      asOfDate: '2026-08-10',
       history: [{ date: '2026-08-10', sleepScore: 40, soreness: 7, stress: 7 }],
     });
     const coach = new CoachService();
@@ -26,6 +27,7 @@ describe('CoachService', () => {
       profile: { id: 'u1', sex: 'unspecified' },
       goals: { primary: 'performance', weeklyTrainingTarget: 4 },
       now: '2026-08-10T12:00:00.000Z',
+      asOfDate: '2026-08-10',
     });
 
     const result = new CoachService().evaluateToday(twin);
@@ -39,6 +41,7 @@ describe('CoachService', () => {
       profile: { id: 'u1', sex: 'unspecified' },
       goals: { primary: 'performance', weeklyTrainingTarget: 4 },
       now: '2026-08-10T12:00:00.000Z',
+      asOfDate: '2026-08-10',
       history: [{ date: '2026-08-10', sleepScore: 40, soreness: 7, stress: 7 }],
     });
     let saved: typeof twin | undefined;
@@ -47,7 +50,33 @@ describe('CoachService', () => {
       saveTwin: async (value) => { saved = value; },
     };
 
-    const result = await new PersistentCoachService(repository).evaluateToday('u1');
+    const result = await new PersistentCoachService(repository).evaluateToday('u1', '2026-08-10');
     expect(saved?.decisionTimeline).toHaveLength(result.newDecisionCount);
+  });
+
+  it('advances persisted evaluations and rebuilds stale derived state', async () => {
+    const twin = buildDigitalTwin({
+      profile: { id: 'u1', sex: 'unspecified' },
+      goals: { primary: 'performance', weeklyTrainingTarget: 4 },
+      now: '2026-08-01T12:00:00.000Z',
+      asOfDate: '2026-08-01',
+      history: [{ date: '2026-08-01', sleepScore: 90, soreness: 2, stress: 2 }],
+    });
+    let saved = twin;
+    const repository: CoachRepository = {
+      loadTwin: async () => saved,
+      saveTwin: async (value) => { saved = value; },
+    };
+
+    const result = await new PersistentCoachService(
+      repository,
+      new CoachService(),
+      () => '2026-08-10T12:00:00.000Z',
+    ).evaluateToday('u1', '2026-08-10');
+
+    expect(result.twin.updatedAt).toBe('2026-08-10T12:00:00.000Z');
+    expect(result.twin.asOfDate).toBe('2026-08-10');
+    expect(result.twin.recovery.status).toBe('insufficient-data');
+    expect(result.brief.recommendations.some((r) => r.category === 'training')).toBe(false);
   });
 });

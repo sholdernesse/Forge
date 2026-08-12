@@ -5,6 +5,7 @@ import { nutritionRule } from './nutritionRule.js';
 function makeTwin(overrides: Partial<DigitalTwin> = {}): DigitalTwin {
   return {
     version: 1,
+    asOfDate: '2026-08-08',
     profile: {
       id: 'user-1',
       sex: 'unspecified',

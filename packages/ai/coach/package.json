@@ -7,7 +7,8 @@
   "types": "./dist/index.d.ts",
   "dependencies": {
     "@forge/digital-twin": "workspace:*",
-    "@forge/recommendation-engine": "workspace:*"
+    "@forge/recommendation-engine": "workspace:*",
+    "@forge/shared": "workspace:*"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",

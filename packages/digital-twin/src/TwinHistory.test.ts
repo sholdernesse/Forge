@@ -29,6 +29,7 @@ describe('TwinHistory', () => {
       profile: { id: 'u1', sex: 'unspecified' },
       goals: { primary: 'performance', weeklyTrainingTarget: 4 },
       now: '2026-08-10T12:00:00.000Z',
+      asOfDate: '2026-08-10',
       history: [],
     });
 

@@ -26,6 +26,9 @@ importers:
       '@forge/digital-twin':
         specifier: workspace:*
         version: link:../../packages/digital-twin
+      '@forge/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
 
   packages/ai/coach:
     dependencies:
@@ -35,6 +38,9 @@ importers:
       '@forge/recommendation-engine':
         specifier: workspace:*
         version: link:../recommendation-engine
+      '@forge/shared':
+        specifier: workspace:*
+        version: link:../../shared
 
   packages/ai/recommendation-engine:
     dependencies:

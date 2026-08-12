@@ -1,8 +1,16 @@
 import type { DigitalTwin, Recommendation } from '@forge/digital-twin';
+import type { ISODate } from '@forge/shared';
 
-export function trainingRule(twin: DigitalTwin, now: string): Recommendation | undefined {
+const DAY_MS = 86_400_000;
+
+function signalAgeDays(signalDate: ISODate, asOfDate: ISODate): number {
+  return Math.floor((Date.parse(`${asOfDate}T00:00:00.000Z`) - Date.parse(`${signalDate}T00:00:00.000Z`)) / DAY_MS);
+}
+
+export function trainingRule(twin: DigitalTwin, now: string, asOfDate: ISODate = twin.asOfDate): Recommendation | undefined {
   const target = twin.goals.weeklyTrainingTarget;
   if (twin.recovery.status === 'insufficient-data') return undefined;
+  if (!twin.recovery.latestSignalDate || signalAgeDays(twin.recovery.latestSignalDate, asOfDate) > 2) return undefined;
   if (!target || twin.recovery.readiness < 60) return undefined;
   if (twin.training.sessionsLast7Days >= target) return undefined;
 
