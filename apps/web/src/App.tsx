@@ -21,6 +21,7 @@ import { demoFoodEntries, foodTotals, type FoodEntry, type SavedMeal } from './f
 import { demoSavedMeals } from './foodCatalog.js';
 import { freshWorkoutPlan } from './prototypeActions.js';
 import { SettingsPanel } from './SettingsPanel.js';
+import { useForgeAuth } from './useForgeAuth.js';
 
 const TODAY = '2026-08-12' as const;
 const NOW = '2026-08-12T11:30:00.000Z';
@@ -69,6 +70,8 @@ function Sparkline({ values }: { values: number[] }) {
 }
 
 export function App() {
+  const environment = (import.meta as ImportMeta & { env: Record<string, unknown> }).env;
+  const auth = useForgeAuth(environment);
   const [initialState] = useState(initialDashboardState);
   const [history, setHistory] = useState(initialState.history);
   const [checkInOpen, setCheckInOpen] = useState(false);
@@ -108,7 +111,11 @@ export function App() {
   const loggedNutrition = foodTotals(foodEntries, TODAY);
 
   useEffect(() => {
-    const config = dashboardSyncConfig((import.meta as ImportMeta & { env: Record<string, unknown> }).env);
+    if (auth.status === 'loading' || auth.status === 'signed-out') {
+      setSyncStatus('local');
+      return;
+    }
+    const config = dashboardSyncConfig(environment, auth.accessToken);
     if (!config) return;
     const client = new DashboardSyncClient(config);
     let active = true;
@@ -170,7 +177,7 @@ export function App() {
       window.removeEventListener('online', retry);
       window.clearInterval(retryTimer);
     };
-  }, []);
+  }, [auth.accessToken, auth.status, environment, initialState]);
 
   useEffect(() => {
     if (workout.status !== 'not-started') return;
@@ -328,6 +335,7 @@ export function App() {
           <div><span className="eyebrow">WEDNESDAY · AUGUST 12</span><h1>Good morning, Shane.</h1><p>Your plan has adapted to how you’re recovering today.</p></div>
           <div className="topbar-actions">
             <span className={`save-status sync-${syncStatus}`}>{syncStatus === 'offline' ? <CloudOff size={15} /> : syncStatus === 'local' ? <Save size={15} /> : <Cloud size={15} />} {syncStatus === 'syncing' ? 'Syncing…' : syncStatus === 'connecting' ? 'Connecting…' : syncStatus === 'synced' ? 'Synced across devices' : syncStatus === 'offline' ? 'Offline · saved locally' : savedAt ? 'Saved on this device' : 'Demo data'}</span>
+            {auth.status === 'signed-out' ? <button className="auth-button" onClick={() => void auth.signIn()}>Sign in</button> : auth.status === 'signed-in' ? <button className="auth-button signed-in" onClick={() => void auth.signOut()} title="Sign out">{auth.name ?? auth.username ?? 'Account'}</button> : null}
             <button className="topbar-settings" onClick={() => setSettingsOpen(true)} aria-label="Open Forge settings"><Settings size={18} /></button>
             <button className="checkin-button" onClick={openCheckIn}><Plus size={18} /> Morning check-in</button>
           </div>
