@@ -2,11 +2,13 @@ import { useMemo, useState } from 'react';
 import { Apple, Barcode, Heart, Minus, Plus, Search, Trash2, X } from 'lucide-react';
 import { foodCatalog } from './foodCatalog.js';
 import { createFoodEntry, lookupBarcode, mealEntries, scaleFood, searchFoods, type FoodEntry, type MealType, type SavedMeal } from './foodLog.js';
+import { useAccessibleDialog } from './useAccessibleDialog.js';
 
 interface Props { date: string; entries: FoodEntry[]; favoriteFoodIds: string[]; savedMeals: SavedMeal[]; onChange(entries: FoodEntry[]): void; onPreferencesChange(favorites: string[], meals: SavedMeal[]): void; onClose(): void; }
 const meals: MealType[] = ['breakfast', 'lunch', 'dinner', 'snack'];
 
 export function FoodLogger({ date, entries, favoriteFoodIds, savedMeals, onChange, onPreferencesChange, onClose }: Props) {
+  const dialogRef = useAccessibleDialog(onClose);
   const [meal, setMeal] = useState<MealType>('breakfast');
   const [query, setQuery] = useState('');
   const [quantity, setQuantity] = useState(1);
@@ -28,8 +30,8 @@ export function FoodLogger({ date, entries, favoriteFoodIds, savedMeals, onChang
   }
   function findBarcode() { const food = lookupBarcode(foodCatalog, barcode); if (!food) { setBarcodeMessage('Not found locally. External provider connection comes next.'); return; } setQuery(food.name); setBarcodeMessage(`${food.name} found. Choose a serving and add it.`); }
 
-  return <div className="workout-backdrop"><section className="food-logger">
-    <header className="food-header"><button className="icon-button" onClick={onClose}><X size={20} /></button><div><span className="section-label">TODAY’S NUTRITION</span><h2>Log food</h2></div><Apple size={22} /></header>
+  return <div className="workout-backdrop" onMouseDown={onClose}><section ref={dialogRef} className="food-logger" role="dialog" aria-modal="true" aria-labelledby="food-logger-title" tabIndex={-1} onMouseDown={(event) => event.stopPropagation()}>
+    <header className="food-header"><button className="icon-button" onClick={onClose} aria-label="Close food logger"><X size={20} /></button><div><span className="section-label">TODAY’S NUTRITION</span><h2 id="food-logger-title">Log food</h2></div><Apple size={22} /></header>
     <div className="meal-tabs">{meals.map((item) => <button className={meal === item ? 'active' : ''} onClick={() => setMeal(item)} key={item}>{item}</button>)}</div>
     <section className="food-search"><div className="search-box"><Search size={17} /><input placeholder="Search foods" value={query} onChange={(event) => setQuery(event.target.value)} /></div><div className="serving-stepper"><button onClick={() => setQuantity(Math.max(.25, quantity - .25))}><Minus size={14} /></button><span>{quantity}× serving</span><button onClick={() => setQuantity(quantity + .25)}><Plus size={14} /></button></div></section>
     {savedMeals.length > 0 && <section className="saved-meals"><h3>Saved meals</h3><div>{savedMeals.map((savedMeal) => <button onClick={() => addSavedMeal(savedMeal)} key={savedMeal.id}><span><b>{savedMeal.name}</b><small>{savedMeal.items.length} foods</small></span><Plus size={16} /></button>)}</div></section>}
