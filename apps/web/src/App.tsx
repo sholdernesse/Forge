@@ -8,6 +8,8 @@ import {
 } from 'lucide-react';
 import { demoGoals, demoHistory, demoProfile } from './demoData.js';
 import { loadDashboardState, saveDashboardState, type CheckIn } from './dashboardStorage.js';
+import { WorkoutPlayer } from './WorkoutPlayer.js';
+import { completedSetCount, createTodayWorkout, totalSetCount, workoutMinutes, type WorkoutSession } from './workoutSession.js';
 
 const TODAY = '2026-08-12' as const;
 const NOW = '2026-08-12T11:30:00.000Z';
@@ -63,6 +65,8 @@ export function App() {
   const [checkIn, setCheckIn] = useState<CheckIn>(initialState.checkIn);
   const [checkInDraft, setCheckInDraft] = useState<CheckIn>(initialState.checkIn);
   const [savedAt, setSavedAt] = useState(initialState.savedAt);
+  const [workout, setWorkout] = useState<WorkoutSession>(initialState.workoutSession ?? createTodayWorkout(TODAY));
+  const [workoutOpen, setWorkoutOpen] = useState(false);
 
   const evaluation = useMemo(() => {
     const twin = buildDigitalTwin({ profile: { ...demoProfile, weightKg: checkIn.weightKg }, goals: demoGoals, history, asOfDate: TODAY, now: NOW });
@@ -85,6 +89,7 @@ export function App() {
       history: nextHistory,
       checkIn: checkInDraft,
       savedAt: nextSavedAt,
+      workoutSession: workout,
     });
     setSaved(true);
     setCheckInOpen(false);
@@ -94,6 +99,38 @@ export function App() {
   function openCheckIn() {
     setCheckInDraft(checkIn);
     setCheckInOpen(true);
+  }
+
+  function persistWorkout(nextWorkout: WorkoutSession, nextHistory = history) {
+    setWorkout(nextWorkout);
+    saveDashboardState(window.localStorage, {
+      history: nextHistory,
+      checkIn,
+      workoutSession: nextWorkout,
+      ...(savedAt ? { savedAt } : {}),
+    });
+  }
+
+  function openWorkout() {
+    const nextWorkout = workout.status === 'not-started'
+      ? { ...workout, status: 'in-progress' as const, startedAt: new Date().toISOString() }
+      : workout;
+    persistWorkout(nextWorkout);
+    setWorkoutOpen(true);
+  }
+
+  function finishWorkout() {
+    const completedAt = new Date().toISOString();
+    const nextWorkout: WorkoutSession = { ...workout, status: 'completed', completedAt };
+    const minutes = Math.max(1, workoutMinutes(nextWorkout));
+    const nextHistory = history.map((day) => day.date === TODAY
+      ? { ...day, trainingMinutes: minutes, trainingRpe: 5 }
+      : day);
+    setHistory(nextHistory);
+    persistWorkout(nextWorkout, nextHistory);
+    setWorkoutOpen(false);
+    setSaved(true);
+    window.setTimeout(() => setSaved(false), 2600);
   }
 
   return (
@@ -158,12 +195,13 @@ export function App() {
           <article className="panel workout-panel" id="training">
             <div className="panel-heading"><div><span className="section-label">TODAY’S TRAINING</span><h3>Cardio + mobility reset</h3></div><span className="duration">45 MIN</span></div>
             <p className="panel-copy">A lower-impact session protects recovery while keeping your weekly momentum moving.</p>
+            {workout.status !== 'not-started' && <div className="workout-state-row"><span><b>{workout.status === 'completed' ? 'Workout complete' : 'Workout in progress'}</b><small>{completedSetCount(workout)} of {totalSetCount(workout)} sets logged</small></span><strong>{Math.round(completedSetCount(workout) / totalSetCount(workout) * 100)}%</strong></div>}
             <div className="workout-list">
               <div><span>01</span><div><strong>Zone 2 treadmill</strong><small>30 min · conversational pace</small></div><ChevronRight size={18} /></div>
               <div><span>02</span><div><strong>Hip + thoracic mobility</strong><small>10 min · controlled range</small></div><ChevronRight size={18} /></div>
               <div><span>03</span><div><strong>Dead bugs</strong><small>3 × 10 each side</small></div><ChevronRight size={18} /></div>
             </div>
-            <button className="primary-action"><Dumbbell size={18} /> Start workout <ArrowRight size={18} /></button>
+            <button className="primary-action" onClick={openWorkout}><Dumbbell size={18} /> {workout.status === 'not-started' ? 'Start workout' : workout.status === 'completed' ? 'Review workout' : 'Resume workout'} <ArrowRight size={18} /></button>
           </article>
 
           <article className="panel trend-panel" id="progress">
@@ -198,6 +236,8 @@ export function App() {
           <small className="privacy-note">Saved securely on this device for the prototype. Account sync arrives with production persistence.</small>
         </aside>
       </div>}
+
+      {workoutOpen && <WorkoutPlayer session={workout} onChange={persistWorkout} onClose={() => setWorkoutOpen(false)} onFinish={finishWorkout} />}
 
       <nav className="mobile-nav"><a className="active" href="#today"><Home size={20} /><span>Today</span></a><a href="#training"><Dumbbell size={20} /><span>Train</span></a><button onClick={openCheckIn}><Plus size={22} /></button><a href="#nutrition"><Apple size={20} /><span>Nutrition</span></a><a href="#coach"><Brain size={20} /><span>Coach</span></a></nav>
     </div>
