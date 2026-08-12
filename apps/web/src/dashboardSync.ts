@@ -10,7 +10,7 @@ export interface RemoteDashboard {
 
 export interface DashboardSyncConfig {
   baseUrl: string;
-  token: string;
+  accessToken(): Promise<string>;
 }
 
 export class DashboardSyncConflictError extends Error {
@@ -47,8 +47,9 @@ export class DashboardSyncClient {
   ) {}
 
   async load(): Promise<RemoteDashboard | null> {
+    const token = await this.config.accessToken();
     const response = await this.request(`${this.config.baseUrl}/v1/dashboard`, {
-      headers: { authorization: `Bearer ${this.config.token}` },
+      headers: { authorization: `Bearer ${token}` },
     });
     if (response.status === 404) return null;
     if (!response.ok) throw new Error(`Dashboard sync load failed (${response.status})`);
@@ -78,10 +79,11 @@ export class DashboardSyncClient {
   }
 
   private async performSave(state: DashboardState, updatedAt: string): Promise<RemoteDashboard> {
+    const token = await this.config.accessToken();
     const response = await this.request(`${this.config.baseUrl}/v1/dashboard`, {
       method: 'PUT',
       headers: {
-        authorization: `Bearer ${this.config.token}`,
+        authorization: `Bearer ${token}`,
         'content-type': 'application/json',
         ...(this.revision ? { 'if-match': this.revision } : {}),
       },
@@ -96,9 +98,8 @@ export class DashboardSyncClient {
   }
 }
 
-export function dashboardSyncConfig(environment: Record<string, unknown>): DashboardSyncConfig | null {
+export function dashboardSyncConfig(environment: Record<string, unknown>, accessToken?: () => Promise<string>): DashboardSyncConfig | null {
   const baseUrl = environment.VITE_FORGE_SYNC_URL;
-  const token = environment.VITE_FORGE_SYNC_TOKEN;
-  if (typeof baseUrl !== 'string' || !baseUrl.trim() || typeof token !== 'string' || !token.trim()) return null;
-  return { baseUrl: baseUrl.replace(/\/$/, ''), token };
+  if (typeof baseUrl !== 'string' || !baseUrl.trim() || !accessToken) return null;
+  return { baseUrl: baseUrl.replace(/\/$/, ''), accessToken };
 }
