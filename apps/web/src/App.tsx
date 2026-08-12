@@ -15,6 +15,8 @@ import { demoTrainingPreferences, generateTrainingPlan } from './trainingPlanner
 import { demoSessionHistory, summarizeWorkout, trainingWeek, weeklyVolume, type TrainingSessionRecord } from './volumeLedger.js';
 import { assessDeload, nextScheduleIntent, type ScheduleOverrides } from './schedulePolicy.js';
 import { calculateNutritionTargets } from './nutritionPlanner.js';
+import { FoodLogger } from './FoodLogger.js';
+import { demoFoodEntries, foodTotals, type FoodEntry } from './foodLog.js';
 
 const TODAY = '2026-08-12' as const;
 const NOW = '2026-08-12T11:30:00.000Z';
@@ -75,6 +77,8 @@ export function App() {
   const [exerciseHistory, setExerciseHistory] = useState<ExercisePerformance[]>(initialState.exerciseHistory ?? demoExerciseHistory);
   const [sessionHistory, setSessionHistory] = useState<TrainingSessionRecord[]>(initialState.sessionHistory ?? demoSessionHistory);
   const [scheduleOverrides, setScheduleOverrides] = useState<ScheduleOverrides>(initialState.scheduleOverrides ?? {});
+  const [foodEntries, setFoodEntries] = useState<FoodEntry[]>(initialState.foodEntries ?? demoFoodEntries);
+  const [foodLoggerOpen, setFoodLoggerOpen] = useState(false);
 
   const evaluation = useMemo(() => {
     const twin = buildDigitalTwin({ profile: { ...demoProfile, weightKg: checkIn.weightKg }, goals: demoGoals, history, asOfDate: TODAY, now: NOW });
@@ -93,6 +97,7 @@ export function App() {
   const plannedMinutes = workout.exercises.reduce((total, exercise) => total + exercise.sets.reduce((sum, set) => sum + (set.durationMinutes ?? 3), 0), 0);
   const volume = weeklyVolume(sessionHistory, TODAY).filter((item) => ['chest', 'back', 'shoulders', 'quads', 'hamstrings', 'glutes'].includes(item.muscle));
   const week = trainingWeek(sessionHistory, TODAY, workout.title, scheduleOverrides);
+  const loggedNutrition = foodTotals(foodEntries, TODAY);
 
   useEffect(() => {
     if (workout.status !== 'not-started') return;
@@ -105,9 +110,10 @@ export function App() {
       exerciseHistory,
       sessionHistory,
       scheduleOverrides,
+      foodEntries,
       ...(savedAt ? { savedAt } : {}),
     });
-  }, [generatedPlan, workout, history, checkIn, exerciseHistory, sessionHistory, scheduleOverrides, savedAt]);
+  }, [generatedPlan, workout, history, checkIn, exerciseHistory, sessionHistory, scheduleOverrides, foodEntries, savedAt]);
 
   function saveCheckIn() {
     const nextHistory = history.map((day) => day.date === TODAY ? { ...day, ...checkInDraft } : day);
@@ -123,6 +129,7 @@ export function App() {
       exerciseHistory,
       sessionHistory,
       scheduleOverrides,
+      foodEntries,
     });
     setSaved(true);
     setCheckInOpen(false);
@@ -143,6 +150,7 @@ export function App() {
       exerciseHistory,
       sessionHistory,
       scheduleOverrides,
+      foodEntries,
       ...(savedAt ? { savedAt } : {}),
     });
   }
@@ -177,6 +185,7 @@ export function App() {
       exerciseHistory: nextExerciseHistory,
       sessionHistory: nextSessionHistory,
       scheduleOverrides,
+      foodEntries,
       ...(savedAt ? { savedAt } : {}),
     });
     setWorkoutOpen(false);
@@ -188,7 +197,15 @@ export function App() {
     if (workout.status !== 'not-started' && date === TODAY) return;
     const nextOverrides = { ...scheduleOverrides, [date]: nextScheduleIntent(scheduleOverrides[date]) };
     setScheduleOverrides(nextOverrides);
-    saveDashboardState(window.localStorage, { history, checkIn, workoutSession: workout, exerciseHistory, sessionHistory, scheduleOverrides: nextOverrides, ...(savedAt ? { savedAt } : {}) });
+    saveDashboardState(window.localStorage, { history, checkIn, workoutSession: workout, exerciseHistory, sessionHistory, scheduleOverrides: nextOverrides, foodEntries, ...(savedAt ? { savedAt } : {}) });
+  }
+
+  function updateFoodEntries(nextEntries: FoodEntry[]) {
+    const totals = foodTotals(nextEntries, TODAY);
+    const nextHistory = history.map((day) => day.date === TODAY ? { ...day, caloriesKcal: totals.caloriesKcal, proteinG: totals.proteinG } : day);
+    setFoodEntries(nextEntries);
+    setHistory(nextHistory);
+    saveDashboardState(window.localStorage, { history: nextHistory, checkIn, workoutSession: workout, exerciseHistory, sessionHistory, scheduleOverrides, foodEntries: nextEntries, ...(savedAt ? { savedAt } : {}) });
   }
 
   return (
@@ -243,8 +260,8 @@ export function App() {
         </section>
 
         <section className="metric-strip">
-          <div><span className="metric-icon orange"><Flame size={19} /></span><p>Calories</p><strong>{today.caloriesKcal?.toLocaleString()}</strong><small>of {calorieTarget.toLocaleString()} kcal</small><Progress value={today.caloriesKcal ?? 0} max={calorieTarget} tone="orange" /></div>
-          <div><span className="metric-icon blue"><Apple size={19} /></span><p>Protein</p><strong>{today.proteinG}g</strong><small>of {targetProtein}g target</small><Progress value={today.proteinG ?? 0} max={targetProtein} tone="blue" /></div>
+          <div><span className="metric-icon orange"><Flame size={19} /></span><p>Calories</p><strong>{loggedNutrition.caloriesKcal.toLocaleString()}</strong><small>of {calorieTarget.toLocaleString()} kcal</small><Progress value={loggedNutrition.caloriesKcal} max={calorieTarget} tone="orange" /></div>
+          <div><span className="metric-icon blue"><Apple size={19} /></span><p>Protein</p><strong>{loggedNutrition.proteinG}g</strong><small>of {targetProtein}g target</small><Progress value={loggedNutrition.proteinG} max={targetProtein} tone="blue" /></div>
           <div><span className="metric-icon violet"><Footprints size={19} /></span><p>Steps</p><strong>{today.steps?.toLocaleString()}</strong><small>of 10,000 steps</small><Progress value={today.steps ?? 0} max={10000} tone="violet" /></div>
           <div><span className="metric-icon lime"><Dumbbell size={19} /></span><p>Training</p><strong>{twin.training.sessionsLast7Days}/{demoGoals.weeklyTrainingTarget}</strong><small>sessions this week</small><Progress value={twin.training.sessionsLast7Days} max={demoGoals.weeklyTrainingTarget ?? 5} /></div>
         </section>
@@ -284,6 +301,7 @@ export function App() {
             <p className="panel-copy">{nutritionTargets.reason}</p>
             <div className="macro-targets"><div><span>Protein</span><strong>{nutritionTargets.proteinG}g</strong><small>Preserve and build lean mass</small></div><div><span>Carbs</span><strong>{nutritionTargets.carbsG}g</strong><small>Fuel training and recovery</small></div><div><span>Fat</span><strong>{nutritionTargets.fatG}g</strong><small>Hormones and satiety</small></div></div>
             <div className="nutrition-adjustment"><span><Flame size={17} /><b>Today’s adjustment</b></span><strong>{nutritionTargets.adjustmentKcal > 0 ? '+' : ''}{nutritionTargets.adjustmentKcal} kcal</strong></div>
+            <button className="log-food-button" onClick={() => setFoodLoggerOpen(true)}><Plus size={17} /> Log food <span>{loggedNutrition.caloriesKcal} kcal logged</span></button>
             {nutritionTargets.safeguards.map((guard) => <div className="nutrition-safeguard" key={guard}><ShieldAlert size={15} /><span>{guard}</span></div>)}
           </article>
 
@@ -316,6 +334,7 @@ export function App() {
       </div>}
 
       {workoutOpen && <WorkoutPlayer session={workout} exerciseHistory={exerciseHistory} onChange={persistWorkout} onClose={() => setWorkoutOpen(false)} onFinish={finishWorkout} />}
+      {foodLoggerOpen && <FoodLogger date={TODAY} entries={foodEntries} onChange={updateFoodEntries} onClose={() => setFoodLoggerOpen(false)} />}
 
       <nav className="mobile-nav"><a className="active" href="#today"><Home size={20} /><span>Today</span></a><a href="#training"><Dumbbell size={20} /><span>Train</span></a><button onClick={openCheckIn}><Plus size={22} /></button><a href="#nutrition"><Apple size={20} /><span>Nutrition</span></a><a href="#coach"><Brain size={20} /><span>Coach</span></a></nav>
     </div>
