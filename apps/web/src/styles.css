@@ -28,6 +28,10 @@ main { margin-left: 228px; padding: 38px clamp(28px, 4vw, 64px) 64px; max-width:
 .workout-state-row b { color: #dff9e9; font-size: 13px; }
 .workout-state-row small { color: #78958a; font-size: 11px; }
 .workout-state-row strong { color: #77fba5; font-size: 18px; }
+.plan-rationale { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; margin: 14px 0 16px; padding: 12px 13px; border: 1px solid #2c5747; border-radius: 10px; background: linear-gradient(120deg, rgba(31, 74, 55, .7), rgba(15, 40, 31, .7)); color: #76fba5; }
+.plan-rationale span { display: grid; gap: 4px; }
+.plan-rationale b { color: #dff6e8; font-size: 11px; text-transform: capitalize; }
+.plan-rationale small { color: #7f9e92; font-size: 10px; line-height: 1.5; }
 .workout-backdrop { position: fixed; z-index: 100; inset: 0; background: rgba(2, 8, 6, .82); backdrop-filter: blur(12px); display: grid; place-items: center; padding: 24px; }
 .workout-player { width: min(760px, 100%); max-height: calc(100vh - 48px); overflow: auto; border: 1px solid #23483b; border-radius: 20px; background: #091713; box-shadow: 0 30px 90px rgba(0, 0, 0, .55); }
 .workout-player-header { position: sticky; top: 0; z-index: 2; display: grid; grid-template-columns: 42px 1fr auto; gap: 14px; align-items: center; padding: 20px 22px; border-bottom: 1px solid #19372d; background: rgba(9, 23, 19, .96); backdrop-filter: blur(14px); }
