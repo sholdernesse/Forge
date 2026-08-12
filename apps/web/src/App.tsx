@@ -112,43 +112,63 @@ export function App() {
     if (!config) return;
     const client = new DashboardSyncClient(config);
     let active = true;
-    const remoteDashboard = client.load();
+    let connected = false;
+    let connection: Promise<void> | undefined;
+
+    const connect = () => {
+      if (connected) return Promise.resolve();
+      if (connection) return connection;
+      setSyncStatus('connecting');
+      const localState = loadDashboardState(window.localStorage, initialState);
+      const localUpdatedAt = dashboardStateUpdatedAt(window.localStorage) ?? new Date().toISOString();
+      connection = client.initialize(localState, localUpdatedAt)
+        .then((remote) => {
+          if (!active) return;
+          if (newerThanLocal(remote.updatedAt, dashboardStateUpdatedAt(window.localStorage))) {
+            const next = remote.state;
+            setHistory(next.history);
+            setCheckIn(next.checkIn);
+            setCheckInDraft(next.checkIn);
+            if (next.savedAt) setSavedAt(next.savedAt);
+            if (next.workoutSession) setWorkout(next.workoutSession);
+            if (next.exerciseHistory) setExerciseHistory(next.exerciseHistory);
+            if (next.sessionHistory) setSessionHistory(next.sessionHistory);
+            if (next.scheduleOverrides) setScheduleOverrides(next.scheduleOverrides);
+            if (next.foodEntries) setFoodEntries(next.foodEntries);
+            if (next.favoriteFoodIds) setFavoriteFoodIds(next.favoriteFoodIds);
+            if (next.savedMeals) setSavedMeals(next.savedMeals);
+            cacheDashboardState(window.localStorage, next, remote.updatedAt);
+          }
+          connected = true;
+          setSyncStatus('synced');
+        })
+        .catch((error: unknown) => {
+          if (active) setSyncStatus('offline');
+          throw error;
+        })
+        .finally(() => { connection = undefined; });
+      return connection;
+    };
 
     const handleSaved = (event: Event) => {
       const { state, updatedAt } = (event as CustomEvent<DashboardSaveEventDetail>).detail;
       setSyncStatus('syncing');
-      void remoteDashboard.catch(() => null).then(() => client.save(state, updatedAt))
+      void connect().then(() => client.save(state, updatedAt))
         .then(() => { if (active) setSyncStatus('synced'); })
         .catch(() => { if (active) setSyncStatus('offline'); });
     };
 
     window.addEventListener(DASHBOARD_SAVED_EVENT, handleSaved);
-    setSyncStatus('connecting');
-    void remoteDashboard
-      .then((remote) => {
-        if (!active) return;
-        if (remote && newerThanLocal(remote.updatedAt, dashboardStateUpdatedAt(window.localStorage))) {
-          const next = remote.state;
-          setHistory(next.history);
-          setCheckIn(next.checkIn);
-          setCheckInDraft(next.checkIn);
-          if (next.savedAt) setSavedAt(next.savedAt);
-          if (next.workoutSession) setWorkout(next.workoutSession);
-          if (next.exerciseHistory) setExerciseHistory(next.exerciseHistory);
-          if (next.sessionHistory) setSessionHistory(next.sessionHistory);
-          if (next.scheduleOverrides) setScheduleOverrides(next.scheduleOverrides);
-          if (next.foodEntries) setFoodEntries(next.foodEntries);
-          if (next.favoriteFoodIds) setFavoriteFoodIds(next.favoriteFoodIds);
-          if (next.savedMeals) setSavedMeals(next.savedMeals);
-          cacheDashboardState(window.localStorage, next, remote.updatedAt);
-        }
-        setSyncStatus('synced');
-      })
-      .catch(() => { if (active) setSyncStatus('offline'); });
+    const retry = () => { if (!connected) void connect().catch(() => undefined); };
+    window.addEventListener('online', retry);
+    const retryTimer = window.setInterval(retry, 15_000);
+    retry();
 
     return () => {
       active = false;
       window.removeEventListener(DASHBOARD_SAVED_EVENT, handleSaved);
+      window.removeEventListener('online', retry);
+      window.clearInterval(retryTimer);
     };
   }, []);
 
