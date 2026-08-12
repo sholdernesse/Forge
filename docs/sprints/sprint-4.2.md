@@ -31,6 +31,11 @@ Turn Forge's decision engine into a browser-based coaching experience that users
 - per-muscle weekly hard-set ledger and volume targets
 - completed-session summaries persisted from workout execution
 - adaptive upper/lower selection driven by relative muscle-volume deficits
+- editable adaptive, training, and rest intentions for current and future days
+- persisted schedule overrides with active-workout locking
+- multi-signal fatigue scoring from readiness, sleep, soreness, and stress
+- formal deloads that reduce strength volume 35% and load 10%
+- visible deload explanation while keeping safety authoritative
 - immediate Digital Twin recalculation through the production domain packages
 - explainable recommendation evidence and confidence
 - seven-day weight trend and weekly training progress
@@ -65,6 +70,7 @@ Open `http://localhost:4173`.
 - Today explains why the generated session matches current recovery and load
 - an active workout is never replaced by a later signal refresh
 - finishing sets updates the weekly muscle ledger and subsequent plan selection
+- a requested training day cannot override critically low readiness
 - recommendation reasons, evidence count, and confidence are visible
 - workspace lint, typecheck, tests, and production build pass
 
@@ -75,6 +81,7 @@ Open `http://localhost:4173`.
 - expand workout planning beyond the current recovery-session template
 - expand exercise history into per-movement detail pages
 - add formal deload blocks and plan-level progression across mesocycles
-- add schedule editing, session moves, and explicit rest-day controls
+- add drag-and-drop session moves and recurring schedule templates
+- add mesocycle-level deload timing beyond signal-triggered daily deloads
 - add adaptive calorie and body-composition targets
 - add accessibility and browser interaction tests
