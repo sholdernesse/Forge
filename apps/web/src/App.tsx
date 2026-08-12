@@ -14,6 +14,7 @@ import { demoExerciseHistory, recordPerformances, strongestMovements, type Exerc
 import { demoTrainingPreferences, generateTrainingPlan } from './trainingPlanner.js';
 import { demoSessionHistory, summarizeWorkout, trainingWeek, weeklyVolume, type TrainingSessionRecord } from './volumeLedger.js';
 import { assessDeload, nextScheduleIntent, type ScheduleOverrides } from './schedulePolicy.js';
+import { calculateNutritionTargets } from './nutritionPlanner.js';
 
 const TODAY = '2026-08-12' as const;
 const NOW = '2026-08-12T11:30:00.000Z';
@@ -84,8 +85,9 @@ export function App() {
   const generatedPlan = useMemo(() => generateTrainingPlan(twin, demoTrainingPreferences, sessionHistory, scheduleOverrides[TODAY]), [twin, sessionHistory, scheduleOverrides]);
   const deload = useMemo(() => assessDeload(twin), [twin]);
   const today = history.find((day) => day.date === TODAY)!;
-  const targetProtein = Math.round(checkIn.weightKg * 1.8);
-  const calorieTarget = 2200;
+  const nutritionTargets = useMemo(() => calculateNutritionTargets(twin, workout), [twin, workout]);
+  const targetProtein = nutritionTargets.proteinG;
+  const calorieTarget = nutritionTargets.caloriesKcal;
   const weights = history.map((day) => day.weightKg ?? checkIn.weightKg);
   const strengthLeaders = strongestMovements(exerciseHistory).slice(0, 3);
   const plannedMinutes = workout.exercises.reduce((total, exercise) => total + exercise.sets.reduce((sum, set) => sum + (set.durationMinutes ?? 3), 0), 0);
@@ -275,6 +277,14 @@ export function App() {
                 <div><strong>{recommendation.title}</strong><p>{recommendation.action}</p><small>{recommendation.evidence.length} signals · {recommendation.confidence}% confidence</small></div>
               </div>
             )) : <div className="empty-state">No adjustment is needed. Keep following your plan.</div>}
+          </article>
+
+          <article className="panel nutrition-panel">
+            <div className="panel-heading"><div><span className="section-label">ADAPTIVE NUTRITION</span><h3>{nutritionTargets.caloriesKcal.toLocaleString()} kcal · {nutritionTargets.confidence} confidence</h3></div><Apple size={22} className="trend-icon" /></div>
+            <p className="panel-copy">{nutritionTargets.reason}</p>
+            <div className="macro-targets"><div><span>Protein</span><strong>{nutritionTargets.proteinG}g</strong><small>Preserve and build lean mass</small></div><div><span>Carbs</span><strong>{nutritionTargets.carbsG}g</strong><small>Fuel training and recovery</small></div><div><span>Fat</span><strong>{nutritionTargets.fatG}g</strong><small>Hormones and satiety</small></div></div>
+            <div className="nutrition-adjustment"><span><Flame size={17} /><b>Today’s adjustment</b></span><strong>{nutritionTargets.adjustmentKcal > 0 ? '+' : ''}{nutritionTargets.adjustmentKcal} kcal</strong></div>
+            {nutritionTargets.safeguards.map((guard) => <div className="nutrition-safeguard" key={guard}><ShieldAlert size={15} /><span>{guard}</span></div>)}
           </article>
 
           <article className="panel strength-panel">
