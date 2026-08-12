@@ -34,6 +34,17 @@ describe('dashboard sync', () => {
     expect(request.mock.calls[1]?.[1]).toMatchObject({ method: 'PUT' });
   });
 
+  it('reloads the winning snapshot when two clients race to create it', async () => {
+    const winner = { state, updatedAt: '2026-08-12T12:01:00.000Z', revision: 'rev-winner' };
+    const request = vi.fn()
+      .mockResolvedValueOnce(new Response(null, { status: 404 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ error: 'revision_conflict' }), { status: 412 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify(winner), { status: 200 }));
+    const client = new DashboardSyncClient({ baseUrl: 'https://sync.forge.test', token: 'secret' }, request as typeof fetch);
+    await expect(client.initialize(state, '2026-08-12T12:00:00.000Z')).resolves.toEqual(winner);
+    expect(request).toHaveBeenCalledTimes(3);
+  });
+
   it('stays local without complete configuration and compares update times', () => {
     expect(dashboardSyncConfig({ VITE_FORGE_SYNC_URL: 'https://sync.forge.test' })).toBeNull();
     expect(newerThanLocal('2026-08-12T12:01:00.000Z', '2026-08-12T12:00:00.000Z')).toBe(true);
