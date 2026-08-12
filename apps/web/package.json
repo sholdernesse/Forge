@@ -11,6 +11,7 @@
     "dev": "vite --host 0.0.0.0"
   },
   "dependencies": {
+    "@azure/msal-browser": "^4.25.0",
     "@forge/coach": "workspace:*",
     "@forge/digital-twin": "workspace:*",
     "@forge/shared": "workspace:*",
