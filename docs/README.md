@@ -5,3 +5,5 @@
 - `sprints/` — sprint scope and acceptance notes
 
 Current delivery: [Sprint 4.3 — Authenticated Cross-Device Persistence](./sprints/sprint-4.3.md).
+
+Deployment: [Microsoft Entra External ID for Forge](./deployment/entra-external-id.md).
