@@ -2,12 +2,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { CoachService } from '@forge/coach';
 import { buildDigitalTwin, type DailySnapshot, type Recommendation } from '@forge/digital-twin';
 import {
-  Activity, Apple, ArrowRight, Award, Brain, CalendarDays, ChevronRight, CircleUserRound, Dumbbell,
+  Activity, Apple, ArrowRight, Award, Brain, CalendarDays, ChevronRight, CircleUserRound, Cloud, CloudOff, Dumbbell,
   Flame, Footprints, Gauge, HeartPulse, Home, Moon, Plus, Settings, ShieldAlert, Sparkles,
   Save, Target, TrendingDown, Utensils, X,
 } from 'lucide-react';
 import { demoGoals, demoHistory, demoProfile } from './demoData.js';
-import { clearDashboardState, loadDashboardState, saveDashboardState, type CheckIn } from './dashboardStorage.js';
+import { cacheDashboardState, clearDashboardState, dashboardStateUpdatedAt, DASHBOARD_SAVED_EVENT, loadDashboardState, saveDashboardState, type CheckIn, type DashboardSaveEventDetail } from './dashboardStorage.js';
+import { DashboardSyncClient, dashboardSyncConfig, newerThanLocal, type SyncStatus } from './dashboardSync.js';
 import { WorkoutPlayer } from './WorkoutPlayer.js';
 import { completedSetCount, createTodayWorkout, totalSetCount, workoutMinutes, type WorkoutSession } from './workoutSession.js';
 import { demoExerciseHistory, recordPerformances, strongestMovements, type ExercisePerformance } from './progression.js';
@@ -85,6 +86,7 @@ export function App() {
   const [favoriteFoodIds, setFavoriteFoodIds] = useState<string[]>(initialState.favoriteFoodIds ?? ['eggs-whites', 'chicken-breast', 'protein-shake']);
   const [savedMeals, setSavedMeals] = useState<SavedMeal[]>(initialState.savedMeals ?? demoSavedMeals);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>('local');
 
   const evaluation = useMemo(() => {
     const twin = buildDigitalTwin({ profile: { ...demoProfile, weightKg: checkIn.weightKg }, goals: demoGoals, history, asOfDate: TODAY, now: NOW });
@@ -104,6 +106,51 @@ export function App() {
   const volume = weeklyVolume(sessionHistory, TODAY).filter((item) => ['chest', 'back', 'shoulders', 'quads', 'hamstrings', 'glutes'].includes(item.muscle));
   const week = trainingWeek(sessionHistory, TODAY, workout.title, scheduleOverrides);
   const loggedNutrition = foodTotals(foodEntries, TODAY);
+
+  useEffect(() => {
+    const config = dashboardSyncConfig((import.meta as ImportMeta & { env: Record<string, unknown> }).env);
+    if (!config) return;
+    const client = new DashboardSyncClient(config);
+    let active = true;
+    const remoteDashboard = client.load();
+
+    const handleSaved = (event: Event) => {
+      const { state, updatedAt } = (event as CustomEvent<DashboardSaveEventDetail>).detail;
+      setSyncStatus('syncing');
+      void remoteDashboard.catch(() => null).then(() => client.save(state, updatedAt))
+        .then(() => { if (active) setSyncStatus('synced'); })
+        .catch(() => { if (active) setSyncStatus('offline'); });
+    };
+
+    window.addEventListener(DASHBOARD_SAVED_EVENT, handleSaved);
+    setSyncStatus('connecting');
+    void remoteDashboard
+      .then((remote) => {
+        if (!active) return;
+        if (remote && newerThanLocal(remote.updatedAt, dashboardStateUpdatedAt(window.localStorage))) {
+          const next = remote.state;
+          setHistory(next.history);
+          setCheckIn(next.checkIn);
+          setCheckInDraft(next.checkIn);
+          if (next.savedAt) setSavedAt(next.savedAt);
+          if (next.workoutSession) setWorkout(next.workoutSession);
+          if (next.exerciseHistory) setExerciseHistory(next.exerciseHistory);
+          if (next.sessionHistory) setSessionHistory(next.sessionHistory);
+          if (next.scheduleOverrides) setScheduleOverrides(next.scheduleOverrides);
+          if (next.foodEntries) setFoodEntries(next.foodEntries);
+          if (next.favoriteFoodIds) setFavoriteFoodIds(next.favoriteFoodIds);
+          if (next.savedMeals) setSavedMeals(next.savedMeals);
+          cacheDashboardState(window.localStorage, next, remote.updatedAt);
+        }
+        setSyncStatus('synced');
+      })
+      .catch(() => { if (active) setSyncStatus('offline'); });
+
+    return () => {
+      active = false;
+      window.removeEventListener(DASHBOARD_SAVED_EVENT, handleSaved);
+    };
+  }, []);
 
   useEffect(() => {
     if (workout.status !== 'not-started') return;
@@ -260,7 +307,7 @@ export function App() {
         <header className="topbar">
           <div><span className="eyebrow">WEDNESDAY · AUGUST 12</span><h1>Good morning, Shane.</h1><p>Your plan has adapted to how you’re recovering today.</p></div>
           <div className="topbar-actions">
-            <span className="save-status"><Save size={15} /> {savedAt ? 'Saved on this device' : 'Demo data'}</span>
+            <span className={`save-status sync-${syncStatus}`}>{syncStatus === 'offline' ? <CloudOff size={15} /> : syncStatus === 'local' ? <Save size={15} /> : <Cloud size={15} />} {syncStatus === 'syncing' ? 'Syncing…' : syncStatus === 'connecting' ? 'Connecting…' : syncStatus === 'synced' ? 'Synced across devices' : syncStatus === 'offline' ? 'Offline · saved locally' : savedAt ? 'Saved on this device' : 'Demo data'}</span>
             <button className="topbar-settings" onClick={() => setSettingsOpen(true)} aria-label="Open Forge settings"><Settings size={18} /></button>
             <button className="checkin-button" onClick={openCheckIn}><Plus size={18} /> Morning check-in</button>
           </div>
