@@ -1,5 +1,6 @@
 import type { DigitalTwin } from '@forge/digital-twin';
 import type { WorkoutExercise, WorkoutSession } from './workoutSession.js';
+import { weeklyVolume, type TrainingSessionRecord } from './volumeLedger.js';
 
 export interface TrainingPreferences {
   equipment: Array<'barbell' | 'dumbbells' | 'bands' | 'rack' | 'treadmill'>;
@@ -21,7 +22,7 @@ function durationExercise(id: string, name: string, detail: string, minutes: num
   return { id, name, detail, mode: 'duration', restSeconds: 30, sets: [{ id: `${id}-1`, durationMinutes: minutes }] };
 }
 
-export function generateTrainingPlan(twin: DigitalTwin, preferences: TrainingPreferences): WorkoutSession {
+export function generateTrainingPlan(twin: DigitalTwin, preferences: TrainingPreferences, sessionHistory: TrainingSessionRecord[] = []): WorkoutSession {
   const date = twin.asOfDate;
   const readiness = twin.recovery.readiness;
   const weeklyTarget = twin.goals.weeklyTrainingTarget ?? 4;
@@ -41,12 +42,16 @@ export function generateTrainingPlan(twin: DigitalTwin, preferences: TrainingPre
     };
   }
 
-  const upperDay = twin.training.sessionsLast7Days % 2 === 0;
+  const ledger = weeklyVolume(sessionHistory, date);
+  const total = (...muscles: string[]) => ledger.filter((item) => muscles.includes(item.muscle)).reduce((sum, item) => sum + item.completed / item.target, 0);
+  const upperVolume = total('chest', 'back', 'shoulders', 'biceps', 'triceps');
+  const lowerVolume = total('quads', 'hamstrings', 'glutes', 'calves');
+  const upperDay = sessionHistory.length ? upperVolume <= lowerVolume : twin.training.sessionsLast7Days % 2 === 0;
   if (upperDay) {
     const neutralGrip = preferences.constraints.includes('elbow-sensitive');
     return {
       id: `${date}-adaptive-upper`, date, title: 'Upper strength + delts', status: 'not-started', planType: 'upper-strength', intensity: readiness >= 82 ? 'high' : 'moderate',
-      planReason: `Readiness is ${readiness}. Upper-body volume balances your recent weekly rotation while respecting elbow comfort.`,
+      planReason: `Readiness is ${readiness}. Upper-body volume is further from its weekly target, while exercise choices respect elbow comfort.`,
       exercises: [
         repExercise('barbell-bench', 'Barbell bench press', 'Controlled pause · leave 2 reps in reserve', 4, 8, 59, 120),
         repExercise('chest-supported-row', 'Chest-supported row', 'No lower-back loading', 4, 10, 22.5, 90),
