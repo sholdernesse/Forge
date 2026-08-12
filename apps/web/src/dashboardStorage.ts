@@ -1,4 +1,5 @@
 import { normalizeSnapshots, type DailySnapshot } from '@forge/digital-twin';
+import { isWorkoutSession, type WorkoutSession } from './workoutSession.js';
 
 export type CheckIn = Required<
   Pick<DailySnapshot, 'sleepScore' | 'sleepHours' | 'soreness' | 'stress' | 'weightKg'>
@@ -8,10 +9,11 @@ export interface DashboardState {
   history: DailySnapshot[];
   checkIn: CheckIn;
   savedAt?: string;
+  workoutSession?: WorkoutSession;
 }
 
 interface StoredDashboardState extends DashboardState {
-  version: 1;
+  version: 2;
 }
 
 export interface DashboardStorage {
@@ -40,14 +42,15 @@ export function loadDashboardState(storage: DashboardStorage, fallback: Dashboar
   try {
     const raw = storage.getItem(DASHBOARD_STORAGE_KEY);
     if (!raw) return fallback;
-    const stored = JSON.parse(raw) as Partial<StoredDashboardState>;
-    if (stored.version !== 1 || !Array.isArray(stored.history) || !isCheckIn(stored.checkIn)) {
+    const stored = JSON.parse(raw) as Partial<Omit<StoredDashboardState, 'version'>> & { version?: number };
+    if ((stored.version !== 1 && stored.version !== 2) || !Array.isArray(stored.history) || !isCheckIn(stored.checkIn)) {
       return fallback;
     }
     return {
       history: normalizeSnapshots(stored.history),
       checkIn: stored.checkIn,
       ...(typeof stored.savedAt === 'string' ? { savedAt: stored.savedAt } : {}),
+      ...(isWorkoutSession(stored.workoutSession) ? { workoutSession: stored.workoutSession } : {}),
     };
   } catch {
     return fallback;
@@ -55,7 +58,7 @@ export function loadDashboardState(storage: DashboardStorage, fallback: Dashboar
 }
 
 export function saveDashboardState(storage: DashboardStorage, state: DashboardState): void {
-  const stored: StoredDashboardState = { version: 1, ...state };
+  const stored: StoredDashboardState = { version: 2, ...state };
   storage.setItem(DASHBOARD_STORAGE_KEY, JSON.stringify(stored));
 }
 
