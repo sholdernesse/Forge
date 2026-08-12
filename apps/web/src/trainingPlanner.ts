@@ -1,6 +1,7 @@
 import type { DigitalTwin } from '@forge/digital-twin';
 import type { WorkoutExercise, WorkoutSession } from './workoutSession.js';
 import { weeklyVolume, type TrainingSessionRecord } from './volumeLedger.js';
+import { applyDeload, assessDeload, type ScheduleIntent } from './schedulePolicy.js';
 
 export interface TrainingPreferences {
   equipment: Array<'barbell' | 'dumbbells' | 'bands' | 'rack' | 'treadmill'>;
@@ -22,14 +23,16 @@ function durationExercise(id: string, name: string, detail: string, minutes: num
   return { id, name, detail, mode: 'duration', restSeconds: 30, sets: [{ id: `${id}-1`, durationMinutes: minutes }] };
 }
 
-export function generateTrainingPlan(twin: DigitalTwin, preferences: TrainingPreferences, sessionHistory: TrainingSessionRecord[] = []): WorkoutSession {
+export function generateTrainingPlan(twin: DigitalTwin, preferences: TrainingPreferences, sessionHistory: TrainingSessionRecord[] = [], scheduleIntent: ScheduleIntent = 'adaptive'): WorkoutSession {
   const date = twin.asOfDate;
   const readiness = twin.recovery.readiness;
   const weeklyTarget = twin.goals.weeklyTrainingTarget ?? 4;
   const weeklyComplete = twin.training.sessionsLast7Days >= weeklyTarget;
 
-  if (readiness < 72 || weeklyComplete) {
-    const cause = weeklyComplete
+  if (readiness < 55 || weeklyComplete || scheduleIntent === 'rest') {
+    const cause = scheduleIntent === 'rest'
+      ? 'You designated today as a rest day. Forge retained light movement to support recovery.'
+      : weeklyComplete
       ? `You have completed ${twin.training.sessionsLast7Days} of ${weeklyTarget} weekly sessions.`
       : `Readiness is ${readiness}, so Forge reduced joint and systemic loading.`;
     return {
@@ -47,9 +50,10 @@ export function generateTrainingPlan(twin: DigitalTwin, preferences: TrainingPre
   const upperVolume = total('chest', 'back', 'shoulders', 'biceps', 'triceps');
   const lowerVolume = total('quads', 'hamstrings', 'glutes', 'calves');
   const upperDay = sessionHistory.length ? upperVolume <= lowerVolume : twin.training.sessionsLast7Days % 2 === 0;
+  const deload = assessDeload(twin);
   if (upperDay) {
     const neutralGrip = preferences.constraints.includes('elbow-sensitive');
-    return {
+    return applyDeload({
       id: `${date}-adaptive-upper`, date, title: 'Upper strength + delts', status: 'not-started', planType: 'upper-strength', intensity: readiness >= 82 ? 'high' : 'moderate',
       planReason: `Readiness is ${readiness}. Upper-body volume is further from its weekly target, while exercise choices respect elbow comfort.`,
       exercises: [
@@ -59,11 +63,11 @@ export function generateTrainingPlan(twin: DigitalTwin, preferences: TrainingPre
         repExercise('lateral-raise', 'Lateral raise', 'Lead with elbows · strict tempo', 3, 15, 6.8, 60),
         repExercise('band-face-pull', 'Band face pull', 'External rotation finish', 3, 20, 4.5, 45),
       ],
-    };
+    }, deload);
   }
 
   const backSensitive = preferences.constraints.includes('lower-back-sensitive');
-  return {
+  return applyDeload({
     id: `${date}-adaptive-lower`, date, title: 'Lower body + core', status: 'not-started', planType: 'lower-strength', intensity: readiness >= 82 ? 'high' : 'moderate',
     planReason: `Readiness is ${readiness}. Lower-body work is due; exercise selection limits unsupported spinal loading.`,
     exercises: [
@@ -73,5 +77,5 @@ export function generateTrainingPlan(twin: DigitalTwin, preferences: TrainingPre
       repExercise('standing-calf-raise', 'Standing calf raise', 'Two-second peak contraction', 3, 15, 27.2, 60),
       repExercise('dead-bugs', 'Dead bugs', 'Each side · slow exhale', 3, 10, 0, 60),
     ],
-  };
+  }, deload);
 }
