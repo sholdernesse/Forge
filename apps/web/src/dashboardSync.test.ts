@@ -25,6 +25,15 @@ describe('dashboard sync', () => {
     expect(request.mock.calls[1]?.[1]).toMatchObject({ method: 'PUT', headers: { 'if-match': 'rev-1' } });
   });
 
+  it('creates the first remote dashboard after an authenticated 404', async () => {
+    const request = vi.fn()
+      .mockResolvedValueOnce(new Response(null, { status: 404 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ state, updatedAt: '2026-08-12T12:01:00.000Z', revision: 'rev-1' }), { status: 200 }));
+    const client = new DashboardSyncClient({ baseUrl: 'https://sync.forge.test', token: 'secret' }, request as typeof fetch);
+    await expect(client.initialize(state, '2026-08-12T12:00:00.000Z')).resolves.toMatchObject({ revision: 'rev-1' });
+    expect(request.mock.calls[1]?.[1]).toMatchObject({ method: 'PUT' });
+  });
+
   it('stays local without complete configuration and compares update times', () => {
     expect(dashboardSyncConfig({ VITE_FORGE_SYNC_URL: 'https://sync.forge.test' })).toBeNull();
     expect(newerThanLocal('2026-08-12T12:01:00.000Z', '2026-08-12T12:00:00.000Z')).toBe(true);
