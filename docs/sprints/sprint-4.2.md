@@ -27,6 +27,10 @@ Turn Forge's decision engine into a browser-based coaching experience that users
 - elbow- and lower-back-conscious exercise substitutions
 - visible plan rationale and intended intensity
 - automatic replanning after check-in while preserving active sessions
+- Monday-to-Sunday training schedule with completed and adaptive days
+- per-muscle weekly hard-set ledger and volume targets
+- completed-session summaries persisted from workout execution
+- adaptive upper/lower selection driven by relative muscle-volume deficits
 - immediate Digital Twin recalculation through the production domain packages
 - explainable recommendation evidence and confidence
 - seven-day weight trend and weekly training progress
@@ -60,6 +64,7 @@ Open `http://localhost:4173`.
 - progression targets follow the latest completed performance
 - Today explains why the generated session matches current recovery and load
 - an active workout is never replaced by a later signal refresh
+- finishing sets updates the weekly muscle ledger and subsequent plan selection
 - recommendation reasons, evidence count, and confidence are visible
 - workspace lint, typecheck, tests, and production build pass
 
@@ -69,7 +74,7 @@ Open `http://localhost:4173`.
 - make Today use the authenticated user's local date and stored history
 - expand workout planning beyond the current recovery-session template
 - expand exercise history into per-movement detail pages
-- add a weekly schedule and muscle-group volume ledger
 - add formal deload blocks and plan-level progression across mesocycles
+- add schedule editing, session moves, and explicit rest-day controls
 - add adaptive calorie and body-composition targets
 - add accessibility and browser interaction tests
