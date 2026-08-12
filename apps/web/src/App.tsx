@@ -7,7 +7,7 @@ import {
   Save, Target, TrendingDown, Utensils, X,
 } from 'lucide-react';
 import { demoGoals, demoHistory, demoProfile } from './demoData.js';
-import { loadDashboardState, saveDashboardState, type CheckIn } from './dashboardStorage.js';
+import { clearDashboardState, loadDashboardState, saveDashboardState, type CheckIn } from './dashboardStorage.js';
 import { WorkoutPlayer } from './WorkoutPlayer.js';
 import { completedSetCount, createTodayWorkout, totalSetCount, workoutMinutes, type WorkoutSession } from './workoutSession.js';
 import { demoExerciseHistory, recordPerformances, strongestMovements, type ExercisePerformance } from './progression.js';
@@ -18,6 +18,8 @@ import { calculateNutritionTargets } from './nutritionPlanner.js';
 import { FoodLogger } from './FoodLogger.js';
 import { demoFoodEntries, foodTotals, type FoodEntry, type SavedMeal } from './foodLog.js';
 import { demoSavedMeals } from './foodCatalog.js';
+import { freshWorkoutPlan } from './prototypeActions.js';
+import { SettingsPanel } from './SettingsPanel.js';
 
 const TODAY = '2026-08-12' as const;
 const NOW = '2026-08-12T11:30:00.000Z';
@@ -82,6 +84,7 @@ export function App() {
   const [foodLoggerOpen, setFoodLoggerOpen] = useState(false);
   const [favoriteFoodIds, setFavoriteFoodIds] = useState<string[]>(initialState.favoriteFoodIds ?? ['eggs-whites', 'chicken-breast', 'protein-shake']);
   const [savedMeals, setSavedMeals] = useState<SavedMeal[]>(initialState.savedMeals ?? demoSavedMeals);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const evaluation = useMemo(() => {
     const twin = buildDigitalTwin({ profile: { ...demoProfile, weightKg: checkIn.weightKg }, goals: demoGoals, history, asOfDate: TODAY, now: NOW });
@@ -223,6 +226,19 @@ export function App() {
     saveDashboardState(window.localStorage, { history, checkIn, workoutSession: workout, exerciseHistory, sessionHistory, scheduleOverrides, foodEntries, favoriteFoodIds: nextFavorites, savedMeals: nextMeals, ...(savedAt ? { savedAt } : {}) });
   }
 
+  function generateNewPlan() {
+    const nextWorkout = freshWorkoutPlan(generatedPlan);
+    setWorkout(nextWorkout);
+    saveDashboardState(window.localStorage, { history, checkIn, workoutSession: nextWorkout, exerciseHistory, sessionHistory, scheduleOverrides, foodEntries, favoriteFoodIds, savedMeals, ...(savedAt ? { savedAt } : {}) });
+    setSaved(true);
+    window.setTimeout(() => setSaved(false), 2600);
+  }
+
+  function resetPrototype() {
+    clearDashboardState(window.localStorage);
+    window.location.reload();
+  }
+
   return (
     <div className="app-shell">
       <aside className="sidebar">
@@ -235,7 +251,7 @@ export function App() {
           <a href="#coach"><Brain size={19} /><span>AI Coach</span></a>
         </nav>
         <div className="sidebar-bottom">
-          <a href="#settings"><Settings size={19} /><span>Settings</span></a>
+          <button className="sidebar-settings" onClick={() => setSettingsOpen(true)}><Settings size={19} /><span>Settings</span></button>
           <div className="profile-chip"><CircleUserRound size={28} /><div><strong>Shane</strong><span>120-day shred</span></div></div>
         </div>
       </aside>
@@ -245,11 +261,12 @@ export function App() {
           <div><span className="eyebrow">WEDNESDAY · AUGUST 12</span><h1>Good morning, Shane.</h1><p>Your plan has adapted to how you’re recovering today.</p></div>
           <div className="topbar-actions">
             <span className="save-status"><Save size={15} /> {savedAt ? 'Saved on this device' : 'Demo data'}</span>
+            <button className="topbar-settings" onClick={() => setSettingsOpen(true)} aria-label="Open Forge settings"><Settings size={18} /></button>
             <button className="checkin-button" onClick={openCheckIn}><Plus size={18} /> Morning check-in</button>
           </div>
         </header>
 
-        {saved && <div className="toast"><Sparkles size={17} /> Digital Twin updated. Today’s guidance is refreshed.</div>}
+        {saved && <div className="toast" role="status" aria-live="polite"><Sparkles size={17} /> Digital Twin updated. Today’s guidance is refreshed.</div>}
 
         <section className="hero-grid" id="today">
           <article className="hero-card readiness-card">
@@ -336,8 +353,8 @@ export function App() {
       </main>
 
       {checkInOpen && <div className="drawer-backdrop" onMouseDown={() => setCheckInOpen(false)}>
-        <aside className="drawer" onMouseDown={(event) => event.stopPropagation()}>
-          <div className="drawer-heading"><div><span className="section-label">DAILY SIGNALS</span><h2>Morning check-in</h2><p>These inputs update your Digital Twin and today’s guidance.</p></div><button onClick={() => setCheckInOpen(false)}><X size={20} /></button></div>
+        <aside className="drawer" role="dialog" aria-modal="true" aria-labelledby="checkin-title" tabIndex={-1} autoFocus onMouseDown={(event) => event.stopPropagation()}>
+          <div className="drawer-heading"><div><span className="section-label">DAILY SIGNALS</span><h2 id="checkin-title">Morning check-in</h2><p>These inputs update your Digital Twin and today’s guidance.</p></div><button onClick={() => setCheckInOpen(false)} aria-label="Close check-in"><X size={20} /></button></div>
           <label>Body weight <output>{checkInDraft.weightKg.toFixed(1)} kg</output><input type="range" min="65" max="90" step="0.1" value={checkInDraft.weightKg} onChange={(e) => setCheckInDraft({ ...checkInDraft, weightKg: Number(e.target.value) })} /></label>
           <label>Sleep quality <output>{checkInDraft.sleepScore}/100</output><input type="range" min="0" max="100" value={checkInDraft.sleepScore} onChange={(e) => setCheckInDraft({ ...checkInDraft, sleepScore: Number(e.target.value) })} /></label>
           <label>Hours slept <output>{checkInDraft.sleepHours.toFixed(1)}h</output><input type="range" min="0" max="12" step="0.1" value={checkInDraft.sleepHours} onChange={(e) => setCheckInDraft({ ...checkInDraft, sleepHours: Number(e.target.value) })} /></label>
@@ -350,8 +367,9 @@ export function App() {
 
       {workoutOpen && <WorkoutPlayer session={workout} exerciseHistory={exerciseHistory} onChange={persistWorkout} onClose={() => setWorkoutOpen(false)} onFinish={finishWorkout} />}
       {foodLoggerOpen && <FoodLogger date={TODAY} entries={foodEntries} favoriteFoodIds={favoriteFoodIds} savedMeals={savedMeals} onChange={updateFoodEntries} onPreferencesChange={updateFoodPreferences} onClose={() => setFoodLoggerOpen(false)} />}
+      {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} onGeneratePlan={generateNewPlan} onReset={resetPrototype} />}
 
-      <nav className="mobile-nav"><a className="active" href="#today"><Home size={20} /><span>Today</span></a><a href="#training"><Dumbbell size={20} /><span>Train</span></a><button onClick={openCheckIn}><Plus size={22} /></button><a href="#nutrition"><Apple size={20} /><span>Nutrition</span></a><a href="#coach"><Brain size={20} /><span>Coach</span></a></nav>
+      <nav className="mobile-nav" aria-label="Mobile navigation"><a className="active" href="#today"><Home size={20} /><span>Today</span></a><a href="#training"><Dumbbell size={20} /><span>Train</span></a><button onClick={openCheckIn} aria-label="Open daily check-in"><Plus size={22} /></button><a href="#nutrition"><Apple size={20} /><span>Nutrition</span></a><a href="#coach"><Brain size={20} /><span>Coach</span></a></nav>
     </div>
   );
 }
