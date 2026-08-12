@@ -10,7 +10,7 @@ const state: DashboardState = {
 describe('dashboard sync', () => {
   it('loads a remote dashboard using bearer authentication', async () => {
     const request = vi.fn(async () => new Response(JSON.stringify({ state, updatedAt: '2026-08-12T12:00:00.000Z', revision: 'rev-1' }), { status: 200 }));
-    const client = new DashboardSyncClient({ baseUrl: 'https://sync.forge.test', token: 'secret' }, request as typeof fetch);
+    const client = new DashboardSyncClient({ baseUrl: 'https://sync.forge.test', accessToken: async () => 'secret' }, request as typeof fetch);
     await expect(client.load()).resolves.toMatchObject({ revision: 'rev-1', state });
     expect(request).toHaveBeenCalledWith('https://sync.forge.test/v1/dashboard', { headers: { authorization: 'Bearer secret' } });
   });
@@ -19,7 +19,7 @@ describe('dashboard sync', () => {
     const request = vi.fn()
       .mockResolvedValueOnce(new Response(JSON.stringify({ state, updatedAt: '2026-08-12T12:00:00.000Z', revision: 'rev-1' }), { status: 200 }))
       .mockResolvedValueOnce(new Response(JSON.stringify({ state, updatedAt: '2026-08-12T12:01:00.000Z', revision: 'rev-2' }), { status: 200 }));
-    const client = new DashboardSyncClient({ baseUrl: 'https://sync.forge.test', token: 'secret' }, request as typeof fetch);
+    const client = new DashboardSyncClient({ baseUrl: 'https://sync.forge.test', accessToken: async () => 'secret' }, request as typeof fetch);
     await client.load();
     await client.save(state, '2026-08-12T12:01:00.000Z');
     expect(request.mock.calls[1]?.[1]).toMatchObject({ method: 'PUT', headers: { 'if-match': 'rev-1' } });
@@ -29,7 +29,7 @@ describe('dashboard sync', () => {
     const request = vi.fn()
       .mockResolvedValueOnce(new Response(null, { status: 404 }))
       .mockResolvedValueOnce(new Response(JSON.stringify({ state, updatedAt: '2026-08-12T12:01:00.000Z', revision: 'rev-1' }), { status: 200 }));
-    const client = new DashboardSyncClient({ baseUrl: 'https://sync.forge.test', token: 'secret' }, request as typeof fetch);
+    const client = new DashboardSyncClient({ baseUrl: 'https://sync.forge.test', accessToken: async () => 'secret' }, request as typeof fetch);
     await expect(client.initialize(state, '2026-08-12T12:00:00.000Z')).resolves.toMatchObject({ revision: 'rev-1' });
     expect(request.mock.calls[1]?.[1]).toMatchObject({ method: 'PUT' });
   });
@@ -40,7 +40,7 @@ describe('dashboard sync', () => {
       .mockResolvedValueOnce(new Response(null, { status: 404 }))
       .mockResolvedValueOnce(new Response(JSON.stringify({ error: 'revision_conflict' }), { status: 412 }))
       .mockResolvedValueOnce(new Response(JSON.stringify(winner), { status: 200 }));
-    const client = new DashboardSyncClient({ baseUrl: 'https://sync.forge.test', token: 'secret' }, request as typeof fetch);
+    const client = new DashboardSyncClient({ baseUrl: 'https://sync.forge.test', accessToken: async () => 'secret' }, request as typeof fetch);
     await expect(client.initialize(state, '2026-08-12T12:00:00.000Z')).resolves.toEqual(winner);
     expect(request).toHaveBeenCalledTimes(3);
   });
