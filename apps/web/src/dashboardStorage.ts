@@ -23,7 +23,13 @@ export interface DashboardState {
 }
 
 interface StoredDashboardState extends DashboardState {
-  version: 7;
+  version: 8;
+  updatedAt: string;
+}
+
+export interface DashboardSaveEventDetail {
+  state: DashboardState;
+  updatedAt: string;
 }
 
 export interface DashboardStorage {
@@ -33,6 +39,7 @@ export interface DashboardStorage {
 }
 
 export const DASHBOARD_STORAGE_KEY = 'forge.dashboard.v1';
+export const DASHBOARD_SAVED_EVENT = 'forge:dashboard-saved';
 
 function inRange(value: unknown, minimum: number, maximum: number): value is number {
   return typeof value === 'number' && Number.isFinite(value) && value >= minimum && value <= maximum;
@@ -48,34 +55,60 @@ function isCheckIn(value: unknown): value is CheckIn {
     && inRange(candidate.stress, 0, 10);
 }
 
+export function parseDashboardState(value: unknown): DashboardState | null {
+  if (!value || typeof value !== 'object') return null;
+  const stored = value as Partial<DashboardState>;
+  if (!Array.isArray(stored.history) || !isCheckIn(stored.checkIn)) return null;
+  return {
+    history: normalizeSnapshots(stored.history),
+    checkIn: stored.checkIn,
+    ...(typeof stored.savedAt === 'string' ? { savedAt: stored.savedAt } : {}),
+    ...(isWorkoutSession(stored.workoutSession) ? { workoutSession: stored.workoutSession } : {}),
+    ...(Array.isArray(stored.exerciseHistory) ? { exerciseHistory: stored.exerciseHistory } : {}),
+    ...(Array.isArray(stored.sessionHistory) ? { sessionHistory: stored.sessionHistory } : {}),
+    ...(stored.scheduleOverrides && typeof stored.scheduleOverrides === 'object' ? { scheduleOverrides: stored.scheduleOverrides } : {}),
+    ...(Array.isArray(stored.foodEntries) ? { foodEntries: stored.foodEntries } : {}),
+    ...(Array.isArray(stored.favoriteFoodIds) ? { favoriteFoodIds: stored.favoriteFoodIds } : {}),
+    ...(Array.isArray(stored.savedMeals) ? { savedMeals: stored.savedMeals } : {}),
+  };
+}
+
 export function loadDashboardState(storage: DashboardStorage, fallback: DashboardState): DashboardState {
   try {
     const raw = storage.getItem(DASHBOARD_STORAGE_KEY);
     if (!raw) return fallback;
     const stored = JSON.parse(raw) as Partial<Omit<StoredDashboardState, 'version'>> & { version?: number };
-    if (![1, 2, 3, 4, 5, 6, 7].includes(stored.version ?? 0) || !Array.isArray(stored.history) || !isCheckIn(stored.checkIn)) {
+    if (![1, 2, 3, 4, 5, 6, 7, 8].includes(stored.version ?? 0) || !Array.isArray(stored.history) || !isCheckIn(stored.checkIn)) {
       return fallback;
     }
-    return {
-      history: normalizeSnapshots(stored.history),
-      checkIn: stored.checkIn,
-      ...(typeof stored.savedAt === 'string' ? { savedAt: stored.savedAt } : {}),
-      ...(isWorkoutSession(stored.workoutSession) ? { workoutSession: stored.workoutSession } : {}),
-      ...(Array.isArray(stored.exerciseHistory) ? { exerciseHistory: stored.exerciseHistory } : {}),
-      ...(Array.isArray(stored.sessionHistory) ? { sessionHistory: stored.sessionHistory } : {}),
-      ...(stored.scheduleOverrides && typeof stored.scheduleOverrides === 'object' ? { scheduleOverrides: stored.scheduleOverrides } : {}),
-      ...(Array.isArray(stored.foodEntries) ? { foodEntries: stored.foodEntries } : {}),
-      ...(Array.isArray(stored.favoriteFoodIds) ? { favoriteFoodIds: stored.favoriteFoodIds } : {}),
-      ...(Array.isArray(stored.savedMeals) ? { savedMeals: stored.savedMeals } : {}),
-    };
+    return parseDashboardState(stored) ?? fallback;
   } catch {
     return fallback;
   }
 }
 
 export function saveDashboardState(storage: DashboardStorage, state: DashboardState): void {
-  const stored: StoredDashboardState = { version: 7, ...state };
+  const updatedAt = new Date().toISOString();
+  cacheDashboardState(storage, state, updatedAt);
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent<DashboardSaveEventDetail>(DASHBOARD_SAVED_EVENT, { detail: { state, updatedAt } }));
+  }
+}
+
+export function cacheDashboardState(storage: DashboardStorage, state: DashboardState, updatedAt: string): void {
+  const stored: StoredDashboardState = { version: 8, updatedAt, ...state };
   storage.setItem(DASHBOARD_STORAGE_KEY, JSON.stringify(stored));
+}
+
+export function dashboardStateUpdatedAt(storage: DashboardStorage): string | undefined {
+  try {
+    const raw = storage.getItem(DASHBOARD_STORAGE_KEY);
+    if (!raw) return undefined;
+    const stored = JSON.parse(raw) as { updatedAt?: unknown };
+    return typeof stored.updatedAt === 'string' ? stored.updatedAt : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 export function clearDashboardState(storage: DashboardStorage): void {
