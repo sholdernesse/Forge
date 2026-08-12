@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { CoachService } from '@forge/coach';
 import { buildDigitalTwin, type DailySnapshot, type Recommendation } from '@forge/digital-twin';
 import {
-  Activity, Apple, ArrowRight, Award, Brain, ChevronRight, CircleUserRound, Dumbbell,
+  Activity, Apple, ArrowRight, Award, Brain, CalendarDays, ChevronRight, CircleUserRound, Dumbbell,
   Flame, Footprints, Gauge, HeartPulse, Home, Moon, Plus, Settings, Sparkles,
   Save, Target, TrendingDown, Utensils, X,
 } from 'lucide-react';
@@ -12,6 +12,7 @@ import { WorkoutPlayer } from './WorkoutPlayer.js';
 import { completedSetCount, createTodayWorkout, totalSetCount, workoutMinutes, type WorkoutSession } from './workoutSession.js';
 import { demoExerciseHistory, recordPerformances, strongestMovements, type ExercisePerformance } from './progression.js';
 import { demoTrainingPreferences, generateTrainingPlan } from './trainingPlanner.js';
+import { demoSessionHistory, summarizeWorkout, trainingWeek, weeklyVolume, type TrainingSessionRecord } from './volumeLedger.js';
 
 const TODAY = '2026-08-12' as const;
 const NOW = '2026-08-12T11:30:00.000Z';
@@ -70,6 +71,7 @@ export function App() {
   const [workout, setWorkout] = useState<WorkoutSession>(initialState.workoutSession ?? createTodayWorkout(TODAY));
   const [workoutOpen, setWorkoutOpen] = useState(false);
   const [exerciseHistory, setExerciseHistory] = useState<ExercisePerformance[]>(initialState.exerciseHistory ?? demoExerciseHistory);
+  const [sessionHistory, setSessionHistory] = useState<TrainingSessionRecord[]>(initialState.sessionHistory ?? demoSessionHistory);
 
   const evaluation = useMemo(() => {
     const twin = buildDigitalTwin({ profile: { ...demoProfile, weightKg: checkIn.weightKg }, goals: demoGoals, history, asOfDate: TODAY, now: NOW });
@@ -77,13 +79,15 @@ export function App() {
   }, [history, checkIn.weightKg]);
 
   const { twin, brief } = evaluation;
-  const generatedPlan = useMemo(() => generateTrainingPlan(twin, demoTrainingPreferences), [twin]);
+  const generatedPlan = useMemo(() => generateTrainingPlan(twin, demoTrainingPreferences, sessionHistory), [twin, sessionHistory]);
   const today = history.find((day) => day.date === TODAY)!;
   const targetProtein = Math.round(checkIn.weightKg * 1.8);
   const calorieTarget = 2200;
   const weights = history.map((day) => day.weightKg ?? checkIn.weightKg);
   const strengthLeaders = strongestMovements(exerciseHistory).slice(0, 3);
   const plannedMinutes = workout.exercises.reduce((total, exercise) => total + exercise.sets.reduce((sum, set) => sum + (set.durationMinutes ?? 3), 0), 0);
+  const volume = weeklyVolume(sessionHistory, TODAY).filter((item) => ['chest', 'back', 'shoulders', 'quads', 'hamstrings', 'glutes'].includes(item.muscle));
+  const week = trainingWeek(sessionHistory, TODAY, workout.title);
 
   useEffect(() => {
     if (workout.status !== 'not-started') return;
@@ -94,9 +98,10 @@ export function App() {
       checkIn,
       workoutSession: generatedPlan,
       exerciseHistory,
+      sessionHistory,
       ...(savedAt ? { savedAt } : {}),
     });
-  }, [generatedPlan, workout, history, checkIn, exerciseHistory, savedAt]);
+  }, [generatedPlan, workout, history, checkIn, exerciseHistory, sessionHistory, savedAt]);
 
   function saveCheckIn() {
     const nextHistory = history.map((day) => day.date === TODAY ? { ...day, ...checkInDraft } : day);
@@ -110,6 +115,7 @@ export function App() {
       savedAt: nextSavedAt,
       workoutSession: workout,
       exerciseHistory,
+      sessionHistory,
     });
     setSaved(true);
     setCheckInOpen(false);
@@ -128,6 +134,7 @@ export function App() {
       checkIn,
       workoutSession: nextWorkout,
       exerciseHistory,
+      sessionHistory,
       ...(savedAt ? { savedAt } : {}),
     });
   }
@@ -150,13 +157,17 @@ export function App() {
     setHistory(nextHistory);
     const performances = recordPerformances(nextWorkout, exerciseHistory);
     const nextExerciseHistory = [...exerciseHistory, ...performances];
+    const summary = summarizeWorkout(nextWorkout, minutes);
+    const nextSessionHistory = [...sessionHistory.filter((session) => session.workoutId !== summary.workoutId), summary];
     setExerciseHistory(nextExerciseHistory);
+    setSessionHistory(nextSessionHistory);
     setWorkout(nextWorkout);
     saveDashboardState(window.localStorage, {
       history: nextHistory,
       checkIn,
       workoutSession: nextWorkout,
       exerciseHistory: nextExerciseHistory,
+      sessionHistory: nextSessionHistory,
       ...(savedAt ? { savedAt } : {}),
     });
     setWorkoutOpen(false);
@@ -255,6 +266,12 @@ export function App() {
             <div className="panel-heading"><div><span className="section-label">STRENGTH PROGRESS</span><h3>Your estimated strength is climbing</h3></div><Award size={22} className="trend-icon" /></div>
             <p className="panel-copy">Forge compares quality reps and load—not just the heaviest number you entered.</p>
             <div className="strength-list">{strengthLeaders.map((movement) => <div key={movement.exerciseId}><span><b>{movement.exerciseName}</b><small>{movement.loadKg} kg × {movement.reps} · est. max {movement.estimatedOneRepMax} kg</small></span><strong className={movement.gainPct > 0 ? 'positive' : ''}>{movement.gainPct > 0 ? '+' : ''}{movement.gainPct}%</strong></div>)}</div>
+          </article>
+
+          <article className="panel schedule-panel">
+            <div className="panel-heading"><div><span className="section-label">TRAINING WEEK</span><h3>Schedule + muscle volume</h3></div><CalendarDays size={22} className="trend-icon" /></div>
+            <div className="week-strip">{week.map((day) => <div className={day.status} key={day.date}><span>{day.day}</span><b>{Number(day.date.slice(-2))}</b><small>{day.status === 'completed' ? 'Done' : day.status === 'today' ? 'Today' : day.status === 'planned' ? 'Adaptive' : 'Rest'}</small></div>)}</div>
+            <div className="volume-ledger">{volume.map((item) => <div key={item.muscle}><span><b>{item.muscle}</b><small>{item.completed} / {item.target} hard sets</small></span><div className="volume-bar"><i style={{ width: `${Math.min(100, item.completed / item.target * 100)}%` }} /></div><strong>{Math.round(item.completed / item.target * 100)}%</strong></div>)}</div>
           </article>
         </section>
       </main>
