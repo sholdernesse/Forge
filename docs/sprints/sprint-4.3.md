@@ -51,8 +51,21 @@ Production authentication must issue a short-lived, user-scoped token from an id
 - Docker Compose PostgreSQL and API development stack
 - integration coverage for authentication, reads, writes, conflicts, validation, and CORS
 
-## Next slice
+## Slice 3: interactive customer identity
+
+- Microsoft Entra External ID SPA sign-in through MSAL
+- authorization-code flow with PKCE and redirect handling
+- silent access-token acquisition and renewal for dashboard sync
+- explicit signed-out, signed-in, and local-development modes
+- sign-in and sign-out controls in the responsive dashboard header
+- delegated `access_as_user` scope enforcement in the API
+- issuer, audience, signature, subject, and scope validation before data access
+- two-registration Entra setup guide for Forge Web and Forge API
+
+## Remaining deployment work
 
 - return conflict details and offer an explicit refresh/retry path
-- add API integration and multi-device browser tests
-- deploy the API and database, then replace the development token with interactive sign-in
+- provision the hosted web app, Container App, and PostgreSQL Flexible Server
+- configure production DNS, TLS, secrets, and exact CORS origin
+- create the External ID tenant and app registrations using the recorded values
+- add browser coverage for redirect login and two-device synchronization
