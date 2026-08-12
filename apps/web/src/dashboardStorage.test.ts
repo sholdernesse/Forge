@@ -10,6 +10,7 @@ import {
 } from './dashboardStorage.js';
 import { createTodayWorkout } from './workoutSession.js';
 import { demoSessionHistory } from './volumeLedger.js';
+import { demoFoodEntries } from './foodLog.js';
 
 class MemoryStorage implements DashboardStorage {
   private readonly values = new Map<string, string>();
@@ -26,7 +27,7 @@ const fallback: DashboardState = {
 describe('dashboard storage', () => {
   it('round trips a saved check-in and history', () => {
     const storage = new MemoryStorage();
-    const state = { ...fallback, savedAt: '2026-08-12T12:00:00.000Z', workoutSession: createTodayWorkout('2026-08-12'), sessionHistory: demoSessionHistory, scheduleOverrides: { '2026-08-13': 'rest' as const } };
+    const state = { ...fallback, savedAt: '2026-08-12T12:00:00.000Z', workoutSession: createTodayWorkout('2026-08-12'), sessionHistory: demoSessionHistory, scheduleOverrides: { '2026-08-13': 'rest' as const }, foodEntries: demoFoodEntries };
     saveDashboardState(storage, state);
     expect(loadDashboardState(storage, fallback)).toEqual(state);
   });
