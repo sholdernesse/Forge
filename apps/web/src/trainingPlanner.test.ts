@@ -13,7 +13,12 @@ function twinWith(sleepScore: number, sessions: number) {
 
 describe('adaptive training planner', () => {
   it('selects recovery work when readiness is suppressed', () => {
-    expect(generateTrainingPlan(twinWith(35, 2), demoTrainingPreferences)).toMatchObject({ planType: 'recovery', intensity: 'low' });
+    expect(generateTrainingPlan(twinWith(10, 2), demoTrainingPreferences)).toMatchObject({ planType: 'recovery', intensity: 'low' });
+  });
+
+  it('honors a rest-day override without letting a training override bypass unsafe readiness', () => {
+    expect(generateTrainingPlan(twinWith(95, 2), demoTrainingPreferences, [], 'rest').planType).toBe('recovery');
+    expect(generateTrainingPlan(twinWith(10, 2), demoTrainingPreferences, [], 'train').planType).toBe('recovery');
   });
 
   it('selects an upper strength day and protects the elbow when ready', () => {
