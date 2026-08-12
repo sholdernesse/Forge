@@ -27,6 +27,9 @@ main { margin-left: 228px; padding: 38px clamp(28px, 4vw, 64px) 64px; max-width:
 .topbar-actions { display: flex; align-items: center; gap: 14px; }
 .topbar-settings { display: none; width: 42px; height: 42px; border: 1px solid #29493e; border-radius: 10px; background: #10251e; color: #a8c3b9; place-items: center; }
 .save-status { color: #7e9a91; font-size: 12px; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.save-status.sync-synced { color: #76d99a; }
+.save-status.sync-syncing, .save-status.sync-connecting { color: #d6bd70; }
+.save-status.sync-offline { color: #dc8b78; }
 .workout-state-row { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin: 16px 0; padding: 12px 14px; border: 1px solid #285343; border-radius: 10px; background: #10291f; }
 .workout-state-row span { display: grid; gap: 3px; }
 .workout-state-row b { color: #dff9e9; font-size: 13px; }
