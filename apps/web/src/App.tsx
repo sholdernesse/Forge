@@ -3,7 +3,7 @@ import { CoachService } from '@forge/coach';
 import { buildDigitalTwin, type DailySnapshot, type Recommendation } from '@forge/digital-twin';
 import {
   Activity, Apple, ArrowRight, Award, Brain, CalendarDays, ChevronRight, CircleUserRound, Dumbbell,
-  Flame, Footprints, Gauge, HeartPulse, Home, Moon, Plus, Settings, Sparkles,
+  Flame, Footprints, Gauge, HeartPulse, Home, Moon, Plus, Settings, ShieldAlert, Sparkles,
   Save, Target, TrendingDown, Utensils, X,
 } from 'lucide-react';
 import { demoGoals, demoHistory, demoProfile } from './demoData.js';
@@ -13,6 +13,7 @@ import { completedSetCount, createTodayWorkout, totalSetCount, workoutMinutes, t
 import { demoExerciseHistory, recordPerformances, strongestMovements, type ExercisePerformance } from './progression.js';
 import { demoTrainingPreferences, generateTrainingPlan } from './trainingPlanner.js';
 import { demoSessionHistory, summarizeWorkout, trainingWeek, weeklyVolume, type TrainingSessionRecord } from './volumeLedger.js';
+import { assessDeload, nextScheduleIntent, type ScheduleOverrides } from './schedulePolicy.js';
 
 const TODAY = '2026-08-12' as const;
 const NOW = '2026-08-12T11:30:00.000Z';
@@ -72,6 +73,7 @@ export function App() {
   const [workoutOpen, setWorkoutOpen] = useState(false);
   const [exerciseHistory, setExerciseHistory] = useState<ExercisePerformance[]>(initialState.exerciseHistory ?? demoExerciseHistory);
   const [sessionHistory, setSessionHistory] = useState<TrainingSessionRecord[]>(initialState.sessionHistory ?? demoSessionHistory);
+  const [scheduleOverrides, setScheduleOverrides] = useState<ScheduleOverrides>(initialState.scheduleOverrides ?? {});
 
   const evaluation = useMemo(() => {
     const twin = buildDigitalTwin({ profile: { ...demoProfile, weightKg: checkIn.weightKg }, goals: demoGoals, history, asOfDate: TODAY, now: NOW });
@@ -79,7 +81,8 @@ export function App() {
   }, [history, checkIn.weightKg]);
 
   const { twin, brief } = evaluation;
-  const generatedPlan = useMemo(() => generateTrainingPlan(twin, demoTrainingPreferences, sessionHistory), [twin, sessionHistory]);
+  const generatedPlan = useMemo(() => generateTrainingPlan(twin, demoTrainingPreferences, sessionHistory, scheduleOverrides[TODAY]), [twin, sessionHistory, scheduleOverrides]);
+  const deload = useMemo(() => assessDeload(twin), [twin]);
   const today = history.find((day) => day.date === TODAY)!;
   const targetProtein = Math.round(checkIn.weightKg * 1.8);
   const calorieTarget = 2200;
@@ -87,7 +90,7 @@ export function App() {
   const strengthLeaders = strongestMovements(exerciseHistory).slice(0, 3);
   const plannedMinutes = workout.exercises.reduce((total, exercise) => total + exercise.sets.reduce((sum, set) => sum + (set.durationMinutes ?? 3), 0), 0);
   const volume = weeklyVolume(sessionHistory, TODAY).filter((item) => ['chest', 'back', 'shoulders', 'quads', 'hamstrings', 'glutes'].includes(item.muscle));
-  const week = trainingWeek(sessionHistory, TODAY, workout.title);
+  const week = trainingWeek(sessionHistory, TODAY, workout.title, scheduleOverrides);
 
   useEffect(() => {
     if (workout.status !== 'not-started') return;
@@ -99,9 +102,10 @@ export function App() {
       workoutSession: generatedPlan,
       exerciseHistory,
       sessionHistory,
+      scheduleOverrides,
       ...(savedAt ? { savedAt } : {}),
     });
-  }, [generatedPlan, workout, history, checkIn, exerciseHistory, sessionHistory, savedAt]);
+  }, [generatedPlan, workout, history, checkIn, exerciseHistory, sessionHistory, scheduleOverrides, savedAt]);
 
   function saveCheckIn() {
     const nextHistory = history.map((day) => day.date === TODAY ? { ...day, ...checkInDraft } : day);
@@ -116,6 +120,7 @@ export function App() {
       workoutSession: workout,
       exerciseHistory,
       sessionHistory,
+      scheduleOverrides,
     });
     setSaved(true);
     setCheckInOpen(false);
@@ -135,6 +140,7 @@ export function App() {
       workoutSession: nextWorkout,
       exerciseHistory,
       sessionHistory,
+      scheduleOverrides,
       ...(savedAt ? { savedAt } : {}),
     });
   }
@@ -168,11 +174,19 @@ export function App() {
       workoutSession: nextWorkout,
       exerciseHistory: nextExerciseHistory,
       sessionHistory: nextSessionHistory,
+      scheduleOverrides,
       ...(savedAt ? { savedAt } : {}),
     });
     setWorkoutOpen(false);
     setSaved(true);
     window.setTimeout(() => setSaved(false), 2600);
+  }
+
+  function cycleSchedule(date: string) {
+    if (workout.status !== 'not-started' && date === TODAY) return;
+    const nextOverrides = { ...scheduleOverrides, [date]: nextScheduleIntent(scheduleOverrides[date]) };
+    setScheduleOverrides(nextOverrides);
+    saveDashboardState(window.localStorage, { history, checkIn, workoutSession: workout, exerciseHistory, sessionHistory, scheduleOverrides: nextOverrides, ...(savedAt ? { savedAt } : {}) });
   }
 
   return (
@@ -237,6 +251,7 @@ export function App() {
           <article className="panel workout-panel" id="training">
             <div className="panel-heading"><div><span className="section-label">TODAY’S ADAPTIVE TRAINING</span><h3>{workout.title}</h3></div><span className="duration">{plannedMinutes} MIN</span></div>
             <div className="plan-rationale"><Sparkles size={17} /><span><b>{workout.intensity ?? 'moderate'} intensity · generated by Forge</b><small>{workout.planReason ?? 'Built from your recovery, goals, recent training, equipment, and constraints.'}</small></span></div>
+            {deload.active && workout.planType !== 'recovery' && <div className="deload-alert"><ShieldAlert size={18} /><span><b>Deload protection active</b><small>Sets reduced 35% and load reduced 10% · fatigue score {deload.fatigueScore}</small></span></div>}
             {workout.status !== 'not-started' && <div className="workout-state-row"><span><b>{workout.status === 'completed' ? 'Workout complete' : 'Workout in progress'}</b><small>{completedSetCount(workout)} of {totalSetCount(workout)} sets logged</small></span><strong>{Math.round(completedSetCount(workout) / totalSetCount(workout) * 100)}%</strong></div>}
             <div className="workout-list">
               {workout.exercises.slice(0, 4).map((exercise, index) => <div key={exercise.id}><span>{String(index + 1).padStart(2, '0')}</span><div><strong>{exercise.name}</strong><small>{exercise.sets.length} set{exercise.sets.length === 1 ? '' : 's'} · {exercise.detail}</small></div><ChevronRight size={18} /></div>)}
@@ -270,7 +285,8 @@ export function App() {
 
           <article className="panel schedule-panel">
             <div className="panel-heading"><div><span className="section-label">TRAINING WEEK</span><h3>Schedule + muscle volume</h3></div><CalendarDays size={22} className="trend-icon" /></div>
-            <div className="week-strip">{week.map((day) => <div className={day.status} key={day.date}><span>{day.day}</span><b>{Number(day.date.slice(-2))}</b><small>{day.status === 'completed' ? 'Done' : day.status === 'today' ? 'Today' : day.status === 'planned' ? 'Adaptive' : 'Rest'}</small></div>)}</div>
+            <p className="schedule-hint">Select today or an upcoming day to cycle: adaptive → train → rest.</p>
+            <div className="week-strip">{week.map((day) => <button className={`${day.status} intent-${day.intent}`} key={day.date} disabled={day.status === 'completed' || day.date < TODAY || (day.date === TODAY && workout.status !== 'not-started')} onClick={() => cycleSchedule(day.date)} title={day.title}><span>{day.day}</span><b>{Number(day.date.slice(-2))}</b><small>{day.status === 'completed' ? 'Done' : day.intent === 'train' ? 'Train' : day.intent === 'rest' ? 'Rest' : day.status === 'today' ? 'Today' : 'Adaptive'}</small></button>)}</div>
             <div className="volume-ledger">{volume.map((item) => <div key={item.muscle}><span><b>{item.muscle}</b><small>{item.completed} / {item.target} hard sets</small></span><div className="volume-bar"><i style={{ width: `${Math.min(100, item.completed / item.target * 100)}%` }} /></div><strong>{Math.round(item.completed / item.target * 100)}%</strong></div>)}</div>
           </article>
         </section>
