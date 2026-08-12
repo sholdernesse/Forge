@@ -27,7 +27,7 @@ const fallback: DashboardState = {
 describe('dashboard storage', () => {
   it('round trips a saved check-in and history', () => {
     const storage = new MemoryStorage();
-    const state = { ...fallback, savedAt: '2026-08-12T12:00:00.000Z', workoutSession: createTodayWorkout('2026-08-12'), sessionHistory: demoSessionHistory, scheduleOverrides: { '2026-08-13': 'rest' as const }, foodEntries: demoFoodEntries };
+    const state = { ...fallback, savedAt: '2026-08-12T12:00:00.000Z', workoutSession: createTodayWorkout('2026-08-12'), sessionHistory: demoSessionHistory, scheduleOverrides: { '2026-08-13': 'rest' as const }, foodEntries: demoFoodEntries, favoriteFoodIds: ['chicken-breast'], savedMeals: [{ id: 'lunch', name: 'Lunch', items: [{ foodId: 'chicken-breast', quantity: 1 }] }] };
     saveDashboardState(storage, state);
     expect(loadDashboardState(storage, fallback)).toEqual(state);
   });
