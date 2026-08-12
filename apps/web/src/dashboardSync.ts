@@ -13,6 +13,13 @@ export interface DashboardSyncConfig {
   token: string;
 }
 
+export class DashboardSyncConflictError extends Error {
+  constructor() {
+    super('Dashboard changed on another device; refresh before saving');
+    this.name = 'DashboardSyncConflictError';
+  }
+}
+
 interface RemoteDashboardPayload {
   state?: unknown;
   updatedAt?: unknown;
@@ -53,7 +60,15 @@ export class DashboardSyncClient {
 
   async initialize(localState: DashboardState, localUpdatedAt: string): Promise<RemoteDashboard> {
     const remote = await this.load();
-    return remote ?? this.save(localState, localUpdatedAt);
+    if (remote) return remote;
+    try {
+      return await this.save(localState, localUpdatedAt);
+    } catch (error) {
+      if (!(error instanceof DashboardSyncConflictError)) throw error;
+      const winner = await this.load();
+      if (!winner) throw error;
+      return winner;
+    }
   }
 
   save(state: DashboardState, updatedAt: string): Promise<RemoteDashboard> {
@@ -72,7 +87,7 @@ export class DashboardSyncClient {
       },
       body: JSON.stringify({ state, updatedAt }),
     });
-    if (response.status === 409 || response.status === 412) throw new Error('Dashboard changed on another device; refresh before saving');
+    if (response.status === 409 || response.status === 412) throw new DashboardSyncConflictError();
     if (!response.ok) throw new Error(`Dashboard sync save failed (${response.status})`);
     const payload = await response.json() as RemoteDashboardPayload;
     if (!isRemoteDashboard(payload)) throw new Error('Dashboard sync returned an invalid payload');
