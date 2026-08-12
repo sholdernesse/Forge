@@ -26,6 +26,9 @@ export interface WorkoutSession {
   startedAt?: string;
   completedAt?: string;
   exercises: WorkoutExercise[];
+  planType?: 'recovery' | 'upper-strength' | 'lower-strength';
+  planReason?: string;
+  intensity?: 'low' | 'moderate' | 'high';
 }
 
 export function createTodayWorkout(date: string): WorkoutSession {
