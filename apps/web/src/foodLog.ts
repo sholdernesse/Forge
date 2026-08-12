@@ -10,6 +10,26 @@ export interface FoodEntry {
   proteinG: number;
   carbsG: number;
   fatG: number;
+  quantity?: number;
+  sourceFoodId?: string;
+}
+
+export interface FoodDefinition {
+  id: string;
+  name: string;
+  serving: string;
+  caloriesKcal: number;
+  proteinG: number;
+  carbsG: number;
+  fatG: number;
+  barcode?: string;
+  category: 'protein' | 'carb' | 'produce' | 'meal' | 'supplement';
+}
+
+export interface SavedMeal {
+  id: string;
+  name: string;
+  items: Array<{ foodId: string; quantity: number }>;
 }
 
 export const quickFoods: Omit<FoodEntry, 'id' | 'date' | 'meal'>[] = [
@@ -37,4 +57,27 @@ export function foodTotals(entries: FoodEntry[], date: string) {
 
 export function createFoodEntry(date: string, meal: MealType, food: Omit<FoodEntry, 'id' | 'date' | 'meal'>, id = `${date}-${Date.now()}`): FoodEntry {
   return { id, date, meal, ...food };
+}
+
+export function scaleFood(food: FoodDefinition, quantity: number) {
+  const safeQuantity = Math.max(0.25, Math.round(quantity * 4) / 4);
+  const scale = (value: number) => Math.round(value * safeQuantity * 10) / 10;
+  return { name: food.name, serving: `${safeQuantity} × ${food.serving}`, caloriesKcal: Math.round(food.caloriesKcal * safeQuantity), proteinG: scale(food.proteinG), carbsG: scale(food.carbsG), fatG: scale(food.fatG), quantity: safeQuantity, sourceFoodId: food.id };
+}
+
+export function searchFoods(catalog: FoodDefinition[], query: string): FoodDefinition[] {
+  const normalized = query.trim().toLowerCase();
+  if (!normalized) return catalog;
+  return catalog.filter((food) => `${food.name} ${food.serving} ${food.category}`.toLowerCase().includes(normalized));
+}
+
+export function lookupBarcode(catalog: FoodDefinition[], barcode: string): FoodDefinition | undefined {
+  return catalog.find((food) => food.barcode === barcode.replace(/\D/g, ''));
+}
+
+export function mealEntries(savedMeal: SavedMeal, catalog: FoodDefinition[], date: string, meal: MealType, idFactory = () => `${date}-${Math.random()}`): FoodEntry[] {
+  return savedMeal.items.flatMap((item) => {
+    const food = catalog.find((candidate) => candidate.id === item.foodId);
+    return food ? [createFoodEntry(date, meal, scaleFood(food, item.quantity), idFactory())] : [];
+  });
 }
