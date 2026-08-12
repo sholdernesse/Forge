@@ -4,14 +4,19 @@ import { buildDigitalTwin, type DailySnapshot, type Recommendation } from '@forg
 import {
   Activity, Apple, ArrowRight, Brain, ChevronRight, CircleUserRound, Dumbbell,
   Flame, Footprints, Gauge, HeartPulse, Home, Moon, Plus, Settings, Sparkles,
-  Target, TrendingDown, Utensils, X,
+  Save, Target, TrendingDown, Utensils, X,
 } from 'lucide-react';
 import { demoGoals, demoHistory, demoProfile } from './demoData.js';
+import { loadDashboardState, saveDashboardState, type CheckIn } from './dashboardStorage.js';
 
 const TODAY = '2026-08-12' as const;
 const NOW = '2026-08-12T11:30:00.000Z';
 
-type CheckIn = Required<Pick<DailySnapshot, 'sleepScore' | 'sleepHours' | 'soreness' | 'stress' | 'weightKg'>>;
+const defaultCheckIn: CheckIn = { sleepScore: 77, sleepHours: 7, soreness: 4, stress: 3, weightKg: 75.8 };
+
+function initialDashboardState() {
+  return loadDashboardState(window.localStorage, { history: demoHistory, checkIn: defaultCheckIn });
+}
 
 function scoreTone(score: number) {
   if (score >= 78) return 'great';
@@ -51,10 +56,13 @@ function Sparkline({ values }: { values: number[] }) {
 }
 
 export function App() {
-  const [history, setHistory] = useState(demoHistory);
+  const [initialState] = useState(initialDashboardState);
+  const [history, setHistory] = useState(initialState.history);
   const [checkInOpen, setCheckInOpen] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [checkIn, setCheckIn] = useState<CheckIn>({ sleepScore: 77, sleepHours: 7, soreness: 4, stress: 3, weightKg: 75.8 });
+  const [checkIn, setCheckIn] = useState<CheckIn>(initialState.checkIn);
+  const [checkInDraft, setCheckInDraft] = useState<CheckIn>(initialState.checkIn);
+  const [savedAt, setSavedAt] = useState(initialState.savedAt);
 
   const evaluation = useMemo(() => {
     const twin = buildDigitalTwin({ profile: { ...demoProfile, weightKg: checkIn.weightKg }, goals: demoGoals, history, asOfDate: TODAY, now: NOW });
@@ -68,10 +76,24 @@ export function App() {
   const weights = history.map((day) => day.weightKg ?? checkIn.weightKg);
 
   function saveCheckIn() {
-    setHistory((current) => current.map((day) => day.date === TODAY ? { ...day, ...checkIn } : day));
+    const nextHistory = history.map((day) => day.date === TODAY ? { ...day, ...checkInDraft } : day);
+    const nextSavedAt = new Date().toISOString();
+    setHistory(nextHistory);
+    setCheckIn(checkInDraft);
+    setSavedAt(nextSavedAt);
+    saveDashboardState(window.localStorage, {
+      history: nextHistory,
+      checkIn: checkInDraft,
+      savedAt: nextSavedAt,
+    });
     setSaved(true);
     setCheckInOpen(false);
     window.setTimeout(() => setSaved(false), 2600);
+  }
+
+  function openCheckIn() {
+    setCheckInDraft(checkIn);
+    setCheckInOpen(true);
   }
 
   return (
@@ -94,7 +116,10 @@ export function App() {
       <main>
         <header className="topbar">
           <div><span className="eyebrow">WEDNESDAY · AUGUST 12</span><h1>Good morning, Shane.</h1><p>Your plan has adapted to how you’re recovering today.</p></div>
-          <button className="checkin-button" onClick={() => setCheckInOpen(true)}><Plus size={18} /> Morning check-in</button>
+          <div className="topbar-actions">
+            <span className="save-status"><Save size={15} /> {savedAt ? 'Saved on this device' : 'Demo data'}</span>
+            <button className="checkin-button" onClick={openCheckIn}><Plus size={18} /> Morning check-in</button>
+          </div>
         </header>
 
         {saved && <div className="toast"><Sparkles size={17} /> Digital Twin updated. Today’s guidance is refreshed.</div>}
@@ -164,17 +189,17 @@ export function App() {
       {checkInOpen && <div className="drawer-backdrop" onMouseDown={() => setCheckInOpen(false)}>
         <aside className="drawer" onMouseDown={(event) => event.stopPropagation()}>
           <div className="drawer-heading"><div><span className="section-label">DAILY SIGNALS</span><h2>Morning check-in</h2><p>These inputs update your Digital Twin and today’s guidance.</p></div><button onClick={() => setCheckInOpen(false)}><X size={20} /></button></div>
-          <label>Body weight <output>{checkIn.weightKg.toFixed(1)} kg</output><input type="range" min="65" max="90" step="0.1" value={checkIn.weightKg} onChange={(e) => setCheckIn({ ...checkIn, weightKg: Number(e.target.value) })} /></label>
-          <label>Sleep quality <output>{checkIn.sleepScore}/100</output><input type="range" min="0" max="100" value={checkIn.sleepScore} onChange={(e) => setCheckIn({ ...checkIn, sleepScore: Number(e.target.value) })} /></label>
-          <label>Hours slept <output>{checkIn.sleepHours.toFixed(1)}h</output><input type="range" min="0" max="12" step="0.1" value={checkIn.sleepHours} onChange={(e) => setCheckIn({ ...checkIn, sleepHours: Number(e.target.value) })} /></label>
-          <label>Soreness <output>{checkIn.soreness}/10</output><input type="range" min="0" max="10" value={checkIn.soreness} onChange={(e) => setCheckIn({ ...checkIn, soreness: Number(e.target.value) })} /></label>
-          <label>Stress <output>{checkIn.stress}/10</output><input type="range" min="0" max="10" value={checkIn.stress} onChange={(e) => setCheckIn({ ...checkIn, stress: Number(e.target.value) })} /></label>
+          <label>Body weight <output>{checkInDraft.weightKg.toFixed(1)} kg</output><input type="range" min="65" max="90" step="0.1" value={checkInDraft.weightKg} onChange={(e) => setCheckInDraft({ ...checkInDraft, weightKg: Number(e.target.value) })} /></label>
+          <label>Sleep quality <output>{checkInDraft.sleepScore}/100</output><input type="range" min="0" max="100" value={checkInDraft.sleepScore} onChange={(e) => setCheckInDraft({ ...checkInDraft, sleepScore: Number(e.target.value) })} /></label>
+          <label>Hours slept <output>{checkInDraft.sleepHours.toFixed(1)}h</output><input type="range" min="0" max="12" step="0.1" value={checkInDraft.sleepHours} onChange={(e) => setCheckInDraft({ ...checkInDraft, sleepHours: Number(e.target.value) })} /></label>
+          <label>Soreness <output>{checkInDraft.soreness}/10</output><input type="range" min="0" max="10" value={checkInDraft.soreness} onChange={(e) => setCheckInDraft({ ...checkInDraft, soreness: Number(e.target.value) })} /></label>
+          <label>Stress <output>{checkInDraft.stress}/10</output><input type="range" min="0" max="10" value={checkInDraft.stress} onChange={(e) => setCheckInDraft({ ...checkInDraft, stress: Number(e.target.value) })} /></label>
           <button className="save-checkin" onClick={saveCheckIn}><Sparkles size={18} /> Update today’s plan</button>
-          <small className="privacy-note">Your values stay in this browser prototype. Production persistence arrives next.</small>
+          <small className="privacy-note">Saved securely on this device for the prototype. Account sync arrives with production persistence.</small>
         </aside>
       </div>}
 
-      <nav className="mobile-nav"><a className="active" href="#today"><Home size={20} /><span>Today</span></a><a href="#training"><Dumbbell size={20} /><span>Train</span></a><button onClick={() => setCheckInOpen(true)}><Plus size={22} /></button><a href="#nutrition"><Apple size={20} /><span>Nutrition</span></a><a href="#coach"><Brain size={20} /><span>Coach</span></a></nav>
+      <nav className="mobile-nav"><a className="active" href="#today"><Home size={20} /><span>Today</span></a><a href="#training"><Dumbbell size={20} /><span>Train</span></a><button onClick={openCheckIn}><Plus size={22} /></button><a href="#nutrition"><Apple size={20} /><span>Nutrition</span></a><a href="#coach"><Brain size={20} /><span>Coach</span></a></nav>
     </div>
   );
 }
