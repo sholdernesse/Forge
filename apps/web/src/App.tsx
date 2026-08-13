@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { demoGoals, demoHistory, demoProfile } from './demoData.js';
 import { cacheDashboardState, clearDashboardState, dashboardStateUpdatedAt, DASHBOARD_SAVED_EVENT, loadDashboardState, saveDashboardState, type CheckIn, type DashboardSaveEventDetail } from './dashboardStorage.js';
-import { DashboardSyncClient, dashboardSyncConfig, newerThanLocal, type SyncStatus } from './dashboardSync.js';
+import { DashboardSyncClient, DashboardSyncConflictError, dashboardSyncConfig, newerThanLocal, type RemoteDashboard, type SyncStatus } from './dashboardSync.js';
 import { WorkoutPlayer } from './WorkoutPlayer.js';
 import { completedSetCount, createTodayWorkout, totalSetCount, workoutMinutes, type WorkoutSession } from './workoutSession.js';
 import { demoExerciseHistory, recordPerformances, strongestMovements, type ExercisePerformance } from './progression.js';
@@ -69,6 +69,11 @@ function Sparkline({ values }: { values: number[] }) {
   return <svg className="sparkline" viewBox="0 0 240 64" preserveAspectRatio="none"><polyline points={points} /></svg>;
 }
 
+interface SyncConflictActions {
+  useRemote(): Promise<void>;
+  keepLocal(): Promise<void>;
+}
+
 export function App() {
   const environment = (import.meta as ImportMeta & { env: Record<string, unknown> }).env;
   const auth = useForgeAuth(environment);
@@ -90,6 +95,7 @@ export function App() {
   const [savedMeals, setSavedMeals] = useState<SavedMeal[]>(initialState.savedMeals ?? demoSavedMeals);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('local');
+  const [syncConflict, setSyncConflict] = useState<SyncConflictActions | null>(null);
 
   const evaluation = useMemo(() => {
     const twin = buildDigitalTwin({ profile: { ...demoProfile, weightKg: checkIn.weightKg }, goals: demoGoals, history, asOfDate: TODAY, now: NOW });
@@ -122,6 +128,22 @@ export function App() {
     let connected = false;
     let connection: Promise<void> | undefined;
 
+    const applyRemote = (remote: RemoteDashboard) => {
+      const next = remote.state;
+      setHistory(next.history);
+      setCheckIn(next.checkIn);
+      setCheckInDraft(next.checkIn);
+      setSavedAt(next.savedAt);
+      setWorkout(next.workoutSession ?? createTodayWorkout(TODAY));
+      setExerciseHistory(next.exerciseHistory ?? demoExerciseHistory);
+      setSessionHistory(next.sessionHistory ?? demoSessionHistory);
+      setScheduleOverrides(next.scheduleOverrides ?? {});
+      setFoodEntries(next.foodEntries ?? demoFoodEntries);
+      setFavoriteFoodIds(next.favoriteFoodIds ?? ['eggs-whites', 'chicken-breast', 'protein-shake']);
+      setSavedMeals(next.savedMeals ?? demoSavedMeals);
+      cacheDashboardState(window.localStorage, next, remote.updatedAt);
+    };
+
     const connect = () => {
       if (connected) return Promise.resolve();
       if (connection) return connection;
@@ -132,21 +154,10 @@ export function App() {
         .then((remote) => {
           if (!active) return;
           if (newerThanLocal(remote.updatedAt, dashboardStateUpdatedAt(window.localStorage))) {
-            const next = remote.state;
-            setHistory(next.history);
-            setCheckIn(next.checkIn);
-            setCheckInDraft(next.checkIn);
-            if (next.savedAt) setSavedAt(next.savedAt);
-            if (next.workoutSession) setWorkout(next.workoutSession);
-            if (next.exerciseHistory) setExerciseHistory(next.exerciseHistory);
-            if (next.sessionHistory) setSessionHistory(next.sessionHistory);
-            if (next.scheduleOverrides) setScheduleOverrides(next.scheduleOverrides);
-            if (next.foodEntries) setFoodEntries(next.foodEntries);
-            if (next.favoriteFoodIds) setFavoriteFoodIds(next.favoriteFoodIds);
-            if (next.savedMeals) setSavedMeals(next.savedMeals);
-            cacheDashboardState(window.localStorage, next, remote.updatedAt);
+            applyRemote(remote);
           }
           connected = true;
+          setSyncConflict(null);
           setSyncStatus('synced');
         })
         .catch((error: unknown) => {
@@ -162,7 +173,41 @@ export function App() {
       setSyncStatus('syncing');
       void connect().then(() => client.save(state, updatedAt))
         .then(() => { if (active) setSyncStatus('synced'); })
-        .catch(() => { if (active) setSyncStatus('offline'); });
+        .catch((error: unknown) => {
+          if (!active) return;
+          if (!(error instanceof DashboardSyncConflictError)) {
+            setSyncStatus('offline');
+            return;
+          }
+          setSyncStatus('conflict');
+          setSyncConflict({
+            useRemote: async () => {
+              setSyncStatus('connecting');
+              try {
+                const remote = await client.load();
+                if (!remote) throw new Error('Remote dashboard no longer exists');
+                if (!active) return;
+                applyRemote(remote);
+                setSyncConflict(null);
+                setSyncStatus('synced');
+              } catch {
+                if (active) setSyncStatus('conflict');
+              }
+            },
+            keepLocal: async () => {
+              setSyncStatus('syncing');
+              try {
+                await client.load();
+                await client.save(state, updatedAt);
+                if (!active) return;
+                setSyncConflict(null);
+                setSyncStatus('synced');
+              } catch {
+                if (active) setSyncStatus('conflict');
+              }
+            },
+          });
+        });
     };
 
     window.addEventListener(DASHBOARD_SAVED_EVENT, handleSaved);
@@ -334,12 +379,19 @@ export function App() {
         <header className="topbar">
           <div><span className="eyebrow">WEDNESDAY · AUGUST 12</span><h1>Good morning, Shane.</h1><p>Your plan has adapted to how you’re recovering today.</p></div>
           <div className="topbar-actions">
-            <span className={`save-status sync-${syncStatus}`}>{syncStatus === 'offline' ? <CloudOff size={15} /> : syncStatus === 'local' ? <Save size={15} /> : <Cloud size={15} />} {syncStatus === 'syncing' ? 'Syncing…' : syncStatus === 'connecting' ? 'Connecting…' : syncStatus === 'synced' ? 'Synced across devices' : syncStatus === 'offline' ? 'Offline · saved locally' : savedAt ? 'Saved on this device' : 'Demo data'}</span>
+            <span className={`save-status sync-${syncStatus}`}>{syncStatus === 'offline' ? <CloudOff size={15} /> : syncStatus === 'conflict' ? <ShieldAlert size={15} /> : syncStatus === 'local' ? <Save size={15} /> : <Cloud size={15} />} {syncStatus === 'syncing' ? 'Syncing…' : syncStatus === 'connecting' ? 'Connecting…' : syncStatus === 'synced' ? 'Synced across devices' : syncStatus === 'conflict' ? 'Sync needs attention' : syncStatus === 'offline' ? 'Offline · saved locally' : savedAt ? 'Saved on this device' : 'Demo data'}</span>
             {auth.status === 'signed-out' ? <button className="auth-button" onClick={() => void auth.signIn()}>Sign in</button> : auth.status === 'signed-in' ? <button className="auth-button signed-in" onClick={() => void auth.signOut()} title="Sign out">{auth.name ?? auth.username ?? 'Account'}</button> : null}
             <button className="topbar-settings" onClick={() => setSettingsOpen(true)} aria-label="Open Forge settings"><Settings size={18} /></button>
             <button className="checkin-button" onClick={openCheckIn}><Plus size={18} /> Morning check-in</button>
           </div>
         </header>
+
+        {syncConflict && <div className="sync-conflict" role="alert">
+          <ShieldAlert size={20} />
+          <div><strong>Newer Forge data was saved on another device.</strong><span>Choose which version to keep. Nothing will be overwritten until you decide.</span></div>
+          <button onClick={() => void syncConflict.useRemote()}>Use cloud version</button>
+          <button className="keep-local" onClick={() => void syncConflict.keepLocal()}>Keep this device</button>
+        </div>}
 
         {saved && <div className="toast" role="status" aria-live="polite"><Sparkles size={17} /> Digital Twin updated. Today’s guidance is refreshed.</div>}
 
