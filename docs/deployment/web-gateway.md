@@ -1,6 +1,6 @@
 # Forge production web gateway
 
-The production web image serves the Vite application and acts as the only public application ingress. Requests under `/v1` and `/health` are proxied to the private Forge API service named `forge-api`.
+The production web image serves the Vite application and acts as the only public application ingress. Requests under `/v1` and `/health` are proxied to the provider-neutral `FORGE_API_UPSTREAM` runtime value; no cloud-specific API hostname is compiled into the image.
 
 This same-origin boundary has three useful properties:
 
@@ -36,6 +36,8 @@ FORGE_API_UPSTREAM=http://forge-api
 ```
 
 Only the web container should have external ingress. The API container should use internal ingress on port `8787`.
+
+On another provider, set the same variable to that provider's private service address (for example `http://forge-api-standby:8787` on the dormant Render Blueprint). Never point it at a public API hostname merely to work around private DNS.
 
 ## Security boundary
 

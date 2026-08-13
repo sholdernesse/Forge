@@ -1,0 +1,46 @@
+# Dormant disaster-recovery Blueprint. Creating this Blueprint can incur charges;
+# do not activate it during normal Azure operation.
+services:
+  - type: pserv
+    name: forge-api-standby
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./apps/api/Dockerfile
+    dockerContext: .
+    autoDeployTrigger: off
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: forge-postgres-standby
+          property: connectionString
+      - key: DATABASE_SSL
+        value: require
+      - key: FORGE_WEB_ORIGIN
+        sync: false
+      - key: ENTRA_ISSUER
+        sync: false
+      - key: ENTRA_AUDIENCE
+        sync: false
+      - key: ENTRA_JWKS_URI
+        sync: false
+
+  - type: web
+    name: forge-web-standby
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./apps/web/Dockerfile
+    dockerContext: .
+    autoDeployTrigger: off
+    healthCheckPath: /health
+    envVars:
+      - key: FORGE_API_UPSTREAM
+        value: http://forge-api-standby:8787
+
+databases:
+  - name: forge-postgres-standby
+    plan: basic-256mb
+    databaseName: forge
+    user: forge
+    ipAllowList: []
+

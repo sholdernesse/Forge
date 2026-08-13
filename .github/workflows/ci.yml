@@ -22,6 +22,10 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm build
+      - name: Validate deployment security boundaries
+        run: scripts/deployment/validate-security.sh
+      - name: Validate recovery scripts
+        run: bash -n scripts/postgres/backup.sh scripts/postgres/restore.sh
       - name: Compile Azure infrastructure
         run: |
           az bicep build --file infra/main.bicep --stdout > /dev/null
