@@ -23,7 +23,7 @@ ENV VITE_FORGE_SYNC_URL=$VITE_FORGE_SYNC_URL \
     VITE_ENTRA_AUTHORITY=$VITE_ENTRA_AUTHORITY \
     VITE_ENTRA_API_SCOPE=$VITE_ENTRA_API_SCOPE \
     VITE_ENTRA_REDIRECT_URI=$VITE_ENTRA_REDIRECT_URI
-RUN pnpm --filter @forge/web build
+RUN pnpm --filter @forge/web... build
 
 FROM nginx:stable-alpine
 ENV FORGE_API_UPSTREAM=http://forge-api \
