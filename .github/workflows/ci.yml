@@ -22,3 +22,7 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm build
+      - name: Build API container
+        run: docker build --file apps/api/Dockerfile --tag forge-api:ci .
+      - name: Build web gateway container
+        run: docker build --file apps/web/Dockerfile --tag forge-web:ci .
