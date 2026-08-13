@@ -64,7 +64,7 @@ Production authentication must issue a short-lived, user-scoped token from an id
 
 ## Remaining deployment work
 
-- provision the hosted web app, Container App, and PostgreSQL Flexible Server
+- provision the Container Apps environment, registry, and PostgreSQL Flexible Server
 - configure production DNS, TLS, secrets, and exact CORS origin
 - create the External ID tenant and app registrations using the recorded values
 - add browser coverage for redirect login and two-device synchronization
@@ -76,3 +76,12 @@ Production authentication must issue a short-lived, user-scoped token from an id
 - users can explicitly load the cloud version or keep the current device version
 - recovery actions refresh the revision before any intentional overwrite
 - conflict messaging and actions remain usable on desktop and mobile layouts
+
+## Slice 5: production web gateway
+
+- multi-stage production image builds the Vite application without development dependencies
+- public web ingress serves the SPA and proxies API traffic over internal service discovery
+- same-origin `/v1` routing removes the production browser-to-API CORS dependency
+- the API remains private and continues to validate every delegated access token
+- browser security headers, payload limits, immutable assets, and an uncached SPA shell are configured at the edge
+- Docker build context excludes repositories, local secrets, dependencies, and generated output
