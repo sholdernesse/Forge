@@ -50,6 +50,10 @@ describe('dashboard API', () => {
 
     const stale = await handle(new Request('http://api.test/v1/dashboard', { method: 'PUT', headers: { ...headers, 'if-match': 'stale' }, body: JSON.stringify({ state: validState }) }));
     expect(stale.status).toBe(412);
+    await expect(stale.json()).resolves.toMatchObject({
+      error: 'revision_conflict',
+      current: { revision: expect.any(String), updatedAt: expect.any(String) },
+    });
     const invalid = await handle(new Request('http://api.test/v1/dashboard', { method: 'PUT', headers, body: JSON.stringify({ state: { history: [] } }) }));
     expect(invalid.status).toBe(400);
     const preflight = await handle(new Request('http://api.test/v1/dashboard', { method: 'OPTIONS', headers: { origin: 'https://evil.test' } }));
