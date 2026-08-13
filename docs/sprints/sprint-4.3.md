@@ -64,8 +64,15 @@ Production authentication must issue a short-lived, user-scoped token from an id
 
 ## Remaining deployment work
 
-- return conflict details and offer an explicit refresh/retry path
 - provision the hosted web app, Container App, and PostgreSQL Flexible Server
 - configure production DNS, TLS, secrets, and exact CORS origin
 - create the External ID tenant and app registrations using the recorded values
 - add browser coverage for redirect login and two-device synchronization
+
+## Slice 4: visible conflict recovery
+
+- conflict responses identify the winning remote revision and update time
+- the dashboard stops automatic overwrites when another device wins a write
+- users can explicitly load the cloud version or keep the current device version
+- recovery actions refresh the revision before any intentional overwrite
+- conflict messaging and actions remain usable on desktop and mobile layouts
