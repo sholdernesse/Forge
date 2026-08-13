@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { DashboardSyncClient, dashboardSyncConfig, newerThanLocal } from './dashboardSync.js';
+import { DashboardSyncClient, DashboardSyncConflictError, dashboardSyncConfig, newerThanLocal } from './dashboardSync.js';
 import type { DashboardState } from './dashboardStorage.js';
 
 const state: DashboardState = {
@@ -43,6 +43,21 @@ describe('dashboard sync', () => {
     const client = new DashboardSyncClient({ baseUrl: 'https://sync.forge.test', accessToken: async () => 'secret' }, request as typeof fetch);
     await expect(client.initialize(state, '2026-08-12T12:00:00.000Z')).resolves.toEqual(winner);
     expect(request).toHaveBeenCalledTimes(3);
+  });
+
+  it('returns the winning revision details when a save conflicts', async () => {
+    const request = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ state, updatedAt: '2026-08-12T12:00:00.000Z', revision: 'rev-1' }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        error: 'revision_conflict',
+        current: { revision: 'rev-2', updatedAt: '2026-08-12T12:02:00.000Z' },
+      }), { status: 412 }));
+    const client = new DashboardSyncClient({ baseUrl: 'https://sync.forge.test', accessToken: async () => 'secret' }, request as typeof fetch);
+    await client.load();
+
+    const error = await client.save(state, '2026-08-12T12:01:00.000Z').catch((caught: unknown) => caught);
+    expect(error).toBeInstanceOf(DashboardSyncConflictError);
+    expect(error).toMatchObject({ currentRevision: 'rev-2', currentUpdatedAt: '2026-08-12T12:02:00.000Z' });
   });
 
   it('stays local without complete configuration and compares update times', () => {
