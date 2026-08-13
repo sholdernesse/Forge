@@ -1,6 +1,6 @@
 import { parseDashboardState, type DashboardState } from './dashboardStorage.js';
 
-export type SyncStatus = 'local' | 'connecting' | 'synced' | 'syncing' | 'offline';
+export type SyncStatus = 'local' | 'connecting' | 'synced' | 'syncing' | 'conflict' | 'offline';
 
 export interface RemoteDashboard {
   state: DashboardState;
@@ -14,7 +14,10 @@ export interface DashboardSyncConfig {
 }
 
 export class DashboardSyncConflictError extends Error {
-  constructor() {
+  constructor(
+    readonly currentRevision?: string,
+    readonly currentUpdatedAt?: string,
+  ) {
     super('Dashboard changed on another device; refresh before saving');
     this.name = 'DashboardSyncConflictError';
   }
@@ -89,7 +92,13 @@ export class DashboardSyncClient {
       },
       body: JSON.stringify({ state, updatedAt }),
     });
-    if (response.status === 409 || response.status === 412) throw new DashboardSyncConflictError();
+    if (response.status === 409 || response.status === 412) {
+      const conflict = await response.json().catch(() => null) as { current?: { revision?: unknown; updatedAt?: unknown } } | null;
+      throw new DashboardSyncConflictError(
+        typeof conflict?.current?.revision === 'string' ? conflict.current.revision : undefined,
+        typeof conflict?.current?.updatedAt === 'string' ? conflict.current.updatedAt : undefined,
+      );
+    }
     if (!response.ok) throw new Error(`Dashboard sync save failed (${response.status})`);
     const payload = await response.json() as RemoteDashboardPayload;
     if (!isRemoteDashboard(payload)) throw new Error('Dashboard sync returned an invalid payload');
