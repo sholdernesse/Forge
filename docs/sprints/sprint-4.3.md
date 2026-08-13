@@ -64,10 +64,9 @@ Production authentication must issue a short-lived, user-scoped token from an id
 
 ## Remaining deployment work
 
-- provision the Container Apps environment, registry, and PostgreSQL Flexible Server
-- configure production DNS, TLS, secrets, and exact CORS origin
 - create the External ID tenant and app registrations using the recorded values
 - add browser coverage for redirect login and two-device synchronization
+- run the manual dev deployment and complete the Azure/Entra acceptance checklist
 
 ## Slice 4: visible conflict recovery
 
@@ -85,3 +84,13 @@ Production authentication must issue a short-lived, user-scoped token from an id
 - the API remains private and continues to validate every delegated access token
 - browser security headers, payload limits, immutable assets, and an uncached SPA shell are configured at the edge
 - Docker build context excludes repositories, local secrets, dependencies, and generated output
+
+## Slice 6: secure Azure release foundation
+
+- two-stage Bicep deployment separates durable infrastructure from application revisions
+- Container Apps exposes only the web gateway; API ingress remains internal
+- PostgreSQL Flexible Server uses delegated-subnet private networking and private DNS
+- managed identity replaces registry credentials and retrieves the database URL from Key Vault
+- GitHub Actions uses short-lived Azure OIDC federation instead of a client secret
+- immutable commit-tagged images, health verification, environment approvals, and concurrency controls protect releases
+- deployment remains manual and requires explicit confirmation before creating billable resources
