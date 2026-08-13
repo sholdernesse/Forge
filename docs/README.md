@@ -7,3 +7,5 @@
 Current delivery: [Sprint 4.3 — Authenticated Cross-Device Persistence](./sprints/sprint-4.3.md).
 
 Deployment: [Microsoft Entra External ID for Forge](./deployment/entra-external-id.md).
+
+Production edge: [Forge production web gateway](./deployment/web-gateway.md).
