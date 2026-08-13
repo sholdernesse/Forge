@@ -79,7 +79,13 @@ export function createApiHandler(dependencies: ApiDependencies) {
         const dashboard = await dependencies.dashboards.put(user.id, body.state, expectedRevision(request));
         return response(dashboard, 200, corsOrigin);
       } catch (error) {
-        if (error instanceof RevisionConflictError) return response({ error: 'revision_conflict' }, 412, corsOrigin);
+        if (error instanceof RevisionConflictError) {
+          const current = await dependencies.dashboards.get(user.id);
+          return response({
+            error: 'revision_conflict',
+            ...(current ? { current: { revision: current.revision, updatedAt: current.updatedAt } } : {}),
+          }, 412, corsOrigin);
+        }
         if (error instanceof SyntaxError) return response({ error: 'invalid_json' }, 400, corsOrigin);
         throw error;
       }
