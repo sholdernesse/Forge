@@ -9,6 +9,14 @@ export type CheckIn = Required<
   Pick<DailySnapshot, 'sleepScore' | 'sleepHours' | 'soreness' | 'stress' | 'weightKg'>
 >;
 
+export interface CoachMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  recommendationIds: string[];
+  createdAt: string;
+}
+
 export interface DashboardState {
   history: DailySnapshot[];
   checkIn: CheckIn;
@@ -20,10 +28,11 @@ export interface DashboardState {
   foodEntries?: FoodEntry[];
   favoriteFoodIds?: string[];
   savedMeals?: SavedMeal[];
+  coachMessages?: CoachMessage[];
 }
 
 interface StoredDashboardState extends DashboardState {
-  version: 8;
+  version: 9;
   updatedAt: string;
 }
 
@@ -55,6 +64,16 @@ function isCheckIn(value: unknown): value is CheckIn {
     && inRange(candidate.stress, 0, 10);
 }
 
+function isCoachMessage(value: unknown): value is CoachMessage {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as Partial<CoachMessage>;
+  return typeof candidate.id === 'string' && candidate.id.length > 0 && candidate.id.length <= 100
+    && (candidate.role === 'user' || candidate.role === 'assistant')
+    && typeof candidate.content === 'string' && candidate.content.length > 0 && candidate.content.length <= 2_000
+    && Array.isArray(candidate.recommendationIds) && candidate.recommendationIds.every((id) => typeof id === 'string' && id.length <= 200)
+    && typeof candidate.createdAt === 'string' && !Number.isNaN(Date.parse(candidate.createdAt));
+}
+
 export function parseDashboardState(value: unknown): DashboardState | null {
   if (!value || typeof value !== 'object') return null;
   const stored = value as Partial<DashboardState>;
@@ -70,6 +89,7 @@ export function parseDashboardState(value: unknown): DashboardState | null {
     ...(Array.isArray(stored.foodEntries) ? { foodEntries: stored.foodEntries } : {}),
     ...(Array.isArray(stored.favoriteFoodIds) ? { favoriteFoodIds: stored.favoriteFoodIds } : {}),
     ...(Array.isArray(stored.savedMeals) ? { savedMeals: stored.savedMeals } : {}),
+    ...(Array.isArray(stored.coachMessages) ? { coachMessages: stored.coachMessages.filter(isCoachMessage).slice(-40) } : {}),
   };
 }
 
@@ -78,7 +98,7 @@ export function loadDashboardState(storage: DashboardStorage, fallback: Dashboar
     const raw = storage.getItem(DASHBOARD_STORAGE_KEY);
     if (!raw) return fallback;
     const stored = JSON.parse(raw) as Partial<Omit<StoredDashboardState, 'version'>> & { version?: number };
-    if (![1, 2, 3, 4, 5, 6, 7, 8].includes(stored.version ?? 0) || !Array.isArray(stored.history) || !isCheckIn(stored.checkIn)) {
+    if (![1, 2, 3, 4, 5, 6, 7, 8, 9].includes(stored.version ?? 0) || !Array.isArray(stored.history) || !isCheckIn(stored.checkIn)) {
       return fallback;
     }
     return parseDashboardState(stored) ?? fallback;
@@ -96,7 +116,7 @@ export function saveDashboardState(storage: DashboardStorage, state: DashboardSt
 }
 
 export function cacheDashboardState(storage: DashboardStorage, state: DashboardState, updatedAt: string): void {
-  const stored: StoredDashboardState = { version: 8, updatedAt, ...state };
+  const stored: StoredDashboardState = { version: 9, updatedAt, ...state };
   storage.setItem(DASHBOARD_STORAGE_KEY, JSON.stringify(stored));
 }
 

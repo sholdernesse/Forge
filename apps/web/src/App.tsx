@@ -7,7 +7,7 @@ import {
   Save, Target, TrendingDown, Utensils, X,
 } from 'lucide-react';
 import { demoGoals, demoHistory, demoProfile } from './demoData.js';
-import { cacheDashboardState, clearDashboardState, dashboardStateUpdatedAt, DASHBOARD_SAVED_EVENT, loadDashboardState, saveDashboardState, type CheckIn, type DashboardSaveEventDetail } from './dashboardStorage.js';
+import { cacheDashboardState, clearDashboardState, dashboardStateUpdatedAt, DASHBOARD_SAVED_EVENT, loadDashboardState, saveDashboardState, type CheckIn, type CoachMessage, type DashboardSaveEventDetail } from './dashboardStorage.js';
 import { DashboardSyncClient, DashboardSyncConflictError, dashboardSyncConfig, newerThanLocal, type RemoteDashboard, type SyncStatus } from './dashboardSync.js';
 import { WorkoutPlayer } from './WorkoutPlayer.js';
 import { completedSetCount, createTodayWorkout, totalSetCount, workoutMinutes, type WorkoutSession } from './workoutSession.js';
@@ -94,6 +94,7 @@ export function App() {
   const [foodLoggerOpen, setFoodLoggerOpen] = useState(false);
   const [favoriteFoodIds, setFavoriteFoodIds] = useState<string[]>(initialState.favoriteFoodIds ?? ['eggs-whites', 'chicken-breast', 'protein-shake']);
   const [savedMeals, setSavedMeals] = useState<SavedMeal[]>(initialState.savedMeals ?? demoSavedMeals);
+  const [coachMessages, setCoachMessages] = useState<CoachMessage[]>(initialState.coachMessages ?? []);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [coachOpen, setCoachOpen] = useState(false);
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('local');
@@ -143,6 +144,7 @@ export function App() {
       setFoodEntries(next.foodEntries ?? demoFoodEntries);
       setFavoriteFoodIds(next.favoriteFoodIds ?? ['eggs-whites', 'chicken-breast', 'protein-shake']);
       setSavedMeals(next.savedMeals ?? demoSavedMeals);
+      setCoachMessages(next.coachMessages ?? []);
       cacheDashboardState(window.localStorage, next, remote.updatedAt);
     };
 
@@ -240,9 +242,10 @@ export function App() {
       foodEntries,
       favoriteFoodIds,
       savedMeals,
+      coachMessages,
       ...(savedAt ? { savedAt } : {}),
     });
-  }, [generatedPlan, workout, history, checkIn, exerciseHistory, sessionHistory, scheduleOverrides, foodEntries, favoriteFoodIds, savedMeals, savedAt]);
+  }, [generatedPlan, workout, history, checkIn, exerciseHistory, sessionHistory, scheduleOverrides, foodEntries, favoriteFoodIds, savedMeals, coachMessages, savedAt]);
 
   function saveCheckIn() {
     const nextHistory = history.map((day) => day.date === TODAY ? { ...day, ...checkInDraft } : day);
@@ -261,6 +264,7 @@ export function App() {
       foodEntries,
       favoriteFoodIds,
       savedMeals,
+      coachMessages,
     });
     setSaved(true);
     setCheckInOpen(false);
@@ -284,6 +288,7 @@ export function App() {
       foodEntries,
       favoriteFoodIds,
       savedMeals,
+      coachMessages,
       ...(savedAt ? { savedAt } : {}),
     });
   }
@@ -319,6 +324,9 @@ export function App() {
       sessionHistory: nextSessionHistory,
       scheduleOverrides,
       foodEntries,
+      favoriteFoodIds,
+      savedMeals,
+      coachMessages,
       ...(savedAt ? { savedAt } : {}),
     });
     setWorkoutOpen(false);
@@ -330,7 +338,7 @@ export function App() {
     if (workout.status !== 'not-started' && date === TODAY) return;
     const nextOverrides = { ...scheduleOverrides, [date]: nextScheduleIntent(scheduleOverrides[date]) };
     setScheduleOverrides(nextOverrides);
-    saveDashboardState(window.localStorage, { history, checkIn, workoutSession: workout, exerciseHistory, sessionHistory, scheduleOverrides: nextOverrides, foodEntries, favoriteFoodIds, savedMeals, ...(savedAt ? { savedAt } : {}) });
+    saveDashboardState(window.localStorage, { history, checkIn, workoutSession: workout, exerciseHistory, sessionHistory, scheduleOverrides: nextOverrides, foodEntries, favoriteFoodIds, savedMeals, coachMessages, ...(savedAt ? { savedAt } : {}) });
   }
 
   function updateFoodEntries(nextEntries: FoodEntry[]) {
@@ -338,19 +346,19 @@ export function App() {
     const nextHistory = history.map((day) => day.date === TODAY ? { ...day, caloriesKcal: totals.caloriesKcal, proteinG: totals.proteinG } : day);
     setFoodEntries(nextEntries);
     setHistory(nextHistory);
-    saveDashboardState(window.localStorage, { history: nextHistory, checkIn, workoutSession: workout, exerciseHistory, sessionHistory, scheduleOverrides, foodEntries: nextEntries, favoriteFoodIds, savedMeals, ...(savedAt ? { savedAt } : {}) });
+    saveDashboardState(window.localStorage, { history: nextHistory, checkIn, workoutSession: workout, exerciseHistory, sessionHistory, scheduleOverrides, foodEntries: nextEntries, favoriteFoodIds, savedMeals, coachMessages, ...(savedAt ? { savedAt } : {}) });
   }
 
   function updateFoodPreferences(nextFavorites: string[], nextMeals: SavedMeal[]) {
     setFavoriteFoodIds(nextFavorites);
     setSavedMeals(nextMeals);
-    saveDashboardState(window.localStorage, { history, checkIn, workoutSession: workout, exerciseHistory, sessionHistory, scheduleOverrides, foodEntries, favoriteFoodIds: nextFavorites, savedMeals: nextMeals, ...(savedAt ? { savedAt } : {}) });
+    saveDashboardState(window.localStorage, { history, checkIn, workoutSession: workout, exerciseHistory, sessionHistory, scheduleOverrides, foodEntries, favoriteFoodIds: nextFavorites, savedMeals: nextMeals, coachMessages, ...(savedAt ? { savedAt } : {}) });
   }
 
   function generateNewPlan() {
     const nextWorkout = freshWorkoutPlan(generatedPlan);
     setWorkout(nextWorkout);
-    saveDashboardState(window.localStorage, { history, checkIn, workoutSession: nextWorkout, exerciseHistory, sessionHistory, scheduleOverrides, foodEntries, favoriteFoodIds, savedMeals, ...(savedAt ? { savedAt } : {}) });
+    saveDashboardState(window.localStorage, { history, checkIn, workoutSession: nextWorkout, exerciseHistory, sessionHistory, scheduleOverrides, foodEntries, favoriteFoodIds, savedMeals, coachMessages, ...(savedAt ? { savedAt } : {}) });
     setSaved(true);
     window.setTimeout(() => setSaved(false), 2600);
   }
@@ -358,6 +366,11 @@ export function App() {
   function resetPrototype() {
     clearDashboardState(window.localStorage);
     window.location.reload();
+  }
+
+  function updateCoachMessages(nextMessages: CoachMessage[]) {
+    setCoachMessages(nextMessages);
+    saveDashboardState(window.localStorage, { history, checkIn, workoutSession: workout, exerciseHistory, sessionHistory, scheduleOverrides, foodEntries, favoriteFoodIds, savedMeals, coachMessages: nextMessages, ...(savedAt ? { savedAt } : {}) });
   }
 
   return (
@@ -490,14 +503,14 @@ export function App() {
           <label>Soreness <output>{checkInDraft.soreness}/10</output><input type="range" min="0" max="10" value={checkInDraft.soreness} onChange={(e) => setCheckInDraft({ ...checkInDraft, soreness: Number(e.target.value) })} /></label>
           <label>Stress <output>{checkInDraft.stress}/10</output><input type="range" min="0" max="10" value={checkInDraft.stress} onChange={(e) => setCheckInDraft({ ...checkInDraft, stress: Number(e.target.value) })} /></label>
           <button className="save-checkin" onClick={saveCheckIn}><Sparkles size={18} /> Update today’s plan</button>
-          <small className="privacy-note">Saved securely on this device for the prototype. Account sync arrives with production persistence.</small>
+          <small className="privacy-note">Saved on this device and synchronized securely when you are signed in.</small>
         </aside>
       </div>}
 
       {workoutOpen && <WorkoutPlayer session={workout} exerciseHistory={exerciseHistory} onChange={persistWorkout} onClose={() => setWorkoutOpen(false)} onFinish={finishWorkout} />}
       {foodLoggerOpen && <FoodLogger date={TODAY} entries={foodEntries} favoriteFoodIds={favoriteFoodIds} savedMeals={savedMeals} onChange={updateFoodEntries} onPreferencesChange={updateFoodPreferences} onClose={() => setFoodLoggerOpen(false)} />}
       {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} onGeneratePlan={generateNewPlan} onReset={resetPrototype} />}
-      {coachOpen && <CoachPanel twin={twin} onClose={() => setCoachOpen(false)} />}
+      {coachOpen && <CoachPanel twin={twin} messages={coachMessages} onMessagesChange={updateCoachMessages} onClose={() => setCoachOpen(false)} />}
 
       <nav className="mobile-nav" aria-label="Mobile navigation"><a className="active" href="#today"><Home size={20} /><span>Today</span></a><a href="#training"><Dumbbell size={20} /><span>Train</span></a><button onClick={openCheckIn} aria-label="Open daily check-in"><Plus size={22} /></button><a href="#nutrition"><Apple size={20} /><span>Nutrition</span></a><button className="mobile-coach" onClick={() => setCoachOpen(true)}><Brain size={20} /><span>Coach</span></button></nav>
     </div>

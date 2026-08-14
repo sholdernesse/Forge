@@ -27,7 +27,7 @@ const fallback: DashboardState = {
 describe('dashboard storage', () => {
   it('round trips a saved check-in and history', () => {
     const storage = new MemoryStorage();
-    const state = { ...fallback, savedAt: '2026-08-12T12:00:00.000Z', workoutSession: createTodayWorkout('2026-08-12'), sessionHistory: demoSessionHistory, scheduleOverrides: { '2026-08-13': 'rest' as const }, foodEntries: demoFoodEntries, favoriteFoodIds: ['chicken-breast'], savedMeals: [{ id: 'lunch', name: 'Lunch', items: [{ foodId: 'chicken-breast', quantity: 1 }] }] };
+    const state = { ...fallback, savedAt: '2026-08-12T12:00:00.000Z', workoutSession: createTodayWorkout('2026-08-12'), sessionHistory: demoSessionHistory, scheduleOverrides: { '2026-08-13': 'rest' as const }, foodEntries: demoFoodEntries, favoriteFoodIds: ['chicken-breast'], savedMeals: [{ id: 'lunch', name: 'Lunch', items: [{ foodId: 'chicken-breast', quantity: 1 }] }], coachMessages: [{ id: 'm1', role: 'user' as const, content: 'Should I train?', recommendationIds: [], createdAt: '2026-08-12T12:01:00.000Z' }] };
     saveDashboardState(storage, state);
     expect(loadDashboardState(storage, fallback)).toEqual(state);
   });
@@ -50,5 +50,15 @@ describe('dashboard storage', () => {
     saveDashboardState(storage, fallback);
     clearDashboardState(storage);
     expect(storage.getItem(DASHBOARD_STORAGE_KEY)).toBeNull();
+  });
+
+  it('filters malformed coach messages and keeps the newest 40', () => {
+    const storage = new MemoryStorage();
+    const messages = Array.from({ length: 42 }, (_, index) => ({ id: `m${index}`, role: 'assistant', content: `Answer ${index}`, recommendationIds: [], createdAt: `2026-08-12T12:${String(index).padStart(2, '0')}:00.000Z` }));
+    storage.setItem(DASHBOARD_STORAGE_KEY, JSON.stringify({ version: 9, updatedAt: '2026-08-12T13:00:00.000Z', ...fallback, coachMessages: [{ id: '', role: 'system', content: '', recommendationIds: 'bad', createdAt: 'never' }, ...messages] }));
+
+    const loaded = loadDashboardState(storage, fallback);
+    expect(loaded.coachMessages).toHaveLength(40);
+    expect(loaded.coachMessages?.[0]?.id).toBe('m2');
   });
 });

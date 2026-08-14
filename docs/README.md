@@ -4,7 +4,7 @@
 - `decisions/` — architecture decision records
 - `sprints/` — sprint scope and acceptance notes
 
-Current delivery: [Sprint 4.5 — Explainable AI Coach Experience](./sprints/sprint-4.5.md).
+Current delivery: [Sprint 4.6 — Coach Memory and Cross-device Continuity](./sprints/sprint-4.6.md).
 
 Deployment: [Microsoft Entra External ID for Forge](./deployment/entra-external-id.md).
 
