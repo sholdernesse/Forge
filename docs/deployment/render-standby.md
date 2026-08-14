@@ -6,14 +6,14 @@
 
 1. Keep the Blueprint reviewed on the production branch.
 2. Retain encrypted, access-controlled backups made with `scripts/postgres/backup.sh` outside either cloud account.
-3. Record the Entra issuer, audience, JWKS URI, SPA build values, and DNS ownership in the recovery vault. Do not commit their values.
+3. Record the OIDC issuer, audience, JWKS URL, required scope, Entra SPA build values, and DNS ownership in the recovery vault. Do not commit their values.
 4. Test restoration at least quarterly in an isolated database, then destroy the exercise resources.
 
 ## Activate
 
 1. Declare an incident and assign one operator to Azure containment and another to Render activation.
 2. In Render, create a Blueprint from this repository and review every resource before applying it.
-3. Supply the secret Entra API variables and build the web image with the same public Entra SPA configuration used by the primary release.
+3. Supply `OIDC_ISSUER`, `OIDC_AUDIENCE`, `OIDC_JWKS_URL`, and `OIDC_REQUIRED_SCOPE` for the API. Supply the `VITE_ENTRA_*` Blueprint values before the first web build so the image contains the same public SPA configuration as the primary release.
 4. Set `FORGE_WEB_ORIGIN` to the final HTTPS standby origin. Confirm the API remains a private service and PostgreSQL has an empty IP allow list.
 5. Download the latest trusted backup and checksum to a secured operator host. Restore it with:
 
@@ -31,4 +31,3 @@
 Freeze writes or announce a maintenance window, back up the active Render database, restore it into a clean Azure database, validate Azure through a non-public test hostname, and only then return DNS. Preserve incident backups and logs. After the retention window, delete the Render Blueprint so the standby becomes dormant again.
 
 Never run both sites as writable primaries. Forge does not provide multi-primary replication or automatic conflict resolution between databases.
-

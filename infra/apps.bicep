@@ -195,8 +195,12 @@ resource web 'Microsoft.App/containerApps@2024-03-01' = {
           image: webImage
           env: [
             {
-              name: 'FORGE_API_UPSTREAM'
-              value: 'http://${api.name}'
+              name: 'FORGE_API_SCHEME'
+              value: 'http'
+            }
+            {
+              name: 'FORGE_API_HOSTPORT'
+              value: api.name
             }
           ]
           probes: [

@@ -8,7 +8,6 @@ services:
     dockerfilePath: ./apps/api/Dockerfile
     dockerContext: .
     autoDeployTrigger: off
-    healthCheckPath: /health
     envVars:
       - key: DATABASE_URL
         fromDatabase:
@@ -18,11 +17,13 @@ services:
         value: require
       - key: FORGE_WEB_ORIGIN
         sync: false
-      - key: ENTRA_ISSUER
+      - key: OIDC_ISSUER
         sync: false
-      - key: ENTRA_AUDIENCE
+      - key: OIDC_AUDIENCE
         sync: false
-      - key: ENTRA_JWKS_URI
+      - key: OIDC_JWKS_URL
+        sync: false
+      - key: OIDC_REQUIRED_SCOPE
         sync: false
 
   - type: web
@@ -34,8 +35,21 @@ services:
     autoDeployTrigger: off
     healthCheckPath: /health
     envVars:
-      - key: FORGE_API_UPSTREAM
-        value: http://forge-api-standby:8787
+      - key: FORGE_API_SCHEME
+        value: http
+      - key: FORGE_API_HOSTPORT
+        fromService:
+          type: pserv
+          name: forge-api-standby
+          property: hostport
+      - key: VITE_ENTRA_CLIENT_ID
+        sync: false
+      - key: VITE_ENTRA_AUTHORITY
+        sync: false
+      - key: VITE_ENTRA_API_SCOPE
+        sync: false
+      - key: VITE_ENTRA_REDIRECT_URI
+        sync: false
 
 databases:
   - name: forge-postgres-standby
@@ -43,4 +57,3 @@ databases:
     databaseName: forge
     user: forge
     ipAllowList: []
-

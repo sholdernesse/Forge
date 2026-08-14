@@ -26,8 +26,9 @@ ENV VITE_FORGE_SYNC_URL=$VITE_FORGE_SYNC_URL \
 RUN pnpm --filter @forge/web... build
 
 FROM nginx:stable-alpine
-ENV FORGE_API_UPSTREAM=http://forge-api \
-    NGINX_ENVSUBST_FILTER=FORGE_API_UPSTREAM
+ENV FORGE_API_SCHEME=http \
+    FORGE_API_HOSTPORT=forge-api:80 \
+    NGINX_ENVSUBST_FILTER=FORGE_API_
 COPY apps/web/nginx.conf /etc/nginx/templates/default.conf.template
 COPY --from=build /app/apps/web/dist /usr/share/nginx/html
 EXPOSE 8080
