@@ -1,6 +1,6 @@
 import { useMemo, useState, type FormEvent } from 'react';
-import { Brain, Send, ShieldCheck, Sparkles, Trash2, X } from 'lucide-react';
-import { CoachService } from '@forge/coach';
+import { ArrowRight, Brain, Send, ShieldCheck, Sparkles, Trash2, X } from 'lucide-react';
+import { CoachService, type CoachActionType } from '@forge/coach';
 import type { DigitalTwin } from '@forge/digital-twin';
 import type { CoachMessage } from './dashboardStorage.js';
 
@@ -8,6 +8,7 @@ interface CoachPanelProps {
   twin: DigitalTwin;
   messages: CoachMessage[];
   onMessagesChange(messages: CoachMessage[]): void;
+  onAction(action: CoachActionType): void;
   onClose(): void;
 }
 
@@ -17,7 +18,7 @@ const prompts = [
   'What should I focus on nutritionally?',
 ];
 
-export function CoachPanel({ twin, messages, onMessagesChange, onClose }: CoachPanelProps) {
+export function CoachPanel({ twin, messages, onMessagesChange, onAction, onClose }: CoachPanelProps) {
   const coach = useMemo(() => new CoachService(), []);
   const [question, setQuestion] = useState('');
 
@@ -29,7 +30,7 @@ export function CoachPanel({ twin, messages, onMessagesChange, onClose }: CoachP
     const nonce = `${Date.now()}-${messages.length}`;
     const nextMessages: CoachMessage[] = [...messages,
       { id: `question-${nonce}`, role: 'user', content: trimmed, recommendationIds: [], createdAt },
-      { id: `answer-${nonce}`, role: 'assistant', content: result.answer, recommendationIds: result.recommendationIds, createdAt },
+      { id: `answer-${nonce}`, role: 'assistant', content: result.answer, recommendationIds: result.recommendationIds, suggestedAction: result.suggestedAction, createdAt },
     ];
     onMessagesChange(nextMessages.slice(-40));
     setQuestion('');
@@ -65,6 +66,7 @@ export function CoachPanel({ twin, messages, onMessagesChange, onClose }: CoachP
               <h3><ShieldCheck size={16} /> Why I’m saying this</h3>
               {evidence.length ? evidence.map((recommendation) => <div key={recommendation.id}><span><b>{recommendation.title}</b><small>{recommendation.reason}</small></span><strong>{recommendation.confidence}%</strong></div>) : <p>No category-specific adjustment is active. Add today’s recovery signals for more precise guidance.</p>}
             </div>}
+            {message.role === 'assistant' && message.suggestedAction && <button className="coach-handoff" onClick={() => onAction(message.suggestedAction!.type)}>{message.suggestedAction.label}<ArrowRight size={17} /></button>}
           </div>;
         })}
       </section>}

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { CoachService } from '@forge/coach';
+import { CoachService, type CoachActionType } from '@forge/coach';
 import { buildDigitalTwin, type DailySnapshot, type Recommendation } from '@forge/digital-twin';
 import {
   Activity, Apple, ArrowRight, Award, Brain, CalendarDays, ChevronRight, CircleUserRound, Cloud, CloudOff, Dumbbell,
@@ -373,6 +373,13 @@ export function App() {
     saveDashboardState(window.localStorage, { history, checkIn, workoutSession: workout, exerciseHistory, sessionHistory, scheduleOverrides, foodEntries, favoriteFoodIds, savedMeals, coachMessages: nextMessages, ...(savedAt ? { savedAt } : {}) });
   }
 
+  function handleCoachAction(action: CoachActionType) {
+    setCoachOpen(false);
+    if (action === 'open-workout') openWorkout();
+    if (action === 'open-nutrition') setFoodLoggerOpen(true);
+    if (action === 'open-check-in') openCheckIn();
+  }
+
   return (
     <div className="app-shell">
       <aside className="sidebar">
@@ -510,7 +517,7 @@ export function App() {
       {workoutOpen && <WorkoutPlayer session={workout} exerciseHistory={exerciseHistory} onChange={persistWorkout} onClose={() => setWorkoutOpen(false)} onFinish={finishWorkout} />}
       {foodLoggerOpen && <FoodLogger date={TODAY} entries={foodEntries} favoriteFoodIds={favoriteFoodIds} savedMeals={savedMeals} onChange={updateFoodEntries} onPreferencesChange={updateFoodPreferences} onClose={() => setFoodLoggerOpen(false)} />}
       {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} onGeneratePlan={generateNewPlan} onReset={resetPrototype} />}
-      {coachOpen && <CoachPanel twin={twin} messages={coachMessages} onMessagesChange={updateCoachMessages} onClose={() => setCoachOpen(false)} />}
+      {coachOpen && <CoachPanel twin={twin} messages={coachMessages} onMessagesChange={updateCoachMessages} onAction={handleCoachAction} onClose={() => setCoachOpen(false)} />}
 
       <nav className="mobile-nav" aria-label="Mobile navigation"><a className="active" href="#today"><Home size={20} /><span>Today</span></a><a href="#training"><Dumbbell size={20} /><span>Train</span></a><button onClick={openCheckIn} aria-label="Open daily check-in"><Plus size={22} /></button><a href="#nutrition"><Apple size={20} /><span>Nutrition</span></a><button className="mobile-coach" onClick={() => setCoachOpen(true)}><Brain size={20} /><span>Coach</span></button></nav>
     </div>

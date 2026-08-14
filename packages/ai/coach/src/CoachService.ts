@@ -1,6 +1,6 @@
 import { appendDecision, recommendationToDecision, type DigitalTwin } from '@forge/digital-twin';
 import { RecommendationEngine } from '@forge/recommendation-engine';
-import type { CoachAnswer, CoachingEvaluation, TodayBrief } from './types.js';
+import type { CoachAnswer, CoachSuggestedAction, CoachingEvaluation, TodayBrief } from './types.js';
 
 export class CoachService {
   constructor(private readonly engine = new RecommendationEngine()) {}
@@ -45,11 +45,14 @@ export class CoachService {
   ask(twin: DigitalTwin, question: string): CoachAnswer {
     const recommendations = this.engine.generate(twin);
     const normalized = question.toLowerCase();
-    const relevant = normalized.includes('protein') || normalized.includes('calorie') || normalized.includes('food') || normalized.includes('nutrition')
+    const nutritionQuestion = normalized.includes('protein') || normalized.includes('calorie') || normalized.includes('food') || normalized.includes('nutrition');
+    const recoveryQuestion = normalized.includes('sleep') || normalized.includes('recover') || normalized.includes('sore') || normalized.includes('stress');
+    const trainingQuestion = normalized.includes('train') || normalized.includes('workout') || normalized.includes('lift');
+    const relevant = nutritionQuestion
       ? recommendations.filter((r) => r.category === 'nutrition')
-      : normalized.includes('sleep') || normalized.includes('recover') || normalized.includes('sore') || normalized.includes('stress')
+      : recoveryQuestion
         ? recommendations.filter((r) => r.category === 'recovery' || r.category === 'sleep')
-        : normalized.includes('train') || normalized.includes('workout') || normalized.includes('lift')
+        : trainingQuestion
           ? recommendations.filter((r) => r.category === 'training' || r.category === 'recovery')
           : recommendations;
 
@@ -59,6 +62,14 @@ export class CoachService {
         ? 'I need recent recovery data before recommending a training adjustment.'
         : `Your current readiness is ${twin.recovery.readiness}. No rule-based adjustment is required right now.`;
 
-    return { answer, recommendationIds: relevant.slice(0, 3).map((r) => r.id) };
+    const suggestedAction: CoachSuggestedAction = twin.recovery.status === 'insufficient-data'
+      ? { type: 'open-check-in', label: 'Complete today’s check-in' }
+      : nutritionQuestion || relevant[0]?.category === 'nutrition'
+        ? { type: 'open-nutrition', label: 'Open food log' }
+        : recoveryQuestion || relevant[0]?.category === 'recovery' || relevant[0]?.category === 'sleep'
+          ? { type: 'open-check-in', label: 'Update recovery signals' }
+          : { type: 'open-workout', label: 'Open today’s workout' };
+
+    return { answer, recommendationIds: relevant.slice(0, 3).map((r) => r.id), suggestedAction };
   }
 }

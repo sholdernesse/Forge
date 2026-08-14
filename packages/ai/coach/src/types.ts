@@ -16,4 +16,12 @@ export interface CoachingEvaluation {
 export interface CoachAnswer {
   answer: string;
   recommendationIds: string[];
+  suggestedAction: CoachSuggestedAction;
+}
+
+export type CoachActionType = 'open-workout' | 'open-nutrition' | 'open-check-in';
+
+export interface CoachSuggestedAction {
+  type: CoachActionType;
+  label: string;
 }

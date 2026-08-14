@@ -4,6 +4,7 @@ import type { ExercisePerformance } from './progression.js';
 import type { TrainingSessionRecord } from './volumeLedger.js';
 import type { ScheduleOverrides } from './schedulePolicy.js';
 import type { FoodEntry, SavedMeal } from './foodLog.js';
+import type { CoachSuggestedAction } from '@forge/coach';
 
 export type CheckIn = Required<
   Pick<DailySnapshot, 'sleepScore' | 'sleepHours' | 'soreness' | 'stress' | 'weightKg'>
@@ -14,6 +15,7 @@ export interface CoachMessage {
   role: 'user' | 'assistant';
   content: string;
   recommendationIds: string[];
+  suggestedAction?: CoachSuggestedAction;
   createdAt: string;
 }
 
@@ -32,7 +34,7 @@ export interface DashboardState {
 }
 
 interface StoredDashboardState extends DashboardState {
-  version: 9;
+  version: 10;
   updatedAt: string;
 }
 
@@ -71,7 +73,15 @@ function isCoachMessage(value: unknown): value is CoachMessage {
     && (candidate.role === 'user' || candidate.role === 'assistant')
     && typeof candidate.content === 'string' && candidate.content.length > 0 && candidate.content.length <= 2_000
     && Array.isArray(candidate.recommendationIds) && candidate.recommendationIds.every((id) => typeof id === 'string' && id.length <= 200)
+    && (candidate.suggestedAction === undefined || isCoachAction(candidate.suggestedAction))
     && typeof candidate.createdAt === 'string' && !Number.isNaN(Date.parse(candidate.createdAt));
+}
+
+function isCoachAction(value: unknown): value is CoachSuggestedAction {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as Partial<CoachSuggestedAction>;
+  return (candidate.type === 'open-workout' || candidate.type === 'open-nutrition' || candidate.type === 'open-check-in')
+    && typeof candidate.label === 'string' && candidate.label.length > 0 && candidate.label.length <= 100;
 }
 
 export function parseDashboardState(value: unknown): DashboardState | null {
@@ -98,7 +108,7 @@ export function loadDashboardState(storage: DashboardStorage, fallback: Dashboar
     const raw = storage.getItem(DASHBOARD_STORAGE_KEY);
     if (!raw) return fallback;
     const stored = JSON.parse(raw) as Partial<Omit<StoredDashboardState, 'version'>> & { version?: number };
-    if (![1, 2, 3, 4, 5, 6, 7, 8, 9].includes(stored.version ?? 0) || !Array.isArray(stored.history) || !isCheckIn(stored.checkIn)) {
+    if (![1, 2, 3, 4, 5, 6, 7, 8, 9, 10].includes(stored.version ?? 0) || !Array.isArray(stored.history) || !isCheckIn(stored.checkIn)) {
       return fallback;
     }
     return parseDashboardState(stored) ?? fallback;
@@ -116,7 +126,7 @@ export function saveDashboardState(storage: DashboardStorage, state: DashboardSt
 }
 
 export function cacheDashboardState(storage: DashboardStorage, state: DashboardState, updatedAt: string): void {
-  const stored: StoredDashboardState = { version: 9, updatedAt, ...state };
+  const stored: StoredDashboardState = { version: 10, updatedAt, ...state };
   storage.setItem(DASHBOARD_STORAGE_KEY, JSON.stringify(stored));
 }
 

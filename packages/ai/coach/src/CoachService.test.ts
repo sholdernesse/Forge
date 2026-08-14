@@ -99,6 +99,7 @@ describe('CoachService', () => {
 
     expect(answer.recommendationIds.length).toBeGreaterThan(0);
     expect(answer.recommendationIds.every((id) => recommendations.some((item) => item.id === id))).toBe(true);
+    expect(answer.suggestedAction).toEqual({ type: 'open-nutrition', label: 'Open food log' });
   });
 
   it('does not claim evidence when a requested category has no recommendation', () => {
@@ -112,5 +113,18 @@ describe('CoachService', () => {
     const answer = new CoachService().ask(twin, 'What should I eat today?');
     expect(answer.recommendationIds).toHaveLength(0);
     expect(answer.answer).toContain('recovery data');
+    expect(answer.suggestedAction.type).toBe('open-check-in');
+  });
+
+  it('hands an actionable training answer to the workout flow', () => {
+    const twin = buildDigitalTwin({
+      profile: { id: 'u1', sex: 'unspecified' },
+      goals: { primary: 'performance', weeklyTrainingTarget: 4 },
+      now: '2026-08-10T12:00:00.000Z',
+      asOfDate: '2026-08-10',
+      history: [{ date: '2026-08-10', sleepScore: 90, soreness: 2, stress: 2 }],
+    });
+
+    expect(new CoachService().ask(twin, 'Should I train today?').suggestedAction.type).toBe('open-workout');
   });
 });
