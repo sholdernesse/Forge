@@ -79,4 +79,38 @@ describe('CoachService', () => {
     expect(result.twin.recovery.status).toBe('insufficient-data');
     expect(result.brief.recommendations.some((r) => r.category === 'training')).toBe(false);
   });
+
+  it('grounds nutrition questions only in nutrition recommendations', () => {
+    const twin = buildDigitalTwin({
+      profile: { id: 'u1', sex: 'unspecified', weightKg: 76 },
+      goals: { primary: 'recomposition', weeklyTrainingTarget: 4 },
+      now: '2026-08-10T12:00:00.000Z',
+      asOfDate: '2026-08-10',
+      history: [
+        { date: '2026-08-08', sleepScore: 80, soreness: 2, stress: 2, proteinG: 72 },
+        { date: '2026-08-09', sleepScore: 82, soreness: 2, stress: 2, proteinG: 70 },
+        { date: '2026-08-10', sleepScore: 84, soreness: 2, stress: 2, proteinG: 75 },
+      ],
+    });
+
+    const coach = new CoachService();
+    const answer = coach.ask(twin, 'How is my protein and nutrition today?');
+    const recommendations = coach.getNutrition(twin);
+
+    expect(answer.recommendationIds.length).toBeGreaterThan(0);
+    expect(answer.recommendationIds.every((id) => recommendations.some((item) => item.id === id))).toBe(true);
+  });
+
+  it('does not claim evidence when a requested category has no recommendation', () => {
+    const twin = buildDigitalTwin({
+      profile: { id: 'u1', sex: 'unspecified' },
+      goals: { primary: 'performance', weeklyTrainingTarget: 4 },
+      now: '2026-08-10T12:00:00.000Z',
+      asOfDate: '2026-08-10',
+    });
+
+    const answer = new CoachService().ask(twin, 'What should I eat today?');
+    expect(answer.recommendationIds).toHaveLength(0);
+    expect(answer.answer).toContain('recovery data');
+  });
 });

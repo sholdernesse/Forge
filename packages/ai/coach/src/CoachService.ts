@@ -45,9 +45,13 @@ export class CoachService {
   ask(twin: DigitalTwin, question: string): CoachAnswer {
     const recommendations = this.engine.generate(twin);
     const normalized = question.toLowerCase();
-    const relevant = normalized.includes('train') || normalized.includes('workout')
-      ? recommendations.filter((r) => r.category === 'training' || r.category === 'recovery')
-      : recommendations;
+    const relevant = normalized.includes('protein') || normalized.includes('calorie') || normalized.includes('food') || normalized.includes('nutrition')
+      ? recommendations.filter((r) => r.category === 'nutrition')
+      : normalized.includes('sleep') || normalized.includes('recover') || normalized.includes('sore') || normalized.includes('stress')
+        ? recommendations.filter((r) => r.category === 'recovery' || r.category === 'sleep')
+        : normalized.includes('train') || normalized.includes('workout') || normalized.includes('lift')
+          ? recommendations.filter((r) => r.category === 'training' || r.category === 'recovery')
+          : recommendations;
 
     const answer = relevant.length
       ? `${relevant[0]!.action} ${relevant[0]!.reason}`
@@ -55,6 +59,6 @@ export class CoachService {
         ? 'I need recent recovery data before recommending a training adjustment.'
         : `Your current readiness is ${twin.recovery.readiness}. No rule-based adjustment is required right now.`;
 
-    return { answer, recommendationIds: relevant.map((r) => r.id) };
+    return { answer, recommendationIds: relevant.slice(0, 3).map((r) => r.id) };
   }
 }

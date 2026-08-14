@@ -22,6 +22,7 @@ import { demoSavedMeals } from './foodCatalog.js';
 import { freshWorkoutPlan } from './prototypeActions.js';
 import { SettingsPanel } from './SettingsPanel.js';
 import { useForgeAuth } from './useForgeAuth.js';
+import { CoachPanel } from './CoachPanel.js';
 
 const TODAY = '2026-08-12' as const;
 const NOW = '2026-08-12T11:30:00.000Z';
@@ -94,6 +95,7 @@ export function App() {
   const [favoriteFoodIds, setFavoriteFoodIds] = useState<string[]>(initialState.favoriteFoodIds ?? ['eggs-whites', 'chicken-breast', 'protein-shake']);
   const [savedMeals, setSavedMeals] = useState<SavedMeal[]>(initialState.savedMeals ?? demoSavedMeals);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [coachOpen, setCoachOpen] = useState(false);
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('local');
   const [syncConflict, setSyncConflict] = useState<SyncConflictActions | null>(null);
 
@@ -367,7 +369,7 @@ export function App() {
           <a href="#training"><Dumbbell size={19} /><span>Training</span></a>
           <a href="#nutrition"><Utensils size={19} /><span>Nutrition</span></a>
           <a href="#progress"><Activity size={19} /><span>Progress</span></a>
-          <a href="#coach"><Brain size={19} /><span>AI Coach</span></a>
+          <button className="sidebar-coach" onClick={() => setCoachOpen(true)}><Brain size={19} /><span>AI Coach</span></button>
         </nav>
         <div className="sidebar-bottom">
           <button className="sidebar-settings" onClick={() => setSettingsOpen(true)}><Settings size={19} /><span>Settings</span></button>
@@ -413,7 +415,7 @@ export function App() {
             <span className="section-label">FORGE COACH</span>
             <h2>{brief.recommendations[0]?.title ?? 'Stay the course'}</h2>
             <p>{brief.recommendations[0]?.reason ?? 'Your recovery signals support the plan already in place.'}</p>
-            <div className="coach-action"><span>{brief.recommendations[0]?.action ?? 'Complete your planned session and keep nutrition consistent.'}</span><button aria-label="Open AI Coach"><ArrowRight size={18} /></button></div>
+            <div className="coach-action"><span>{brief.recommendations[0]?.action ?? 'Complete your planned session and keep nutrition consistent.'}</span><button onClick={() => setCoachOpen(true)} aria-label="Open AI Coach"><ArrowRight size={18} /></button></div>
             <div className="confidence"><span>Decision confidence</span><strong>{brief.recommendations[0]?.confidence ?? 76}%</strong></div>
           </article>
         </section>
@@ -495,8 +497,9 @@ export function App() {
       {workoutOpen && <WorkoutPlayer session={workout} exerciseHistory={exerciseHistory} onChange={persistWorkout} onClose={() => setWorkoutOpen(false)} onFinish={finishWorkout} />}
       {foodLoggerOpen && <FoodLogger date={TODAY} entries={foodEntries} favoriteFoodIds={favoriteFoodIds} savedMeals={savedMeals} onChange={updateFoodEntries} onPreferencesChange={updateFoodPreferences} onClose={() => setFoodLoggerOpen(false)} />}
       {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} onGeneratePlan={generateNewPlan} onReset={resetPrototype} />}
+      {coachOpen && <CoachPanel twin={twin} onClose={() => setCoachOpen(false)} />}
 
-      <nav className="mobile-nav" aria-label="Mobile navigation"><a className="active" href="#today"><Home size={20} /><span>Today</span></a><a href="#training"><Dumbbell size={20} /><span>Train</span></a><button onClick={openCheckIn} aria-label="Open daily check-in"><Plus size={22} /></button><a href="#nutrition"><Apple size={20} /><span>Nutrition</span></a><a href="#coach"><Brain size={20} /><span>Coach</span></a></nav>
+      <nav className="mobile-nav" aria-label="Mobile navigation"><a className="active" href="#today"><Home size={20} /><span>Today</span></a><a href="#training"><Dumbbell size={20} /><span>Train</span></a><button onClick={openCheckIn} aria-label="Open daily check-in"><Plus size={22} /></button><a href="#nutrition"><Apple size={20} /><span>Nutrition</span></a><button className="mobile-coach" onClick={() => setCoachOpen(true)}><Brain size={20} /><span>Coach</span></button></nav>
     </div>
   );
 }
