@@ -16,6 +16,8 @@ export interface WorkoutExercise {
   mode: ExerciseMode;
   restSeconds: number;
   sets: WorkoutSetLog[];
+  substitutedFromId?: string;
+  substitutedFromName?: string;
 }
 
 export interface WorkoutSession {

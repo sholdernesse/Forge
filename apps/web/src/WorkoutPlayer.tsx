@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Check, ChevronDown, Clock3, Eye, Minus, Plus, Sparkles, Trophy, X } from 'lucide-react';
+import { Check, ChevronDown, Clock3, Eye, Minus, Plus, Repeat2, Sparkles, Trophy, X } from 'lucide-react';
 import {
   completedSetCount,
   totalSetCount,
@@ -10,6 +10,7 @@ import { progressionTarget, type ExercisePerformance } from './progression.js';
 import { useAccessibleDialog } from './useAccessibleDialog.js';
 import { exerciseGuide, type ExerciseGuide as ExerciseGuideModel } from './exerciseGuides.js';
 import { ExerciseGuide } from './ExerciseGuide.js';
+import { applyExerciseSubstitution, exerciseSubstitutions } from './exerciseSubstitutions.js';
 
 interface WorkoutPlayerProps {
   session: WorkoutSession;
@@ -24,6 +25,7 @@ export function WorkoutPlayer({ session, onChange, onClose, onFinish, exerciseHi
   const [activeExercise, setActiveExercise] = useState(Math.max(0, firstIncomplete));
   const [restRemaining, setRestRemaining] = useState(0);
   const [activeGuide, setActiveGuide] = useState<ExerciseGuideModel | null>(null);
+  const [swapExerciseId, setSwapExerciseId] = useState<string | null>(null);
   const dialogRef = useAccessibleDialog(() => activeGuide ? setActiveGuide(null) : onClose());
   const completed = completedSetCount(session);
   const total = totalSetCount(session);
@@ -84,6 +86,8 @@ export function WorkoutPlayer({ session, onChange, onClose, onFinish, exerciseHi
           const expanded = exerciseIndex === activeExercise;
           const target = progressionTarget(exerciseHistory, exercise.id);
           const guide = exerciseGuide(exercise.id);
+          const alternatives = exerciseSubstitutions(exercise.id);
+          const hasCompletedSets = exercise.sets.some((set) => set.completedAt);
           return <article className={`exercise-card ${expanded ? 'expanded' : ''}`} key={exercise.id}>
             <button className="exercise-heading" onClick={() => setActiveExercise(exerciseIndex)}>
               <span className={`exercise-number ${exerciseComplete ? 'complete' : ''}`}>{exerciseComplete ? <Check size={17} /> : exerciseIndex + 1}</span>
@@ -91,7 +95,33 @@ export function WorkoutPlayer({ session, onChange, onClose, onFinish, exerciseHi
               <ChevronDown size={19} />
             </button>
             {expanded && <div className="set-table">
+              {exercise.substitutedFromName && <div className="substitution-origin"><Repeat2 size={15} />Swapped from {exercise.substitutedFromName}</div>}
               {guide && <button className="watch-form" onClick={() => setActiveGuide(guide)}><Eye size={17} /><span><b>Watch form</b><small>See setup, movement, and common mistakes</small></span></button>}
+              {alternatives.length > 0 && <>
+                <button
+                  className="swap-exercise"
+                  disabled={hasCompletedSets}
+                  onClick={() => setSwapExerciseId(swapExerciseId === exercise.id ? null : exercise.id)}
+                  aria-expanded={swapExerciseId === exercise.id}
+                ><Repeat2 size={17} /><span><b>Swap exercise</b><small>{hasCompletedSets ? 'Finish or undo completed sets before swapping' : 'Keep the training intent with a reviewed alternative'}</small></span></button>
+                {swapExerciseId === exercise.id && <div className="substitution-picker" aria-label={`Alternatives for ${exercise.name}`}>
+                  <div className="substitution-intro"><b>Choose an alternative</b><small>Your set and rep targets stay in place. Load resets to zero so you can choose a suitable starting point.</small></div>
+                  {alternatives.map((alternative) => <button key={alternative.id} onClick={() => {
+                    onChange({
+                      ...session,
+                      exercises: session.exercises.map((item, index) => index === exerciseIndex
+                        ? applyExerciseSubstitution(item, alternative)
+                        : item),
+                    });
+                    setSwapExerciseId(null);
+                  }}>
+                    <span><b>{alternative.name}</b><small>{alternative.detail}</small></span>
+                    <span className="substitution-reasons">{alternative.reasons.join(' · ')}</span>
+                    <em>{alternative.preserves}</em>
+                  </button>)}
+                  <button className="substitution-cancel" onClick={() => setSwapExerciseId(null)}>Keep {exercise.name}</button>
+                </div>}
+              </>}
               {target && <div className="progression-tip"><Sparkles size={16} /><span><b>Forge target: {target.loadKg} kg × {target.reps}</b><small>{target.reason}</small></span><button onClick={() => onChange({ ...session, exercises: session.exercises.map((item, index) => index === exerciseIndex ? { ...item, sets: item.sets.map((set) => ({ ...set, reps: target.reps, loadKg: target.loadKg })) } : item) })}>Apply</button></div>}
               <div className="set-row set-labels"><span>SET</span><span>{exercise.mode === 'duration' ? 'MINUTES' : 'REPS'}</span><span>{exercise.mode === 'duration' ? 'PACE' : 'LOAD KG'}</span><span>DONE</span></div>
               {exercise.sets.map((set, setIndex) => <div className={`set-row ${set.completedAt ? 'done' : ''}`} key={set.id}>
