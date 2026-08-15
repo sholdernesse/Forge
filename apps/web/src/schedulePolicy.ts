@@ -1,5 +1,6 @@
 import type { DigitalTwin } from '@forge/digital-twin';
 import type { WorkoutSession } from './workoutSession.js';
+import type { TrainingSessionRecord } from './volumeLedger.js';
 
 export type ScheduleIntent = 'adaptive' | 'train' | 'rest';
 export type ScheduleOverrides = Record<string, ScheduleIntent>;
@@ -10,6 +11,27 @@ export interface DeloadAssessment {
   reasons: string[];
   volumeMultiplier: number;
   loadMultiplier: number;
+}
+
+export interface TrainingFeedbackAssessment {
+  action: 'none' | 'deload' | 'recovery';
+  reasons: string[];
+}
+
+export function assessTrainingFeedback(records: TrainingSessionRecord[], asOfDate: string): TrainingFeedbackAssessment {
+  const cutoff = Date.parse(`${asOfDate}T00:00:00Z`);
+  const start = cutoff - 3 * 86_400_000;
+  const recent = records.filter((record) => {
+    const date = Date.parse(`${record.date}T00:00:00Z`);
+    return date >= start && date < cutoff;
+  });
+  if (recent.some((record) => record.discomfort === 'stopped')) {
+    return { action: 'recovery', reasons: ['A recent session was stopped because of discomfort.'] };
+  }
+  const reasons: string[] = [];
+  if (recent.some((record) => record.discomfort === 'mild')) reasons.push('A recent session included mild discomfort.');
+  if (recent.some((record) => (record.perceivedExertion ?? 0) >= 9)) reasons.push('A recent session felt near-maximal.');
+  return { action: reasons.length ? 'deload' : 'none', reasons };
 }
 
 export function assessDeload(twin: DigitalTwin): DeloadAssessment {

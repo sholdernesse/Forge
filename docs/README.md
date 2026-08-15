@@ -4,7 +4,7 @@
 - `decisions/` — architecture decision records
 - `sprints/` — sprint scope and acceptance notes
 
-Current delivery: [Sprint 4.10 — Post-workout Feedback Loop](./sprints/sprint-4.10.md).
+Current delivery: [Sprint 4.11 — Feedback-aware Training Guardrails](./sprints/sprint-4.11.md).
 
 Deployment: [Microsoft Entra External ID for Forge](./deployment/entra-external-id.md).
 

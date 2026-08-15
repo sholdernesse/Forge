@@ -1,7 +1,7 @@
 import type { DigitalTwin } from '@forge/digital-twin';
 import type { WorkoutExercise, WorkoutSession } from './workoutSession.js';
 import { weeklyVolume, type TrainingSessionRecord } from './volumeLedger.js';
-import { applyDeload, assessDeload, type ScheduleIntent } from './schedulePolicy.js';
+import { applyDeload, assessDeload, assessTrainingFeedback, type ScheduleIntent } from './schedulePolicy.js';
 
 export interface TrainingPreferences {
   equipment: Array<'barbell' | 'dumbbells' | 'bands' | 'rack' | 'treadmill'>;
@@ -28,10 +28,13 @@ export function generateTrainingPlan(twin: DigitalTwin, preferences: TrainingPre
   const readiness = twin.recovery.readiness;
   const weeklyTarget = twin.goals.weeklyTrainingTarget ?? 4;
   const weeklyComplete = twin.training.sessionsLast7Days >= weeklyTarget;
+  const feedback = assessTrainingFeedback(sessionHistory, date);
 
-  if (readiness < 55 || weeklyComplete || scheduleIntent === 'rest') {
+  if (readiness < 55 || weeklyComplete || scheduleIntent === 'rest' || feedback.action === 'recovery') {
     const cause = scheduleIntent === 'rest'
       ? 'You designated today as a rest day. Forge retained light movement to support recovery.'
+      : feedback.action === 'recovery'
+      ? `${feedback.reasons.join(' ')} Forge selected low-intensity movement and recommends reassessing before loaded training.`
       : weeklyComplete
       ? `You have completed ${twin.training.sessionsLast7Days} of ${weeklyTarget} weekly sessions.`
       : `Readiness is ${readiness}, so Forge reduced joint and systemic loading.`;
@@ -50,7 +53,17 @@ export function generateTrainingPlan(twin: DigitalTwin, preferences: TrainingPre
   const upperVolume = total('chest', 'back', 'shoulders', 'biceps', 'triceps');
   const lowerVolume = total('quads', 'hamstrings', 'glutes', 'calves');
   const upperDay = sessionHistory.length ? upperVolume <= lowerVolume : twin.training.sessionsLast7Days % 2 === 0;
-  const deload = assessDeload(twin);
+  const baseDeload = assessDeload(twin);
+  const deload = feedback.action === 'deload'
+    ? {
+      ...baseDeload,
+      active: true,
+      fatigueScore: baseDeload.fatigueScore + 1,
+      reasons: [...baseDeload.reasons, ...feedback.reasons],
+      volumeMultiplier: 0.65,
+      loadMultiplier: 0.9,
+    }
+    : baseDeload;
   if (upperDay) {
     const neutralGrip = preferences.constraints.includes('elbow-sensitive');
     return applyDeload({

@@ -35,4 +35,11 @@ describe('adaptive training planner', () => {
     expect(plan.exercises.map((exercise) => exercise.id)).toContain('hip-thrust');
     expect(plan.exercises.map((exercise) => exercise.id)).not.toContain('romanian-deadlift');
   });
+
+  it('deloads after near-maximal effort and selects recovery after a stopped session', () => {
+    const hardHistory = [{ workoutId: 'hard', date: '2026-08-11', title: 'Hard', durationMinutes: 50, muscleSets: { chest: 4 }, perceivedExertion: 9 }];
+    expect(generateTrainingPlan(twinWith(95, 2), demoTrainingPreferences, hardHistory)).toMatchObject({ intensity: 'low' });
+    const stoppedHistory = [{ workoutId: 'stop', date: '2026-08-11', title: 'Stopped', durationMinutes: 10, muscleSets: {}, discomfort: 'stopped' as const }];
+    expect(generateTrainingPlan(twinWith(95, 2), demoTrainingPreferences, stoppedHistory)).toMatchObject({ planType: 'recovery', intensity: 'low' });
+  });
 });

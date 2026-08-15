@@ -2,9 +2,9 @@
 
 Forge is an AI-powered fitness coaching platform centered on a persistent Digital Twin, explainable recommendations, and a daily coaching experience.
 
-## Sprint 4.10
+## Sprint 4.11
 
-Sprint 4.10 adds a bounded post-workout feedback loop so Forge records experienced effort and discomfort alongside completed training instead of relying on a fixed exertion value.
+Sprint 4.11 connects post-workout feedback to deterministic training guardrails, reducing future load after near-maximal effort or discomfort and making that decision visible in Today.
 
 ```bash
 corepack enable

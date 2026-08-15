@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { buildDigitalTwin } from '@forge/digital-twin';
 import { demoGoals, demoHistory, demoProfile } from './demoData.js';
 import { createTodayWorkout } from './workoutSession.js';
-import { applyDeload, assessDeload, nextScheduleIntent } from './schedulePolicy.js';
+import { applyDeload, assessDeload, assessTrainingFeedback, nextScheduleIntent } from './schedulePolicy.js';
 
 describe('schedule and deload policy', () => {
   it('activates a deload for sustained low recovery signals', () => {
@@ -24,5 +24,11 @@ describe('schedule and deload policy', () => {
     expect(nextScheduleIntent('adaptive')).toBe('train');
     expect(nextScheduleIntent('train')).toBe('rest');
     expect(nextScheduleIntent('rest')).toBe('adaptive');
+  });
+
+  it('turns recent experienced effort into bounded planning actions', () => {
+    expect(assessTrainingFeedback([{ workoutId: 'hard', date: '2026-08-11', title: 'Hard', durationMinutes: 45, muscleSets: {}, perceivedExertion: 9 }], '2026-08-12').action).toBe('deload');
+    expect(assessTrainingFeedback([{ workoutId: 'stop', date: '2026-08-11', title: 'Stopped', durationMinutes: 10, muscleSets: {}, discomfort: 'stopped' }], '2026-08-12').action).toBe('recovery');
+    expect(assessTrainingFeedback([{ workoutId: 'old', date: '2026-08-01', title: 'Old', durationMinutes: 45, muscleSets: {}, discomfort: 'stopped' }], '2026-08-12').action).toBe('none');
   });
 });

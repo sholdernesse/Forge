@@ -9,3 +9,4 @@ coverage
 .DS_Store
 *.log
 backups/
+/sprint-3.1/

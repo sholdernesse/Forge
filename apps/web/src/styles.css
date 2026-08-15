@@ -44,6 +44,7 @@ main { margin-left: 228px; padding: 38px clamp(28px, 4vw, 64px) 64px; max-width:
 .workout-state-row b { color: #dff9e9; font-size: 13px; }
 .workout-state-row small { color: #78958a; font-size: 11px; }
 .workout-state-row strong { color: #77fba5; font-size: 18px; }
+.workout-feedback-summary{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;margin:0 0 16px;padding:12px 13px;border:1px solid #2c5747;border-radius:10px;background:#10291f;color:#76fba5}.workout-feedback-summary span{display:grid;gap:3px}.workout-feedback-summary b{color:#dff9e9;font-size:12px}.workout-feedback-summary small{color:#78958a;font-size:10px;line-height:1.45}.workout-feedback-summary.discomfort-mild,.workout-feedback-summary.discomfort-stopped{border-color:#705f27;background:#2b2512;color:#f0d66d}.workout-feedback-summary.discomfort-mild small,.workout-feedback-summary.discomfort-stopped small{color:#b9a96f}
 .plan-rationale { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; margin: 14px 0 16px; padding: 12px 13px; border: 1px solid #2c5747; border-radius: 10px; background: linear-gradient(120deg, rgba(31, 74, 55, .7), rgba(15, 40, 31, .7)); color: #76fba5; }
 .plan-rationale span { display: grid; gap: 4px; }
 .plan-rationale b { color: #dff6e8; font-size: 11px; text-transform: capitalize; }
