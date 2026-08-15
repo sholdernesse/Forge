@@ -4,7 +4,7 @@
 - `decisions/` — architecture decision records
 - `sprints/` — sprint scope and acceptance notes
 
-Current delivery: [Sprint 4.7 — Coach-to-action Handoffs](./sprints/sprint-4.7.md).
+Current delivery: [Sprint 4.8 — Visual Exercise Guidance](./sprints/sprint-4.8.md).
 
 Deployment: [Microsoft Entra External ID for Forge](./deployment/entra-external-id.md).
 

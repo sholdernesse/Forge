@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Check, ChevronDown, Clock3, Minus, Plus, Sparkles, Trophy, X } from 'lucide-react';
+import { Check, ChevronDown, Clock3, Eye, Minus, Plus, Sparkles, Trophy, X } from 'lucide-react';
 import {
   completedSetCount,
   totalSetCount,
@@ -8,6 +8,8 @@ import {
 } from './workoutSession.js';
 import { progressionTarget, type ExercisePerformance } from './progression.js';
 import { useAccessibleDialog } from './useAccessibleDialog.js';
+import { exerciseGuide, type ExerciseGuide as ExerciseGuideModel } from './exerciseGuides.js';
+import { ExerciseGuide } from './ExerciseGuide.js';
 
 interface WorkoutPlayerProps {
   session: WorkoutSession;
@@ -18,10 +20,11 @@ interface WorkoutPlayerProps {
 }
 
 export function WorkoutPlayer({ session, onChange, onClose, onFinish, exerciseHistory }: WorkoutPlayerProps) {
-  const dialogRef = useAccessibleDialog(onClose);
   const firstIncomplete = session.exercises.findIndex((exercise) => exercise.sets.some((set) => !set.completedAt));
   const [activeExercise, setActiveExercise] = useState(Math.max(0, firstIncomplete));
   const [restRemaining, setRestRemaining] = useState(0);
+  const [activeGuide, setActiveGuide] = useState<ExerciseGuideModel | null>(null);
+  const dialogRef = useAccessibleDialog(() => activeGuide ? setActiveGuide(null) : onClose());
   const completed = completedSetCount(session);
   const total = totalSetCount(session);
   const progress = Math.round((completed / total) * 100);
@@ -80,6 +83,7 @@ export function WorkoutPlayer({ session, onChange, onClose, onFinish, exerciseHi
           const exerciseComplete = exercise.sets.every((set) => set.completedAt);
           const expanded = exerciseIndex === activeExercise;
           const target = progressionTarget(exerciseHistory, exercise.id);
+          const guide = exerciseGuide(exercise.id);
           return <article className={`exercise-card ${expanded ? 'expanded' : ''}`} key={exercise.id}>
             <button className="exercise-heading" onClick={() => setActiveExercise(exerciseIndex)}>
               <span className={`exercise-number ${exerciseComplete ? 'complete' : ''}`}>{exerciseComplete ? <Check size={17} /> : exerciseIndex + 1}</span>
@@ -87,6 +91,7 @@ export function WorkoutPlayer({ session, onChange, onClose, onFinish, exerciseHi
               <ChevronDown size={19} />
             </button>
             {expanded && <div className="set-table">
+              {guide && <button className="watch-form" onClick={() => setActiveGuide(guide)}><Eye size={17} /><span><b>Watch form</b><small>See setup, movement, and common mistakes</small></span></button>}
               {target && <div className="progression-tip"><Sparkles size={16} /><span><b>Forge target: {target.loadKg} kg × {target.reps}</b><small>{target.reason}</small></span><button onClick={() => onChange({ ...session, exercises: session.exercises.map((item, index) => index === exerciseIndex ? { ...item, sets: item.sets.map((set) => ({ ...set, reps: target.reps, loadKg: target.loadKg })) } : item) })}>Apply</button></div>}
               <div className="set-row set-labels"><span>SET</span><span>{exercise.mode === 'duration' ? 'MINUTES' : 'REPS'}</span><span>{exercise.mode === 'duration' ? 'PACE' : 'LOAD KG'}</span><span>DONE</span></div>
               {exercise.sets.map((set, setIndex) => <div className={`set-row ${set.completedAt ? 'done' : ''}`} key={set.id}>
@@ -104,6 +109,7 @@ export function WorkoutPlayer({ session, onChange, onClose, onFinish, exerciseHi
         <div><Trophy size={20} /><span><b>Finish when the work is done</b><small>Your training load will update Today.</small></span></div>
         <button disabled={completed === 0} onClick={onFinish}>Finish workout <Check size={18} /></button>
       </footer>
+      {activeGuide && <ExerciseGuide guide={activeGuide} onClose={() => setActiveGuide(null)} />}
     </section>
   </div>;
 }
