@@ -22,4 +22,11 @@ describe('training history timeline', () => {
     expect(trainingHistoryEntries([{ workoutId: 'stop', date: '2026-08-12', title: 'Stopped', durationMinutes: 8, muscleSets: {}, discomfort: 'stopped' }])[0]).toMatchObject({ tone: 'stopped', discomfortLabel: 'Stopped for discomfort' });
     expect(trainingHistoryEntries([{ workoutId: 'ok', date: '2026-08-12', title: 'Complete', durationMinutes: 40, muscleSets: {}, discomfort: 'none' }])[0]?.discomfortLabel).toBeUndefined();
   });
+
+  it('projects exercise completion and the bounded feedback note for detail views', () => {
+    const entry = trainingHistoryEntries([{ workoutId: 'detail', date: '2026-08-12', title: 'Upper', durationMinutes: 40, muscleSets: { chest: 3 }, discomfort: 'mild', feedbackNote: 'Shoulder felt tight.', exerciseSummaries: [{ exerciseId: 'bench', name: 'Bench press', completedSets: 3, totalSets: 4 }] }])[0]!;
+    expect(entry.feedbackNote).toBe('Shoulder felt tight.');
+    expect(entry.exercises).toEqual([{ id: 'bench', name: 'Bench press', completionLabel: '3 of 4 sets' }]);
+    expect(entry.muscleBreakdown).toEqual(['Chest 3']);
+  });
 });

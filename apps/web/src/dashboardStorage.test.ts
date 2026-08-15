@@ -68,4 +68,14 @@ describe('dashboard storage', () => {
 
     expect(loadDashboardState(storage, fallback).coachMessages).toEqual([]);
   });
+
+  it('filters malformed training history records and bounds retained history', () => {
+    const storage = new MemoryStorage();
+    const records = Array.from({ length: 92 }, (_, index) => ({ workoutId: `w${index}`, date: '2026-08-12', title: 'Session', durationMinutes: 40, muscleSets: { chest: 3 } }));
+    storage.setItem(DASHBOARD_STORAGE_KEY, JSON.stringify({ version: 10, updatedAt: '2026-08-12T13:00:00.000Z', ...fallback, sessionHistory: [{ workoutId: '', date: 'never', title: '', durationMinutes: -1, muscleSets: { unknown: 999 } }, ...records] }));
+
+    const loaded = loadDashboardState(storage, fallback);
+    expect(loaded.sessionHistory).toHaveLength(90);
+    expect(loaded.sessionHistory?.[0]?.workoutId).toBe('w2');
+  });
 });

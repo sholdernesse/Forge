@@ -9,6 +9,7 @@ describe('weekly volume ledger', () => {
     workout.feedback = { perceivedExertion: 8, discomfort: 'mild', note: 'Knee felt different.' };
     expect(summarizeWorkout(workout, 32).muscleSets).toEqual({ core: 1 });
     expect(summarizeWorkout(workout, 32)).toMatchObject({ perceivedExertion: 8, discomfort: 'mild' });
+    expect(summarizeWorkout(workout, 32)).toMatchObject({ feedbackNote: 'Knee felt different.', exerciseSummaries: expect.arrayContaining([{ exerciseId: 'dead-bugs', name: 'Dead bugs', completedSets: 1, totalSets: 3 }]) });
   });
 
   it('excludes sessions outside the rolling seven-day window', () => {

@@ -11,6 +11,15 @@ export interface TrainingSessionRecord {
   durationMinutes: number;
   perceivedExertion?: number;
   discomfort?: WorkoutDiscomfort;
+  feedbackNote?: string;
+  exerciseSummaries?: ExerciseSessionSummary[];
+}
+
+export interface ExerciseSessionSummary {
+  exerciseId: string;
+  name: string;
+  completedSets: number;
+  totalSets: number;
 }
 
 export interface VolumeTarget {
@@ -48,8 +57,36 @@ export function summarizeWorkout(session: WorkoutSession, durationMinutes: numbe
     ...(session.feedback ? {
       perceivedExertion: session.feedback.perceivedExertion,
       discomfort: session.feedback.discomfort,
+      ...(session.feedback.note ? { feedbackNote: session.feedback.note } : {}),
     } : {}),
+    exerciseSummaries: session.exercises.map((exercise) => ({
+      exerciseId: exercise.id,
+      name: exercise.name,
+      completedSets: exercise.sets.filter((set) => set.completedAt).length,
+      totalSets: exercise.sets.length,
+    })),
   };
+}
+
+const muscleGroups: MuscleGroup[] = ['chest', 'back', 'shoulders', 'biceps', 'triceps', 'quads', 'hamstrings', 'glutes', 'calves', 'core', 'cardio'];
+
+export function isTrainingSessionRecord(value: unknown): value is TrainingSessionRecord {
+  if (!value || typeof value !== 'object') return false;
+  const record = value as Partial<TrainingSessionRecord>;
+  if (typeof record.workoutId !== 'string' || !record.workoutId || record.workoutId.length > 200
+    || typeof record.date !== 'string' || Number.isNaN(Date.parse(`${record.date}T00:00:00Z`))
+    || typeof record.title !== 'string' || !record.title || record.title.length > 200
+    || typeof record.durationMinutes !== 'number' || !Number.isFinite(record.durationMinutes) || record.durationMinutes < 0 || record.durationMinutes > 600
+    || !record.muscleSets || typeof record.muscleSets !== 'object') return false;
+  if (!Object.entries(record.muscleSets).every(([muscle, sets]) => muscleGroups.includes(muscle as MuscleGroup) && typeof sets === 'number' && Number.isInteger(sets) && sets >= 0 && sets <= 100)) return false;
+  if (record.perceivedExertion !== undefined && (!Number.isInteger(record.perceivedExertion) || record.perceivedExertion < 1 || record.perceivedExertion > 10)) return false;
+  if (record.discomfort !== undefined && !['none', 'mild', 'stopped'].includes(record.discomfort)) return false;
+  if (record.feedbackNote !== undefined && (typeof record.feedbackNote !== 'string' || record.feedbackNote.length > 240)) return false;
+  return record.exerciseSummaries === undefined || (Array.isArray(record.exerciseSummaries) && record.exerciseSummaries.length <= 30 && record.exerciseSummaries.every((summary) => summary
+    && typeof summary.exerciseId === 'string' && summary.exerciseId.length > 0 && summary.exerciseId.length <= 200
+    && typeof summary.name === 'string' && summary.name.length > 0 && summary.name.length <= 200
+    && Number.isInteger(summary.completedSets) && summary.completedSets >= 0
+    && Number.isInteger(summary.totalSets) && summary.totalSets >= summary.completedSets && summary.totalSets <= 30));
 }
 
 export function weeklyVolume(records: TrainingSessionRecord[], asOfDate: string): VolumeTarget[] {

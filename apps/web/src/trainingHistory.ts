@@ -11,6 +11,9 @@ export interface TrainingHistoryEntry {
   effortLabel?: string;
   discomfortLabel?: string;
   tone: 'complete' | 'caution' | 'stopped';
+  feedbackNote?: string;
+  exercises: Array<{ id: string; name: string; completionLabel: string }>;
+  muscleBreakdown: string[];
 }
 
 const muscleNames: Record<MuscleGroup, string> = {
@@ -38,6 +41,9 @@ export function trainingHistoryEntries(records: TrainingSessionRecord[], limit =
         ...(record.perceivedExertion ? { effortLabel: `Effort ${record.perceivedExertion}/10` } : {}),
         ...(record.discomfort && record.discomfort !== 'none' ? { discomfortLabel: record.discomfort === 'stopped' ? 'Stopped for discomfort' : 'Mild discomfort' } : {}),
         tone: record.discomfort === 'stopped' ? 'stopped' : record.discomfort === 'mild' ? 'caution' : 'complete',
+        ...(record.feedbackNote ? { feedbackNote: record.feedbackNote } : {}),
+        exercises: record.exerciseSummaries?.map((exercise) => ({ id: exercise.exerciseId, name: exercise.name, completionLabel: `${exercise.completedSets} of ${exercise.totalSets} sets` })) ?? [],
+        muscleBreakdown: muscles.map(([muscle, sets]) => `${muscleNames[muscle]} ${sets}`),
       };
     });
 }

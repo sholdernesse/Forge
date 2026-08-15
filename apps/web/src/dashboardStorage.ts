@@ -1,7 +1,7 @@
 import { normalizeSnapshots, type DailySnapshot } from '@forge/digital-twin';
 import { isWorkoutSession, type WorkoutSession } from './workoutSession.js';
 import type { ExercisePerformance } from './progression.js';
-import type { TrainingSessionRecord } from './volumeLedger.js';
+import { isTrainingSessionRecord, type TrainingSessionRecord } from './volumeLedger.js';
 import type { ScheduleOverrides } from './schedulePolicy.js';
 import type { FoodEntry, SavedMeal } from './foodLog.js';
 import type { CoachSuggestedAction } from '@forge/coach';
@@ -94,7 +94,7 @@ export function parseDashboardState(value: unknown): DashboardState | null {
     ...(typeof stored.savedAt === 'string' ? { savedAt: stored.savedAt } : {}),
     ...(isWorkoutSession(stored.workoutSession) ? { workoutSession: stored.workoutSession } : {}),
     ...(Array.isArray(stored.exerciseHistory) ? { exerciseHistory: stored.exerciseHistory } : {}),
-    ...(Array.isArray(stored.sessionHistory) ? { sessionHistory: stored.sessionHistory } : {}),
+    ...(Array.isArray(stored.sessionHistory) ? { sessionHistory: stored.sessionHistory.filter(isTrainingSessionRecord).slice(-90) } : {}),
     ...(stored.scheduleOverrides && typeof stored.scheduleOverrides === 'object' ? { scheduleOverrides: stored.scheduleOverrides } : {}),
     ...(Array.isArray(stored.foodEntries) ? { foodEntries: stored.foodEntries } : {}),
     ...(Array.isArray(stored.favoriteFoodIds) ? { favoriteFoodIds: stored.favoriteFoodIds } : {}),

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { CoachService, type CoachActionType } from '@forge/coach';
 import { buildDigitalTwin, type DailySnapshot, type Recommendation } from '@forge/digital-twin';
 import {
-  Activity, Apple, ArrowRight, Award, Brain, CalendarDays, ChevronRight, CircleUserRound, Cloud, CloudOff, Dumbbell,
+  Activity, Apple, ArrowRight, Award, Brain, CalendarDays, Check, ChevronRight, CircleUserRound, Cloud, CloudOff, Dumbbell,
   Flame, Footprints, Gauge, HeartPulse, Home, Moon, Plus, Settings, ShieldAlert, Sparkles,
   Save, Target, TrendingDown, Utensils, X,
 } from 'lucide-react';
@@ -100,6 +100,7 @@ export function App() {
   const [coachOpen, setCoachOpen] = useState(false);
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('local');
   const [syncConflict, setSyncConflict] = useState<SyncConflictActions | null>(null);
+  const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(null);
 
   const evaluation = useMemo(() => {
     const twin = buildDigitalTwin({ profile: { ...demoProfile, weightKg: checkIn.weightKg }, goals: demoGoals, history, asOfDate: TODAY, now: NOW });
@@ -120,6 +121,7 @@ export function App() {
   const week = trainingWeek(sessionHistory, TODAY, workout.title, scheduleOverrides);
   const loggedNutrition = foodTotals(foodEntries, TODAY);
   const recentTraining = trainingHistoryEntries(sessionHistory);
+  const selectedTraining = recentTraining.find((entry) => entry.workoutId === selectedHistoryId);
 
   useEffect(() => {
     if (auth.status === 'loading' || auth.status === 'signed-out') {
@@ -505,12 +507,19 @@ export function App() {
           <article className="panel training-history-panel">
             <div className="panel-heading"><div><span className="section-label">TRAINING HISTORY</span><h3>Recent completed sessions</h3></div><Activity size={22} className="trend-icon" /></div>
             <p className="panel-copy">Duration, completed volume, and your reported experience stay together across devices.</p>
-            <div className="training-history-list">{recentTraining.length ? recentTraining.map((entry) => <div className={`training-history-row ${entry.tone}`} key={entry.workoutId}>
+            <div className="training-history-list">{recentTraining.length ? recentTraining.map((entry) => <button className={`training-history-row ${entry.tone}`} key={entry.workoutId} onClick={() => setSelectedHistoryId(entry.workoutId)} aria-expanded={selectedHistoryId === entry.workoutId}>
               <time dateTime={entry.date}>{entry.dateLabel}</time>
               <span><b>{entry.title}</b><small>{entry.muscleLabel} · {entry.completedSets} set{entry.completedSets === 1 ? '' : 's'}</small></span>
               <span className="history-metrics"><b>{entry.durationLabel}</b>{entry.effortLabel && <small>{entry.effortLabel}</small>}</span>
               {entry.discomfortLabel && <strong>{entry.discomfortLabel}</strong>}
-            </div>) : <div className="empty-state">Complete a workout to start your training history.</div>}</div>
+              <ChevronRight className="history-chevron" size={17} />
+            </button>) : <div className="empty-state">Complete a workout to start your training history.</div>}</div>
+            {selectedTraining && <section className="training-history-detail" aria-labelledby="training-history-detail-title">
+              <header><div><span className="section-label">SESSION DETAIL · {selectedTraining.dateLabel}</span><h4 id="training-history-detail-title">{selectedTraining.title}</h4></div><button onClick={() => setSelectedHistoryId(null)} aria-label="Close session detail"><X size={17} /></button></header>
+              <div className="history-detail-metrics"><span><small>Duration</small><b>{selectedTraining.durationLabel}</b></span><span><small>Volume</small><b>{selectedTraining.completedSets} sets</b></span><span><small>Experience</small><b>{selectedTraining.effortLabel ?? 'Not recorded'}</b></span></div>
+              {selectedTraining.exercises.length ? <div className="history-exercises">{selectedTraining.exercises.map((exercise) => <div key={exercise.id}><span><b>{exercise.name}</b><small>{exercise.completionLabel}</small></span><Check size={16} /></div>)}</div> : <div className="history-breakdown">{selectedTraining.muscleBreakdown.length ? selectedTraining.muscleBreakdown.join(' · ') : 'Recovery work completed'}</div>}
+              {selectedTraining.discomfortLabel && <div className={`history-feedback ${selectedTraining.tone}`}><b>{selectedTraining.discomfortLabel}</b><span>{selectedTraining.feedbackNote ?? 'No additional note was recorded.'}</span></div>}
+            </section>}
           </article>
         </section>
       </main>
