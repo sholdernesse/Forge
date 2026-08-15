@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { trainingHistoryCsv, trainingHistoryExportFilename } from './trainingExport.js';
+import { trainingHistoryCsv, trainingHistoryExcelFilename, trainingHistoryExcelXml, trainingHistoryExportFilename } from './trainingExport.js';
 
 describe('training history export', () => {
   it('exports chronological session, feedback, muscle, and exercise context', () => {
@@ -23,5 +23,17 @@ describe('training history export', () => {
   it('uses only an ISO date in the exported filename', () => {
     expect(trainingHistoryExportFilename('2026-08-12')).toBe('forge-training-history-2026-08-12.csv');
     expect(trainingHistoryExportFilename('../unsafe')).toBe('forge-training-history-export.csv');
+    expect(trainingHistoryExcelFilename('2026-08-12')).toBe('forge-training-history-2026-08-12.xml');
+  });
+
+  it('creates a styled two-sheet Excel workbook with frozen headers and filters', () => {
+    const xml = trainingHistoryExcelXml([{ workoutId: 'one', date: '2026-08-12', title: 'Upper', durationMinutes: 52, muscleSets: { chest: 4 }, perceivedExertion: 8, discomfort: 'mild' }], '2026-08-12');
+    expect(xml).toContain('<Worksheet ss:Name="Summary">');
+    expect(xml).toContain('<Worksheet ss:Name="Sessions">');
+    expect(xml).toContain('<Style ss:ID="Title">');
+    expect(xml).toContain('<Style ss:ID="Caution"');
+    expect(xml).toContain('<FreezePanes/>');
+    expect(xml).toContain('<AutoFilter');
+    expect(xml).toContain('ss:Type="Number">52</Data>');
   });
 });

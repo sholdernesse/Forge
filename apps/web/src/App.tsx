@@ -25,7 +25,7 @@ import { useForgeAuth } from './useForgeAuth.js';
 import { CoachPanel } from './CoachPanel.js';
 import { trainingHistoryEntries } from './trainingHistory.js';
 import { trainingTrendSummary } from './trainingAnalytics.js';
-import { trainingHistoryCsv, trainingHistoryExportFilename } from './trainingExport.js';
+import { trainingHistoryCsv, trainingHistoryExcelFilename, trainingHistoryExcelXml, trainingHistoryExportFilename } from './trainingExport.js';
 
 const TODAY = '2026-08-12' as const;
 const NOW = '2026-08-12T11:30:00.000Z';
@@ -388,14 +388,22 @@ export function App() {
     if (action === 'open-check-in') openCheckIn();
   }
 
-  function exportTrainingHistory() {
-    const blob = new Blob([trainingHistoryCsv(sessionHistory)], { type: 'text/csv;charset=utf-8' });
+  function downloadTrainingFile(content: string, type: string, filename: string) {
+    const blob = new Blob([content], { type });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = trainingHistoryExportFilename(TODAY);
+    link.download = filename;
     link.click();
     URL.revokeObjectURL(url);
+  }
+
+  function exportTrainingHistoryCsv() {
+    downloadTrainingFile(trainingHistoryCsv(sessionHistory), 'text/csv;charset=utf-8', trainingHistoryExportFilename(TODAY));
+  }
+
+  function exportTrainingHistoryExcel() {
+    downloadTrainingFile(trainingHistoryExcelXml(sessionHistory, TODAY), 'application/vnd.ms-excel;charset=utf-8', trainingHistoryExcelFilename(TODAY));
   }
 
   return (
@@ -519,7 +527,7 @@ export function App() {
           </article>
 
           <article className="panel training-history-panel">
-            <div className="panel-heading"><div><span className="section-label">TRAINING HISTORY</span><h3>Recent completed sessions</h3></div><div className="training-history-actions"><Activity size={22} className="trend-icon" /><button onClick={exportTrainingHistory} disabled={!sessionHistory.length}><Download size={15} /> Export CSV</button></div></div>
+            <div className="panel-heading"><div><span className="section-label">TRAINING HISTORY</span><h3>Recent completed sessions</h3></div><div className="training-history-actions"><Activity size={22} className="trend-icon" /><button onClick={exportTrainingHistoryExcel} disabled={!sessionHistory.length}><Download size={15} /> Export Excel</button><button className="export-secondary" onClick={exportTrainingHistoryCsv} disabled={!sessionHistory.length}>CSV</button></div></div>
             <p className="panel-copy">Duration, completed volume, and your reported experience stay together across devices.</p>
             <div className="training-trend-summary">
               <div className="training-trend-metrics"><span><small>4-week sessions</small><b>{trainingTrend.sessions}</b></span><span><small>Total time</small><b>{trainingTrend.minutes} min</b></span><span><small>Average effort</small><b>{trainingTrend.averageEffort ? `${trainingTrend.averageEffort}/10` : 'Not enough data'}</b></span><span><small>Feedback coverage</small><b>{trainingTrend.feedbackCoverage}%</b></span></div>
