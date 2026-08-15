@@ -24,6 +24,7 @@ import { SettingsPanel } from './SettingsPanel.js';
 import { useForgeAuth } from './useForgeAuth.js';
 import { CoachPanel } from './CoachPanel.js';
 import { trainingHistoryEntries } from './trainingHistory.js';
+import { trainingTrendSummary } from './trainingAnalytics.js';
 
 const TODAY = '2026-08-12' as const;
 const NOW = '2026-08-12T11:30:00.000Z';
@@ -122,6 +123,8 @@ export function App() {
   const loggedNutrition = foodTotals(foodEntries, TODAY);
   const recentTraining = trainingHistoryEntries(sessionHistory);
   const selectedTraining = recentTraining.find((entry) => entry.workoutId === selectedHistoryId);
+  const trainingTrend = trainingTrendSummary(sessionHistory, TODAY);
+  const maxWeeklyMinutes = Math.max(1, ...trainingTrend.weeks.map((week) => week.minutes));
 
   useEffect(() => {
     if (auth.status === 'loading' || auth.status === 'signed-out') {
@@ -507,6 +510,11 @@ export function App() {
           <article className="panel training-history-panel">
             <div className="panel-heading"><div><span className="section-label">TRAINING HISTORY</span><h3>Recent completed sessions</h3></div><Activity size={22} className="trend-icon" /></div>
             <p className="panel-copy">Duration, completed volume, and your reported experience stay together across devices.</p>
+            <div className="training-trend-summary">
+              <div className="training-trend-metrics"><span><small>4-week sessions</small><b>{trainingTrend.sessions}</b></span><span><small>Total time</small><b>{trainingTrend.minutes} min</b></span><span><small>Average effort</small><b>{trainingTrend.averageEffort ? `${trainingTrend.averageEffort}/10` : 'Not enough data'}</b></span><span><small>Feedback coverage</small><b>{trainingTrend.feedbackCoverage}%</b></span></div>
+              <div className="training-week-chart" aria-label="Training minutes by week">{trainingTrend.weeks.map((week) => <div key={week.startDate}><span className="week-bar-track"><i style={{ height: `${Math.max(4, week.minutes / maxWeeklyMinutes * 100)}%` }} /></span><b>{week.minutes}</b><small>{week.label}</small></div>)}</div>
+              {trainingTrend.discomfortSessions > 0 && <div className="training-trend-note"><ShieldAlert size={15} /><span>{trainingTrend.discomfortSessions} session{trainingTrend.discomfortSessions === 1 ? '' : 's'} included discomfort feedback in this four-week window.</span></div>}
+            </div>
             <div className="training-history-list">{recentTraining.length ? recentTraining.map((entry) => <button className={`training-history-row ${entry.tone}`} key={entry.workoutId} onClick={() => setSelectedHistoryId(entry.workoutId)} aria-expanded={selectedHistoryId === entry.workoutId}>
               <time dateTime={entry.date}>{entry.dateLabel}</time>
               <span><b>{entry.title}</b><small>{entry.muscleLabel} · {entry.completedSets} set{entry.completedSets === 1 ? '' : 's'}</small></span>
