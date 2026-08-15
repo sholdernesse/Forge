@@ -6,7 +6,9 @@ describe('weekly volume ledger', () => {
   it('counts completed sets against their muscle groups', () => {
     const workout = createTodayWorkout('2026-08-12');
     workout.exercises[2]!.sets[0]!.completedAt = '2026-08-12T12:00:00Z';
+    workout.feedback = { perceivedExertion: 8, discomfort: 'mild', note: 'Knee felt different.' };
     expect(summarizeWorkout(workout, 32).muscleSets).toEqual({ core: 1 });
+    expect(summarizeWorkout(workout, 32)).toMatchObject({ perceivedExertion: 8, discomfort: 'mild' });
   });
 
   it('excludes sessions outside the rolling seven-day window', () => {

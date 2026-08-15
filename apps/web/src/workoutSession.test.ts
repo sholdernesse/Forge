@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { completedSetCount, createTodayWorkout, isWorkoutSession, totalSetCount, workoutMinutes } from './workoutSession.js';
+import { completedSetCount, createTodayWorkout, isWorkoutFeedback, isWorkoutSession, totalSetCount, workoutMinutes } from './workoutSession.js';
 
 describe('workout session', () => {
   it('creates the recovery workout with six loggable sets', () => {
@@ -20,5 +20,13 @@ describe('workout session', () => {
 
   it('rejects malformed persisted sessions', () => {
     expect(isWorkoutSession({ id: 'broken', exercises: [] })).toBe(false);
+    const session = createTodayWorkout('2026-08-12');
+    expect(isWorkoutSession({ ...session, feedback: { perceivedExertion: 11, discomfort: 'none' } })).toBe(false);
+  });
+
+  it('bounds post-workout feedback without requiring a note', () => {
+    expect(isWorkoutFeedback({ perceivedExertion: 7, discomfort: 'mild' })).toBe(true);
+    expect(isWorkoutFeedback({ perceivedExertion: 7.5, discomfort: 'mild' })).toBe(false);
+    expect(isWorkoutFeedback({ perceivedExertion: 7, discomfort: 'injured' })).toBe(false);
   });
 });

@@ -1,5 +1,12 @@
 export type ExerciseMode = 'duration' | 'reps';
 export type WorkoutStatus = 'not-started' | 'in-progress' | 'completed';
+export type WorkoutDiscomfort = 'none' | 'mild' | 'stopped';
+
+export interface WorkoutFeedback {
+  perceivedExertion: number;
+  discomfort: WorkoutDiscomfort;
+  note?: string;
+}
 
 export interface WorkoutSetLog {
   id: string;
@@ -31,6 +38,18 @@ export interface WorkoutSession {
   planType?: 'recovery' | 'upper-strength' | 'lower-strength';
   planReason?: string;
   intensity?: 'low' | 'moderate' | 'high';
+  feedback?: WorkoutFeedback;
+}
+
+export function isWorkoutFeedback(value: unknown): value is WorkoutFeedback {
+  if (!value || typeof value !== 'object') return false;
+  const feedback = value as Partial<WorkoutFeedback>;
+  return typeof feedback.perceivedExertion === 'number'
+    && Number.isInteger(feedback.perceivedExertion)
+    && feedback.perceivedExertion >= 1
+    && feedback.perceivedExertion <= 10
+    && ['none', 'mild', 'stopped'].includes(feedback.discomfort ?? '')
+    && (feedback.note === undefined || (typeof feedback.note === 'string' && feedback.note.length <= 240));
 }
 
 export function createTodayWorkout(date: string): WorkoutSession {
@@ -90,6 +109,7 @@ export function isWorkoutSession(value: unknown): value is WorkoutSession {
     && typeof session.date === 'string'
     && typeof session.title === 'string'
     && ['not-started', 'in-progress', 'completed'].includes(session.status ?? '')
+    && (session.feedback === undefined || isWorkoutFeedback(session.feedback))
     && Array.isArray(session.exercises)
     && session.exercises.every((exercise) => exercise
       && typeof exercise.id === 'string'

@@ -10,7 +10,7 @@ import { demoGoals, demoHistory, demoProfile } from './demoData.js';
 import { cacheDashboardState, clearDashboardState, dashboardStateUpdatedAt, DASHBOARD_SAVED_EVENT, loadDashboardState, saveDashboardState, type CheckIn, type CoachMessage, type DashboardSaveEventDetail } from './dashboardStorage.js';
 import { DashboardSyncClient, DashboardSyncConflictError, dashboardSyncConfig, newerThanLocal, type RemoteDashboard, type SyncStatus } from './dashboardSync.js';
 import { WorkoutPlayer } from './WorkoutPlayer.js';
-import { completedSetCount, createTodayWorkout, totalSetCount, workoutMinutes, type WorkoutSession } from './workoutSession.js';
+import { completedSetCount, createTodayWorkout, totalSetCount, workoutMinutes, type WorkoutFeedback, type WorkoutSession } from './workoutSession.js';
 import { demoExerciseHistory, recordPerformances, strongestMovements, type ExercisePerformance } from './progression.js';
 import { demoTrainingPreferences, generateTrainingPlan } from './trainingPlanner.js';
 import { demoSessionHistory, summarizeWorkout, trainingWeek, weeklyVolume, type TrainingSessionRecord } from './volumeLedger.js';
@@ -301,12 +301,12 @@ export function App() {
     setWorkoutOpen(true);
   }
 
-  function finishWorkout() {
+  function finishWorkout(feedback: WorkoutFeedback) {
     const completedAt = new Date().toISOString();
-    const nextWorkout: WorkoutSession = { ...workout, status: 'completed', completedAt };
+    const nextWorkout: WorkoutSession = { ...workout, status: 'completed', completedAt, feedback };
     const minutes = Math.max(1, workoutMinutes(nextWorkout));
     const nextHistory = history.map((day) => day.date === TODAY
-      ? { ...day, trainingMinutes: minutes, trainingRpe: 5 }
+      ? { ...day, trainingMinutes: minutes, trainingRpe: feedback.perceivedExertion }
       : day);
     setHistory(nextHistory);
     const performances = recordPerformances(nextWorkout, exerciseHistory);

@@ -1,4 +1,4 @@
-import type { WorkoutSession } from './workoutSession.js';
+import type { WorkoutDiscomfort, WorkoutSession } from './workoutSession.js';
 import type { ScheduleOverrides } from './schedulePolicy.js';
 
 export type MuscleGroup = 'chest' | 'back' | 'shoulders' | 'biceps' | 'triceps' | 'quads' | 'hamstrings' | 'glutes' | 'calves' | 'core' | 'cardio';
@@ -9,6 +9,8 @@ export interface TrainingSessionRecord {
   title: string;
   muscleSets: Partial<Record<MuscleGroup, number>>;
   durationMinutes: number;
+  perceivedExertion?: number;
+  discomfort?: WorkoutDiscomfort;
 }
 
 export interface VolumeTarget {
@@ -37,7 +39,17 @@ export function summarizeWorkout(session: WorkoutSession, durationMinutes: numbe
     if (!completedSets) continue;
     for (const muscle of exerciseMuscles[exercise.id] ?? []) muscleSets[muscle] = (muscleSets[muscle] ?? 0) + completedSets;
   }
-  return { workoutId: session.id, date: session.date, title: session.title, muscleSets, durationMinutes };
+  return {
+    workoutId: session.id,
+    date: session.date,
+    title: session.title,
+    muscleSets,
+    durationMinutes,
+    ...(session.feedback ? {
+      perceivedExertion: session.feedback.perceivedExertion,
+      discomfort: session.feedback.discomfort,
+    } : {}),
+  };
 }
 
 export function weeklyVolume(records: TrainingSessionRecord[], asOfDate: string): VolumeTarget[] {
