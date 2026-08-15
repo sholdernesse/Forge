@@ -20,11 +20,16 @@ Let a user adapt an active workout for available equipment, comfort, or preferen
 - compatible set and rep targets retained while load resets to a safe starting point
 - original exercise identity retained for audit and cross-device persistence
 
-## Next slice
+## Slice 3: full-roster and reversible swaps
 
-- expand reviewed alternatives to the remaining launch exercises
-- connect visual guidance when a selected alternative has a guide
-- add an explicit reverse or second-swap flow without losing the original plan identity
+- reviewed alternatives cover every exercise in the launch recovery, upper-strength, and lower-strength plans
+- duration-based aerobic and mobility work retains its logging mode and time target
+- a user can choose a second alternative or return to the original planned exercise
+- original plan identity remains stable across multiple swaps and clears when restored
+
+## Follow-up content work
+
+- add written and visual guidance for reviewed alternatives as the media library expands
 
 ## Safety boundary
 

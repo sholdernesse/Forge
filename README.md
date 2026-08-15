@@ -4,7 +4,7 @@ Forge is an AI-powered fitness coaching platform centered on a persistent Digita
 
 ## Sprint 4.9
 
-Sprint 4.9 adds safe in-workout exercise substitutions through a bounded registry that explains why each alternative is offered, preserves compatible targets, and protects completed work.
+Sprint 4.9 adds safe, reversible in-workout exercise substitutions across the launch workout roster through a bounded registry that explains why each alternative is offered, preserves compatible targets, and protects completed work.
 
 ```bash
 corepack enable

@@ -3,10 +3,19 @@ import { applyExerciseSubstitution, exerciseIdsWithSubstitutions, exerciseSubsti
 import { createTodayWorkout } from './workoutSession.js';
 
 describe('exercise substitutions', () => {
-  it('covers every exercise that launched with visual guidance', () => {
+  it('covers every exercise in the launch workout roster', () => {
     expect(exerciseIdsWithSubstitutions()).toEqual(expect.arrayContaining([
+      'zone-2-treadmill',
+      'mobility-flow',
       'barbell-bench',
+      'chest-supported-row',
+      'dumbbell-overhead-press',
+      'lateral-raise',
+      'band-face-pull',
       'box-squat',
+      'hip-thrust',
+      'split-squat',
+      'standing-calf-raise',
       'dead-bugs',
     ]));
   });
@@ -16,7 +25,7 @@ describe('exercise substitutions', () => {
       const alternatives = exerciseSubstitutions(exerciseId);
       expect(alternatives.length).toBeGreaterThanOrEqual(2);
       for (const alternative of alternatives) {
-        expect(alternative.mode).toBe('reps');
+        expect(['duration', 'reps']).toContain(alternative.mode);
         expect(alternative.reasons.length).toBeGreaterThan(0);
         expect(alternative.preserves.length).toBeGreaterThan(20);
       }
@@ -50,5 +59,19 @@ describe('exercise substitutions', () => {
     exercise.sets[0]!.completedAt = '2026-08-12T12:00:00.000Z';
     expect(() => applyExerciseSubstitution(exercise, exerciseSubstitutions('dead-bugs')[0]!))
       .toThrow(/completed work/i);
+  });
+
+  it('supports a second swap and a return to the original plan', () => {
+    const original = createTodayWorkout('2026-08-12').exercises[2]!;
+    const firstSwap = applyExerciseSubstitution(original, exerciseSubstitutions(original.id)[0]!);
+    const secondOption = exerciseSubstitutions(firstSwap.id).find((item) => item.id === 'bird-dog')!;
+    const secondSwap = applyExerciseSubstitution(firstSwap, secondOption);
+
+    expect(secondSwap.substitutedFromId).toBe('dead-bugs');
+    const originalOption = exerciseSubstitutions(secondSwap.id).find((item) => item.id === 'dead-bugs')!;
+    const restored = applyExerciseSubstitution(secondSwap, originalOption);
+    expect(restored).toMatchObject({ id: 'dead-bugs', name: 'Dead bugs' });
+    expect(restored.substitutedFromId).toBeUndefined();
+    expect(restored.substitutedFromName).toBeUndefined();
   });
 });
