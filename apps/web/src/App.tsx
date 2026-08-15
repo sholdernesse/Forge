@@ -23,6 +23,7 @@ import { freshWorkoutPlan } from './prototypeActions.js';
 import { SettingsPanel } from './SettingsPanel.js';
 import { useForgeAuth } from './useForgeAuth.js';
 import { CoachPanel } from './CoachPanel.js';
+import { trainingHistoryEntries } from './trainingHistory.js';
 
 const TODAY = '2026-08-12' as const;
 const NOW = '2026-08-12T11:30:00.000Z';
@@ -118,6 +119,7 @@ export function App() {
   const volume = weeklyVolume(sessionHistory, TODAY).filter((item) => ['chest', 'back', 'shoulders', 'quads', 'hamstrings', 'glutes'].includes(item.muscle));
   const week = trainingWeek(sessionHistory, TODAY, workout.title, scheduleOverrides);
   const loggedNutrition = foodTotals(foodEntries, TODAY);
+  const recentTraining = trainingHistoryEntries(sessionHistory);
 
   useEffect(() => {
     if (auth.status === 'loading' || auth.status === 'signed-out') {
@@ -498,6 +500,17 @@ export function App() {
             <p className="schedule-hint">Select today or an upcoming day to cycle: adaptive → train → rest.</p>
             <div className="week-strip">{week.map((day) => <button className={`${day.status} intent-${day.intent}`} key={day.date} disabled={day.status === 'completed' || day.date < TODAY || (day.date === TODAY && workout.status !== 'not-started')} onClick={() => cycleSchedule(day.date)} title={day.title}><span>{day.day}</span><b>{Number(day.date.slice(-2))}</b><small>{day.status === 'completed' ? 'Done' : day.intent === 'train' ? 'Train' : day.intent === 'rest' ? 'Rest' : day.status === 'today' ? 'Today' : 'Adaptive'}</small></button>)}</div>
             <div className="volume-ledger">{volume.map((item) => <div key={item.muscle}><span><b>{item.muscle}</b><small>{item.completed} / {item.target} hard sets</small></span><div className="volume-bar"><i style={{ width: `${Math.min(100, item.completed / item.target * 100)}%` }} /></div><strong>{Math.round(item.completed / item.target * 100)}%</strong></div>)}</div>
+          </article>
+
+          <article className="panel training-history-panel">
+            <div className="panel-heading"><div><span className="section-label">TRAINING HISTORY</span><h3>Recent completed sessions</h3></div><Activity size={22} className="trend-icon" /></div>
+            <p className="panel-copy">Duration, completed volume, and your reported experience stay together across devices.</p>
+            <div className="training-history-list">{recentTraining.length ? recentTraining.map((entry) => <div className={`training-history-row ${entry.tone}`} key={entry.workoutId}>
+              <time dateTime={entry.date}>{entry.dateLabel}</time>
+              <span><b>{entry.title}</b><small>{entry.muscleLabel} · {entry.completedSets} set{entry.completedSets === 1 ? '' : 's'}</small></span>
+              <span className="history-metrics"><b>{entry.durationLabel}</b>{entry.effortLabel && <small>{entry.effortLabel}</small>}</span>
+              {entry.discomfortLabel && <strong>{entry.discomfortLabel}</strong>}
+            </div>) : <div className="empty-state">Complete a workout to start your training history.</div>}</div>
           </article>
         </section>
       </main>
