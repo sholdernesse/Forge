@@ -4,7 +4,7 @@
 - `decisions/` — architecture decision records
 - `sprints/` — sprint scope and acceptance notes
 
-Current delivery: [Sprint 4.14 — Training Consistency Trends](./sprints/sprint-4.14.md).
+Current delivery: [Sprint 4.15 — User-controlled Training Export](./sprints/sprint-4.15.md).
 
 Deployment: [Microsoft Entra External ID for Forge](./deployment/entra-external-id.md).
 
