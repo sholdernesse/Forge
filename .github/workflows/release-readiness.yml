@@ -97,4 +97,4 @@ jobs:
           IDENTITY_EVIDENCE_URL: ${{ inputs.identity_evidence_url }}
           FAILOVER_RESULT: ${{ inputs.failover_result }}
           FAILOVER_EVIDENCE_URL: ${{ inputs.failover_evidence_url }}
-        run: scripts/release/validate-readiness.sh
+        run: bash scripts/release/validate-readiness.sh
