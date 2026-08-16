@@ -36,8 +36,9 @@ const exerciseMuscles: Record<string, MuscleGroup[]> = {
 };
 
 export const demoSessionHistory: TrainingSessionRecord[] = [
+  { workoutId: 'demo-0802', date: '2026-08-02', title: 'Chest + back', durationMinutes: 58, muscleSets: { chest: 7, back: 7, biceps: 5 }, perceivedExertion: 8 },
   { workoutId: 'demo-0807', date: '2026-08-07', title: 'Shoulders + arms', durationMinutes: 48, muscleSets: { shoulders: 10, biceps: 6, triceps: 6 } },
-  { workoutId: 'demo-0809', date: '2026-08-09', title: 'Chest + back', durationMinutes: 64, muscleSets: { chest: 8, back: 8, biceps: 6 } },
+  { workoutId: 'demo-0809', date: '2026-08-09', title: 'Chest + back', durationMinutes: 64, muscleSets: { chest: 8, back: 8, biceps: 6 }, perceivedExertion: 8 },
   { workoutId: 'demo-0810', date: '2026-08-10', title: 'Lower body', durationMinutes: 55, muscleSets: { quads: 7, glutes: 7, hamstrings: 4, calves: 3 } },
 ];
 
