@@ -13,7 +13,18 @@ describe('exercise guides', () => {
       expect(guide.setup.length).toBeGreaterThanOrEqual(3);
       expect(guide.movement.length).toBeGreaterThanOrEqual(3);
       expect(guide.mistakes.length).toBeGreaterThanOrEqual(3);
+      expect(guide.selfChecks.length).toBeGreaterThanOrEqual(3);
+      expect(guide.tempo.length).toBeGreaterThan(20);
+      expect(guide.breathing).toMatch(/exhale|inhale|breath|brace/i);
       expect(guide.safetyNote).toMatch(/stop|pain|safet/i);
+    }
+  });
+
+  it('gives users observable checks rather than diagnostic claims', () => {
+    for (const id of exerciseGuideIds()) {
+      const guide = exerciseGuide(id)!;
+      expect(guide.selfChecks.join(' ')).toMatch(/front|side|pressure|touch|position|range/i);
+      expect([...guide.setup, ...guide.movement, ...guide.selfChecks].join(' ')).not.toMatch(/diagnos|injury-free|guarantee/i);
     }
   });
 });
