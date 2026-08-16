@@ -116,3 +116,15 @@ export function exerciseGuide(exerciseId: string): ExerciseGuide | undefined {
 export function exerciseGuideIds(): string[] {
   return guides.map((guide) => guide.exerciseId);
 }
+
+export function exerciseGuides(): ExerciseGuide[] {
+  return guides.map((guide) => ({
+    ...guide,
+    setup: [...guide.setup],
+    movement: [...guide.movement],
+    mistakes: [...guide.mistakes],
+    selfChecks: [...guide.selfChecks],
+    primaryMuscles: [...guide.primaryMuscles],
+    secondaryMuscles: [...guide.secondaryMuscles],
+  }));
+}
