@@ -2,9 +2,19 @@ import { describe, expect, it } from 'vitest';
 import { exerciseGuide, exerciseGuideIds } from './exerciseGuides.js';
 
 describe('exercise guides', () => {
-  it('provides launch visuals for the primary barbell and core movements', () => {
-    expect(exerciseGuideIds()).toEqual(expect.arrayContaining(['barbell-bench', 'box-squat', 'dead-bugs']));
-    expect(exerciseGuide('barbell-bench')?.imageSrc).toMatch(/\.webp$/);
+  it('provides visual coverage for launch and planned strength movements', () => {
+    expect(exerciseGuideIds()).toEqual(expect.arrayContaining([
+      'barbell-bench',
+      'box-squat',
+      'dead-bugs',
+      'dumbbell-overhead-press',
+      'chest-supported-row',
+      'hip-thrust',
+    ]));
+    for (const id of exerciseGuideIds()) {
+      expect(exerciseGuide(id)?.imageSrc).toMatch(/\.(webp|svg)$/);
+      expect(exerciseGuide(id)?.imageAlt.length).toBeGreaterThan(30);
+    }
   });
 
   it('keeps every guide actionable and safety bounded', () => {
@@ -23,7 +33,7 @@ describe('exercise guides', () => {
   it('gives users observable checks rather than diagnostic claims', () => {
     for (const id of exerciseGuideIds()) {
       const guide = exerciseGuide(id)!;
-      expect(guide.selfChecks.join(' ')).toMatch(/front|side|pressure|touch|position|range/i);
+      expect(guide.selfChecks.join(' ')).toMatch(/front|side|behind|pressure|touch|position|range|contact|lockout/i);
       expect([...guide.setup, ...guide.movement, ...guide.selfChecks].join(' ')).not.toMatch(/diagnos|injury-free|guarantee/i);
     }
   });
