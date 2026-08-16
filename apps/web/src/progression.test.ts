@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createTodayWorkout } from './workoutSession.js';
-import { estimatedOneRepMax, progressionTarget, recordPerformances, strongestMovements, type ExercisePerformance } from './progression.js';
+import { estimatedOneRepMax, exerciseProgressTimeline, progressionTarget, recordPerformances, strongestMovements, type ExercisePerformance } from './progression.js';
 
 const history: ExercisePerformance[] = [
   { exerciseId: 'dead-bugs', exerciseName: 'Dead bugs', date: '2026-08-01', reps: 10, loadKg: 5, estimatedOneRepMax: 6.7 },
@@ -24,5 +24,17 @@ describe('progression intelligence', () => {
 
   it('ranks movements by estimated-strength gain', () => {
     expect(strongestMovements(history)[0]).toMatchObject({ exerciseId: 'dead-bugs', gainPct: 4 });
+  });
+
+  it('builds a chronological, non-mutating movement timeline', () => {
+    const reversed = [...history].reverse();
+    expect(exerciseProgressTimeline(reversed, 'dead-bugs')).toMatchObject({
+      exerciseName: 'Dead bugs',
+      gainPct: 4,
+      bestEstimatedOneRepMax: 7,
+    });
+    expect(exerciseProgressTimeline(reversed, 'dead-bugs')?.entries.map((entry) => entry.date)).toEqual(['2026-08-01', '2026-08-08']);
+    expect(reversed[0]?.date).toBe('2026-08-08');
+    expect(exerciseProgressTimeline(history, 'missing')).toBeUndefined();
   });
 });

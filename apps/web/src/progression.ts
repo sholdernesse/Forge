@@ -16,6 +16,14 @@ export interface ProgressionTarget {
   reason: string;
 }
 
+export interface ExerciseProgressTimeline {
+  exerciseId: string;
+  exerciseName: string;
+  entries: ExercisePerformance[];
+  gainPct: number;
+  bestEstimatedOneRepMax: number;
+}
+
 export const demoExerciseHistory: ExercisePerformance[] = [
   { exerciseId: 'barbell-bench', exerciseName: 'Barbell bench press', date: '2026-07-29', reps: 8, loadKg: 59, estimatedOneRepMax: 74.7 },
   { exerciseId: 'barbell-bench', exerciseName: 'Barbell bench press', date: '2026-08-02', reps: 9, loadKg: 59, estimatedOneRepMax: 76.7 },
@@ -61,4 +69,21 @@ export function strongestMovements(history: ExercisePerformance[]) {
     const latest = sorted.at(-1)!;
     return { ...latest, gainPct: first.estimatedOneRepMax ? Math.round((latest.estimatedOneRepMax / first.estimatedOneRepMax - 1) * 100) : 0 };
   }).sort((a, b) => b.gainPct - a.gainPct);
+}
+
+export function exerciseProgressTimeline(history: ExercisePerformance[], exerciseId: string): ExerciseProgressTimeline | undefined {
+  const entries = history
+    .filter((entry) => entry.exerciseId === exerciseId)
+    .sort((left, right) => left.date.localeCompare(right.date));
+  if (!entries.length) return undefined;
+  const first = entries[0]!;
+  const latest = entries.at(-1)!;
+  const gainPct = first.estimatedOneRepMax ? Math.round((latest.estimatedOneRepMax / first.estimatedOneRepMax - 1) * 100) : 0;
+  return {
+    exerciseId,
+    exerciseName: latest.exerciseName,
+    entries,
+    gainPct,
+    bestEstimatedOneRepMax: Math.max(...entries.map((entry) => entry.estimatedOneRepMax)),
+  };
 }

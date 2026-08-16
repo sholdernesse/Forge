@@ -4,7 +4,7 @@
 - `decisions/` — architecture decision records
 - `sprints/` — sprint scope and acceptance notes
 
-Current delivery: [Sprint 4.24 — Matching Workout Navigation](./sprints/sprint-4.24.md).
+Current delivery: [Sprint 4.25 — Inspectable Strength Progress](./sprints/sprint-4.25.md).
 
 Deployment: [Microsoft Entra External ID for Forge](./deployment/entra-external-id.md).
 
