@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { exerciseGuide, exerciseGuideIds } from './exerciseGuides.js';
+import { exerciseGuide, exerciseGuideIds, exerciseGuides } from './exerciseGuides.js';
 
 describe('exercise guides', () => {
   it('provides visual coverage for launch and planned strength movements', () => {
@@ -22,6 +22,14 @@ describe('exercise guides', () => {
     expect(guide.motionId).toBe('dumbbell-overhead-press');
     expect(guide.primaryMuscles).toEqual(['Deltoids']);
     expect(guide.secondaryMuscles).toEqual(expect.arrayContaining(['Triceps', 'upper chest']));
+  });
+
+  it('returns a non-mutating catalog for library exploration', () => {
+    const catalog = exerciseGuides();
+    catalog[0]!.primaryMuscles.push('mutated');
+    catalog[0]!.setup[0] = 'mutated';
+    expect(exerciseGuide(catalog[0]!.exerciseId)?.primaryMuscles).not.toContain('mutated');
+    expect(exerciseGuide(catalog[0]!.exerciseId)?.setup[0]).not.toBe('mutated');
   });
 
   it('keeps every guide actionable and safety bounded', () => {
