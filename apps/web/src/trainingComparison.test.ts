@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { compareTrainingSession } from './trainingComparison.js';
+import { compareTrainingSession, trainingSessionNeighbors } from './trainingComparison.js';
 
 const records = [
   { workoutId: 'first', date: '2026-08-01', title: 'Upper Strength', durationMinutes: 40, muscleSets: { chest: 3, back: 3 }, perceivedExertion: 7, exerciseSummaries: [{ exerciseId: 'bench', name: 'Bench press', completedSets: 3, totalSets: 3 }, { exerciseId: 'row', name: 'Row', completedSets: 3, totalSets: 3 }] },
@@ -40,5 +40,12 @@ describe('training session comparison', () => {
     expect(compareTrainingSession(records, 'first')).toBeUndefined();
     expect(compareTrainingSession(records, 'other')).toBeUndefined();
     expect(compareTrainingSession(records, 'missing')).toBeUndefined();
+  });
+
+  it('finds deterministic previous and next matching sessions', () => {
+    expect(trainingSessionNeighbors(records, 'first')).toEqual({ nextWorkoutId: 'second' });
+    expect(trainingSessionNeighbors(records, 'second')).toEqual({ previousWorkoutId: 'first', nextWorkoutId: 'latest' });
+    expect(trainingSessionNeighbors(records, 'latest')).toEqual({ previousWorkoutId: 'second' });
+    expect(trainingSessionNeighbors(records, 'missing')).toEqual({});
   });
 });

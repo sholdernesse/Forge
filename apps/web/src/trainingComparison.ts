@@ -9,6 +9,11 @@ export interface TrainingSessionComparison {
   exercises: Array<{ exerciseId: string; name: string; currentSets: number; previousSets: number; delta: number }>;
 }
 
+export interface TrainingSessionNeighbors {
+  previousWorkoutId?: string;
+  nextWorkoutId?: string;
+}
+
 function totalSets(record: TrainingSessionRecord) {
   return Object.values(record.muscleSets).reduce((total, sets) => total + (sets ?? 0), 0);
 }
@@ -16,10 +21,8 @@ function totalSets(record: TrainingSessionRecord) {
 export function compareTrainingSession(records: TrainingSessionRecord[], workoutId: string): TrainingSessionComparison | undefined {
   const current = records.find((record) => record.workoutId === workoutId);
   if (!current) return undefined;
-  const normalizedTitle = current.title.trim().toLocaleLowerCase();
-  const previous = records
-    .filter((record) => record.workoutId !== current.workoutId && record.date < current.date && record.title.trim().toLocaleLowerCase() === normalizedTitle)
-    .sort((left, right) => right.date.localeCompare(left.date) || left.workoutId.localeCompare(right.workoutId))[0];
+  const neighbors = trainingSessionNeighbors(records, workoutId);
+  const previous = records.find((record) => record.workoutId === neighbors.previousWorkoutId);
   if (!previous) return undefined;
   const currentSets = totalSets(current);
   const previousSets = totalSets(previous);
@@ -49,5 +52,20 @@ export function compareTrainingSession(records: TrainingSessionRecord[], workout
     ...(current.perceivedExertion !== undefined && previous.perceivedExertion !== undefined ? {
       effort: { current: current.perceivedExertion, previous: previous.perceivedExertion, delta: current.perceivedExertion - previous.perceivedExertion },
     } : {}),
+  };
+}
+
+export function trainingSessionNeighbors(records: TrainingSessionRecord[], workoutId: string): TrainingSessionNeighbors {
+  const current = records.find((record) => record.workoutId === workoutId);
+  if (!current) return {};
+  const normalizedTitle = current.title.trim().toLocaleLowerCase();
+  const matches = records
+    .filter((record) => record.title.trim().toLocaleLowerCase() === normalizedTitle)
+    .sort((left, right) => left.date.localeCompare(right.date) || left.workoutId.localeCompare(right.workoutId));
+  const index = matches.findIndex((record) => record.workoutId === workoutId);
+  if (index < 0) return {};
+  return {
+    ...(matches[index - 1] ? { previousWorkoutId: matches[index - 1]!.workoutId } : {}),
+    ...(matches[index + 1] ? { nextWorkoutId: matches[index + 1]!.workoutId } : {}),
   };
 }
