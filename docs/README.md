@@ -4,7 +4,7 @@
 - `decisions/` — architecture decision records
 - `sprints/` — sprint scope and acceptance notes
 
-Current delivery: [Sprint 4.18 — Scalable Training History Browsing](./sprints/sprint-4.18.md).
+Current delivery: [Sprint 4.19 — Training History Time Ranges](./sprints/sprint-4.19.md).
 
 Deployment: [Microsoft Entra External ID for Forge](./deployment/entra-external-id.md).
 
