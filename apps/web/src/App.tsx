@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { CoachService, type CoachActionType } from '@forge/coach';
 import { buildDigitalTwin, type DailySnapshot, type Recommendation } from '@forge/digital-twin';
 import {
-  Activity, Apple, ArrowRight, Award, Brain, CalendarDays, Check, ChevronRight, CircleUserRound, Cloud, CloudOff, Dumbbell,
+  Activity, Apple, ArrowRight, Award, BookOpen, Brain, CalendarDays, Check, ChevronRight, CircleUserRound, Cloud, CloudOff, Dumbbell,
   Download, Flame, Footprints, Gauge, HeartPulse, Home, Moon, Plus, Settings, ShieldAlert, Sparkles,
   Save, Target, TrendingDown, Utensils, X,
 } from 'lucide-react';
@@ -29,6 +29,7 @@ import { trainingHistoryCsv, trainingHistoryExcelFilename, trainingHistoryExcelX
 import { filterTrainingHistory, type TrainingHistoryFilter, type TrainingHistoryRange } from './trainingHistoryFilters.js';
 import { nextTrainingHistoryCount, TRAINING_HISTORY_PAGE_SIZE, visibleTrainingHistoryCount } from './trainingHistoryPagination.js';
 import { compareTrainingSession, trainingSessionNeighbors } from './trainingComparison.js';
+import { MovementLibrary } from './MovementLibrary.js';
 
 const TODAY = '2026-08-12' as const;
 const NOW = '2026-08-12T11:30:00.000Z';
@@ -103,6 +104,7 @@ export function App() {
   const [coachMessages, setCoachMessages] = useState<CoachMessage[]>(initialState.coachMessages ?? []);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [coachOpen, setCoachOpen] = useState(false);
+  const [movementLibraryOpen, setMovementLibraryOpen] = useState(false);
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('local');
   const [syncConflict, setSyncConflict] = useState<SyncConflictActions | null>(null);
   const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(null);
@@ -431,6 +433,7 @@ export function App() {
           <a href="#training"><Dumbbell size={19} /><span>Training</span></a>
           <a href="#nutrition"><Utensils size={19} /><span>Nutrition</span></a>
           <a href="#progress"><Activity size={19} /><span>Progress</span></a>
+          <button onClick={() => setMovementLibraryOpen(true)}><BookOpen size={19} /><span>Movement Library</span></button>
           <button className="sidebar-coach" onClick={() => setCoachOpen(true)}><Brain size={19} /><span>AI Coach</span></button>
         </nav>
         <div className="sidebar-bottom">
@@ -446,6 +449,7 @@ export function App() {
             <span className={`save-status sync-${syncStatus}`}>{syncStatus === 'offline' ? <CloudOff size={15} /> : syncStatus === 'conflict' ? <ShieldAlert size={15} /> : syncStatus === 'local' ? <Save size={15} /> : <Cloud size={15} />} {syncStatus === 'syncing' ? 'Syncing…' : syncStatus === 'connecting' ? 'Connecting…' : syncStatus === 'synced' ? 'Synced across devices' : syncStatus === 'conflict' ? 'Sync needs attention' : syncStatus === 'offline' ? 'Offline · saved locally' : savedAt ? 'Saved on this device' : 'Demo data'}</span>
             {auth.status === 'signed-out' ? <button className="auth-button" onClick={() => void auth.signIn()}>Sign in</button> : auth.status === 'signed-in' ? <button className="auth-button signed-in" onClick={() => void auth.signOut()} title="Sign out">{auth.name ?? auth.username ?? 'Account'}</button> : null}
             <button className="topbar-settings" onClick={() => setSettingsOpen(true)} aria-label="Open Forge settings"><Settings size={18} /></button>
+            <button className="library-button" onClick={() => setMovementLibraryOpen(true)}><BookOpen size={18} /> Movement Library</button>
             <button className="checkin-button" onClick={openCheckIn}><Plus size={18} /> Morning check-in</button>
           </div>
         </header>
@@ -499,7 +503,7 @@ export function App() {
             <div className="workout-list">
               {workout.exercises.slice(0, 4).map((exercise, index) => <div key={exercise.id}><span>{String(index + 1).padStart(2, '0')}</span><div><strong>{exercise.name}</strong><small>{exercise.sets.length} set{exercise.sets.length === 1 ? '' : 's'} · {exercise.detail}</small></div><ChevronRight size={18} /></div>)}
             </div>
-            <button className="primary-action" onClick={openWorkout}><Dumbbell size={18} /> {workout.status === 'not-started' ? 'Start workout' : workout.status === 'completed' ? 'Review workout' : 'Resume workout'} <ArrowRight size={18} /></button>
+            <div className="workout-actions"><button className="primary-action" onClick={openWorkout}><Dumbbell size={18} /> {workout.status === 'not-started' ? 'Start workout' : workout.status === 'completed' ? 'Review workout' : 'Resume workout'} <ArrowRight size={18} /></button><button className="movement-library-button" onClick={() => setMovementLibraryOpen(true)}><BookOpen size={18} /> Explore movement guides</button></div>
           </article>
 
           <article className="panel trend-panel" id="progress">
@@ -589,6 +593,7 @@ export function App() {
       {foodLoggerOpen && <FoodLogger date={TODAY} entries={foodEntries} favoriteFoodIds={favoriteFoodIds} savedMeals={savedMeals} onChange={updateFoodEntries} onPreferencesChange={updateFoodPreferences} onClose={() => setFoodLoggerOpen(false)} />}
       {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} onGeneratePlan={generateNewPlan} onReset={resetPrototype} />}
       {coachOpen && <CoachPanel twin={twin} messages={coachMessages} onMessagesChange={updateCoachMessages} onAction={handleCoachAction} onClose={() => setCoachOpen(false)} />}
+      {movementLibraryOpen && <MovementLibrary onClose={() => setMovementLibraryOpen(false)} />}
 
       <nav className="mobile-nav" aria-label="Mobile navigation"><a className="active" href="#today"><Home size={20} /><span>Today</span></a><a href="#training"><Dumbbell size={20} /><span>Train</span></a><button onClick={openCheckIn} aria-label="Open daily check-in"><Plus size={22} /></button><a href="#nutrition"><Apple size={20} /><span>Nutrition</span></a><button className="mobile-coach" onClick={() => setCoachOpen(true)}><Brain size={20} /><span>Coach</span></button></nav>
     </div>
