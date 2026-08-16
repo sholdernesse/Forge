@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { AlertTriangle, CheckCircle2, Eye, ShieldAlert, TimerReset, Wind, X } from 'lucide-react';
 import type { ExerciseGuide as ExerciseGuideModel } from './exerciseGuides.js';
+import { ExerciseMotion } from './ExerciseMotion.js';
 
 interface ExerciseGuideProps {
   guide: ExerciseGuideModel;
@@ -23,7 +24,7 @@ export function ExerciseGuide({ guide, onClose }: ExerciseGuideProps) {
   return <div className="form-guide-backdrop" onMouseDown={onClose}>
     <section className="form-guide" role="dialog" aria-modal="true" aria-labelledby="form-guide-title" tabIndex={-1} autoFocus onMouseDown={(event) => event.stopPropagation()}>
       <header><div><span className="section-label">VISUAL FORM GUIDE</span><h2 id="form-guide-title">{guide.title}</h2></div><button onClick={onClose} aria-label="Close form guide"><X size={20} /></button></header>
-      <figure><img src={guide.imageSrc} alt={guide.imageAlt} /><figcaption><Eye size={15} /> Compare your setup and finishing position before adding load.</figcaption></figure>
+      {guide.motionId ? <ExerciseMotion primaryMuscles={guide.primaryMuscles} secondaryMuscles={guide.secondaryMuscles} /> : <figure><img src={guide.imageSrc} alt={guide.imageAlt} /><figcaption><Eye size={15} /> Compare your setup and finishing position before adding load.</figcaption></figure>}
       <div className="guide-performance" aria-label="Movement rhythm">
         <span><TimerReset size={16} /><span><b>Tempo</b><small>{guide.tempo}</small></span></span>
         <span><Wind size={16} /><span><b>Breathing</b><small>{guide.breathing}</small></span></span>
