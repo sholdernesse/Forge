@@ -16,14 +16,28 @@ export interface TrainingHistoryEntry {
   muscleBreakdown: string[];
 }
 
+export type TrainingHistorySort = 'newest' | 'oldest' | 'highest-effort' | 'longest';
+
 const muscleNames: Record<MuscleGroup, string> = {
   chest: 'Chest', back: 'Back', shoulders: 'Shoulders', biceps: 'Biceps', triceps: 'Triceps',
   quads: 'Quads', hamstrings: 'Hamstrings', glutes: 'Glutes', calves: 'Calves', core: 'Core', cardio: 'Cardio',
 };
 
-export function trainingHistoryEntries(records: TrainingSessionRecord[], limit = 6): TrainingHistoryEntry[] {
+function compareTrainingRecords(left: TrainingSessionRecord, right: TrainingSessionRecord, sort: TrainingHistorySort) {
+  if (sort === 'oldest') return left.date.localeCompare(right.date) || left.workoutId.localeCompare(right.workoutId);
+  if (sort === 'highest-effort') {
+    const effortDifference = (right.perceivedExertion ?? -1) - (left.perceivedExertion ?? -1);
+    return effortDifference || right.date.localeCompare(left.date) || left.workoutId.localeCompare(right.workoutId);
+  }
+  if (sort === 'longest') {
+    return right.durationMinutes - left.durationMinutes || right.date.localeCompare(left.date) || left.workoutId.localeCompare(right.workoutId);
+  }
+  return right.date.localeCompare(left.date) || left.workoutId.localeCompare(right.workoutId);
+}
+
+export function trainingHistoryEntries(records: TrainingSessionRecord[], limit = 6, sort: TrainingHistorySort = 'newest'): TrainingHistoryEntry[] {
   return [...records]
-    .sort((left, right) => right.date.localeCompare(left.date))
+    .sort((left, right) => compareTrainingRecords(left, right, sort))
     .slice(0, Math.max(0, limit))
     .map((record) => {
       const muscles = (Object.entries(record.muscleSets) as Array<[MuscleGroup, number]>)

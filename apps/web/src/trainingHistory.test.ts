@@ -29,4 +29,15 @@ describe('training history timeline', () => {
     expect(entry.exercises).toEqual([{ id: 'bench', name: 'Bench press', completionLabel: '3 of 4 sets' }]);
     expect(entry.muscleBreakdown).toEqual(['Chest 3']);
   });
+
+  it('supports oldest, highest-effort, and longest sorting with deterministic ties', () => {
+    const records = [
+      { workoutId: 'short', date: '2026-08-12', title: 'Short', durationMinutes: 20, muscleSets: {}, perceivedExertion: 7 },
+      { workoutId: 'long', date: '2026-08-10', title: 'Long', durationMinutes: 60, muscleSets: {}, perceivedExertion: 9 },
+      { workoutId: 'unrated', date: '2026-08-08', title: 'Unrated', durationMinutes: 30, muscleSets: {} },
+    ];
+    expect(trainingHistoryEntries(records, 3, 'oldest').map((entry) => entry.workoutId)).toEqual(['unrated', 'long', 'short']);
+    expect(trainingHistoryEntries(records, 3, 'highest-effort').map((entry) => entry.workoutId)).toEqual(['long', 'short', 'unrated']);
+    expect(trainingHistoryEntries(records, 3, 'longest').map((entry) => entry.workoutId)).toEqual(['long', 'unrated', 'short']);
+  });
 });
