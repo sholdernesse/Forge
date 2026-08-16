@@ -17,6 +17,13 @@ describe('exercise guides', () => {
     }
   });
 
+  it('launches motion with explicit muscle intent on the overhead press pilot', () => {
+    const guide = exerciseGuide('dumbbell-overhead-press')!;
+    expect(guide.motionId).toBe('dumbbell-overhead-press');
+    expect(guide.primaryMuscles).toEqual(['Deltoids']);
+    expect(guide.secondaryMuscles).toEqual(expect.arrayContaining(['Triceps', 'upper chest']));
+  });
+
   it('keeps every guide actionable and safety bounded', () => {
     for (const id of exerciseGuideIds()) {
       const guide = exerciseGuide(id)!;
@@ -26,6 +33,8 @@ describe('exercise guides', () => {
       expect(guide.selfChecks.length).toBeGreaterThanOrEqual(3);
       expect(guide.tempo.length).toBeGreaterThan(20);
       expect(guide.breathing).toMatch(/exhale|inhale|breath|brace/i);
+      expect(guide.primaryMuscles.length).toBeGreaterThan(0);
+      expect(guide.secondaryMuscles.length).toBeGreaterThan(0);
       expect(guide.safetyNote).toMatch(/stop|pain|safet/i);
     }
   });
