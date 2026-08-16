@@ -27,6 +27,7 @@ import { trainingHistoryEntries } from './trainingHistory.js';
 import { trainingTrendSummary } from './trainingAnalytics.js';
 import { trainingHistoryCsv, trainingHistoryExcelFilename, trainingHistoryExcelXml, trainingHistoryExportFilename } from './trainingExport.js';
 import { filterTrainingHistory, type TrainingHistoryFilter } from './trainingHistoryFilters.js';
+import { nextTrainingHistoryCount, TRAINING_HISTORY_PAGE_SIZE, visibleTrainingHistoryCount } from './trainingHistoryPagination.js';
 
 const TODAY = '2026-08-12' as const;
 const NOW = '2026-08-12T11:30:00.000Z';
@@ -106,6 +107,7 @@ export function App() {
   const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(null);
   const [historyFilter, setHistoryFilter] = useState<TrainingHistoryFilter>('all');
   const [historyQuery, setHistoryQuery] = useState('');
+  const [historyVisibleCount, setHistoryVisibleCount] = useState(TRAINING_HISTORY_PAGE_SIZE);
 
   const evaluation = useMemo(() => {
     const twin = buildDigitalTwin({ profile: { ...demoProfile, weightKg: checkIn.weightKg }, goals: demoGoals, history, asOfDate: TODAY, now: NOW });
@@ -126,7 +128,8 @@ export function App() {
   const week = trainingWeek(sessionHistory, TODAY, workout.title, scheduleOverrides);
   const loggedNutrition = foodTotals(foodEntries, TODAY);
   const filteredTrainingRecords = filterTrainingHistory(sessionHistory, historyFilter, historyQuery);
-  const recentTraining = trainingHistoryEntries(filteredTrainingRecords, 12);
+  const visibleHistoryCount = visibleTrainingHistoryCount(filteredTrainingRecords.length, historyVisibleCount);
+  const recentTraining = trainingHistoryEntries(filteredTrainingRecords, visibleHistoryCount);
   const selectedTraining = recentTraining.find((entry) => entry.workoutId === selectedHistoryId);
   const trainingTrend = trainingTrendSummary(sessionHistory, TODAY);
   const maxWeeklyMinutes = Math.max(1, ...trainingTrend.weeks.map((week) => week.minutes));
@@ -538,7 +541,7 @@ export function App() {
               <div className="training-week-chart" aria-label="Training minutes by week">{trainingTrend.weeks.map((week) => <div key={week.startDate}><span className="week-bar-track"><i style={{ height: `${Math.max(4, week.minutes / maxWeeklyMinutes * 100)}%` }} /></span><b>{week.minutes}</b><small>{week.label}</small></div>)}</div>
               {trainingTrend.discomfortSessions > 0 && <div className="training-trend-note"><ShieldAlert size={15} /><span>{trainingTrend.discomfortSessions} session{trainingTrend.discomfortSessions === 1 ? '' : 's'} included discomfort feedback in this four-week window.</span></div>}
             </div>
-            <div className="training-history-controls"><label><span className="sr-only">Search training history</span><input type="search" placeholder="Search workouts, exercises, or notes" value={historyQuery} onChange={(event) => { setHistoryQuery(event.target.value); setSelectedHistoryId(null); }} /></label><div role="group" aria-label="Filter training history">{([['all', 'All'], ['high-effort', 'High effort'], ['discomfort', 'Discomfort']] as const).map(([value, label]) => <button className={historyFilter === value ? 'active' : ''} aria-pressed={historyFilter === value} key={value} onClick={() => { setHistoryFilter(value); setSelectedHistoryId(null); }}>{label}</button>)}</div><small>{filteredTrainingRecords.length} of {sessionHistory.length} sessions</small></div>
+            <div className="training-history-controls"><label><span className="sr-only">Search training history</span><input type="search" placeholder="Search workouts, exercises, or notes" value={historyQuery} onChange={(event) => { setHistoryQuery(event.target.value); setHistoryVisibleCount(TRAINING_HISTORY_PAGE_SIZE); setSelectedHistoryId(null); }} /></label><div role="group" aria-label="Filter training history">{([['all', 'All'], ['high-effort', 'High effort'], ['discomfort', 'Discomfort']] as const).map(([value, label]) => <button className={historyFilter === value ? 'active' : ''} aria-pressed={historyFilter === value} key={value} onClick={() => { setHistoryFilter(value); setHistoryVisibleCount(TRAINING_HISTORY_PAGE_SIZE); setSelectedHistoryId(null); }}>{label}</button>)}</div><small>Showing {visibleHistoryCount} of {filteredTrainingRecords.length} match{filteredTrainingRecords.length === 1 ? '' : 'es'}</small></div>
             <div className="training-history-list">{recentTraining.length ? recentTraining.map((entry) => <button className={`training-history-row ${entry.tone}`} key={entry.workoutId} onClick={() => setSelectedHistoryId(entry.workoutId)} aria-expanded={selectedHistoryId === entry.workoutId}>
               <time dateTime={entry.date}>{entry.dateLabel}</time>
               <span><b>{entry.title}</b><small>{entry.muscleLabel} · {entry.completedSets} set{entry.completedSets === 1 ? '' : 's'}</small></span>
@@ -546,6 +549,7 @@ export function App() {
               {entry.discomfortLabel && <strong>{entry.discomfortLabel}</strong>}
               <ChevronRight className="history-chevron" size={17} />
             </button>) : <div className="empty-state">{sessionHistory.length ? 'No sessions match this search and filter.' : 'Complete a workout to start your training history.'}</div>}</div>
+            {visibleHistoryCount < filteredTrainingRecords.length && <button className="training-history-more" onClick={() => setHistoryVisibleCount(nextTrainingHistoryCount(filteredTrainingRecords.length, visibleHistoryCount))}>Show {Math.min(TRAINING_HISTORY_PAGE_SIZE, filteredTrainingRecords.length - visibleHistoryCount)} older session{Math.min(TRAINING_HISTORY_PAGE_SIZE, filteredTrainingRecords.length - visibleHistoryCount) === 1 ? '' : 's'}</button>}
             {selectedTraining && <section className="training-history-detail" aria-labelledby="training-history-detail-title">
               <header><div><span className="section-label">SESSION DETAIL · {selectedTraining.dateLabel}</span><h4 id="training-history-detail-title">{selectedTraining.title}</h4></div><button onClick={() => setSelectedHistoryId(null)} aria-label="Close session detail"><X size={17} /></button></header>
               <div className="history-detail-metrics"><span><small>Duration</small><b>{selectedTraining.durationLabel}</b></span><span><small>Volume</small><b>{selectedTraining.completedSets} sets</b></span><span><small>Experience</small><b>{selectedTraining.effortLabel ?? 'Not recorded'}</b></span></div>
