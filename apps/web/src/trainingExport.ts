@@ -19,14 +19,16 @@ export function trainingHistoryCsv(records: TrainingSessionRecord[]): string {
   return [headers, ...rows].map((row) => row.map(csvCell).join(',')).join('\r\n') + '\r\n';
 }
 
-export function trainingHistoryExportFilename(asOfDate: string): string {
+export type TrainingHistoryExportScope = 'all' | 'current-view';
+
+export function trainingHistoryExportFilename(asOfDate: string, scope: TrainingHistoryExportScope = 'all'): string {
   const safeDate = /^\d{4}-\d{2}-\d{2}$/.test(asOfDate) ? asOfDate : 'export';
-  return `forge-training-history-${safeDate}.csv`;
+  return `forge-training-history${scope === 'current-view' ? '-current-view' : ''}-${safeDate}.csv`;
 }
 
-export function trainingHistoryExcelFilename(asOfDate: string): string {
+export function trainingHistoryExcelFilename(asOfDate: string, scope: TrainingHistoryExportScope = 'all'): string {
   const safeDate = /^\d{4}-\d{2}-\d{2}$/.test(asOfDate) ? asOfDate : 'export';
-  return `forge-training-history-${safeDate}.xml`;
+  return `forge-training-history${scope === 'current-view' ? '-current-view' : ''}-${safeDate}.xml`;
 }
 
 export function trainingHistoryExcelXml(records: TrainingSessionRecord[], asOfDate: string): string {

@@ -24,6 +24,8 @@ describe('training history export', () => {
     expect(trainingHistoryExportFilename('2026-08-12')).toBe('forge-training-history-2026-08-12.csv');
     expect(trainingHistoryExportFilename('../unsafe')).toBe('forge-training-history-export.csv');
     expect(trainingHistoryExcelFilename('2026-08-12')).toBe('forge-training-history-2026-08-12.xml');
+    expect(trainingHistoryExportFilename('2026-08-12', 'current-view')).toBe('forge-training-history-current-view-2026-08-12.csv');
+    expect(trainingHistoryExcelFilename('2026-08-12', 'current-view')).toBe('forge-training-history-current-view-2026-08-12.xml');
   });
 
   it('creates a styled two-sheet Excel workbook with frozen headers and filters', () => {

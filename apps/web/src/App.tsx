@@ -25,7 +25,7 @@ import { useForgeAuth } from './useForgeAuth.js';
 import { CoachPanel } from './CoachPanel.js';
 import { trainingHistoryEntries, type TrainingHistorySort } from './trainingHistory.js';
 import { trainingTrendSummary } from './trainingAnalytics.js';
-import { trainingHistoryCsv, trainingHistoryExcelFilename, trainingHistoryExcelXml, trainingHistoryExportFilename } from './trainingExport.js';
+import { trainingHistoryCsv, trainingHistoryExcelFilename, trainingHistoryExcelXml, trainingHistoryExportFilename, type TrainingHistoryExportScope } from './trainingExport.js';
 import { filterTrainingHistory, type TrainingHistoryFilter, type TrainingHistoryRange } from './trainingHistoryFilters.js';
 import { nextTrainingHistoryCount, TRAINING_HISTORY_PAGE_SIZE, visibleTrainingHistoryCount } from './trainingHistoryPagination.js';
 
@@ -109,6 +109,7 @@ export function App() {
   const [historyQuery, setHistoryQuery] = useState('');
   const [historyRange, setHistoryRange] = useState<TrainingHistoryRange>('90-days');
   const [historySort, setHistorySort] = useState<TrainingHistorySort>('newest');
+  const [historyExportScope, setHistoryExportScope] = useState<TrainingHistoryExportScope>('current-view');
   const [historyVisibleCount, setHistoryVisibleCount] = useState(TRAINING_HISTORY_PAGE_SIZE);
 
   const evaluation = useMemo(() => {
@@ -132,6 +133,7 @@ export function App() {
   const filteredTrainingRecords = filterTrainingHistory(sessionHistory, historyFilter, historyQuery, historyRange, TODAY);
   const visibleHistoryCount = visibleTrainingHistoryCount(filteredTrainingRecords.length, historyVisibleCount);
   const recentTraining = trainingHistoryEntries(filteredTrainingRecords, visibleHistoryCount, historySort);
+  const trainingExportRecords = historyExportScope === 'current-view' ? filteredTrainingRecords : sessionHistory;
   const selectedTraining = recentTraining.find((entry) => entry.workoutId === selectedHistoryId);
   const trainingTrend = trainingTrendSummary(sessionHistory, TODAY);
   const maxWeeklyMinutes = Math.max(1, ...trainingTrend.weeks.map((week) => week.minutes));
@@ -408,11 +410,11 @@ export function App() {
   }
 
   function exportTrainingHistoryCsv() {
-    downloadTrainingFile(trainingHistoryCsv(sessionHistory), 'text/csv;charset=utf-8', trainingHistoryExportFilename(TODAY));
+    downloadTrainingFile(trainingHistoryCsv(trainingExportRecords), 'text/csv;charset=utf-8', trainingHistoryExportFilename(TODAY, historyExportScope));
   }
 
   function exportTrainingHistoryExcel() {
-    downloadTrainingFile(trainingHistoryExcelXml(sessionHistory, TODAY), 'application/vnd.ms-excel;charset=utf-8', trainingHistoryExcelFilename(TODAY));
+    downloadTrainingFile(trainingHistoryExcelXml(trainingExportRecords, TODAY), 'application/vnd.ms-excel;charset=utf-8', trainingHistoryExcelFilename(TODAY, historyExportScope));
   }
 
   return (
@@ -536,7 +538,7 @@ export function App() {
           </article>
 
           <article className="panel training-history-panel">
-            <div className="panel-heading"><div><span className="section-label">TRAINING HISTORY</span><h3>Recent completed sessions</h3></div><div className="training-history-actions"><Activity size={22} className="trend-icon" /><button onClick={exportTrainingHistoryExcel} disabled={!sessionHistory.length}><Download size={15} /> Export Excel</button><button className="export-secondary" onClick={exportTrainingHistoryCsv} disabled={!sessionHistory.length}>CSV</button></div></div>
+            <div className="panel-heading"><div><span className="section-label">TRAINING HISTORY</span><h3>Recent completed sessions</h3></div><div className="training-history-actions"><Activity size={22} className="trend-icon" /><label><span className="sr-only">Export scope</span><select value={historyExportScope} onChange={(event) => setHistoryExportScope(event.target.value as TrainingHistoryExportScope)}><option value="current-view">Current view ({filteredTrainingRecords.length})</option><option value="all">Full history ({sessionHistory.length})</option></select></label><button onClick={exportTrainingHistoryExcel} disabled={!trainingExportRecords.length}><Download size={15} /> Export Excel</button><button className="export-secondary" onClick={exportTrainingHistoryCsv} disabled={!trainingExportRecords.length}>CSV</button></div></div>
             <p className="panel-copy">Duration, completed volume, and your reported experience stay together across devices.</p>
             <div className="training-trend-summary">
               <div className="training-trend-metrics"><span><small>4-week sessions</small><b>{trainingTrend.sessions}</b></span><span><small>Total time</small><b>{trainingTrend.minutes} min</b></span><span><small>Average effort</small><b>{trainingTrend.averageEffort ? `${trainingTrend.averageEffort}/10` : 'Not enough data'}</b></span><span><small>Feedback coverage</small><b>{trainingTrend.feedbackCoverage}%</b></span></div>

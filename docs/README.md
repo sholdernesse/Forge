@@ -4,7 +4,7 @@
 - `decisions/` — architecture decision records
 - `sprints/` — sprint scope and acceptance notes
 
-Current delivery: [Sprint 4.20 — User-controlled Training History Sorting](./sprints/sprint-4.20.md).
+Current delivery: [Sprint 4.21 — User-controlled Training Export Scope](./sprints/sprint-4.21.md).
 
 Deployment: [Microsoft Entra External ID for Forge](./deployment/entra-external-id.md).
 
