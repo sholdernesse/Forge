@@ -44,8 +44,8 @@ jobs:
             FAILOVER_EVIDENCE_URL=https://evidence.example.test/failover
             GITHUB_STEP_SUMMARY="$RUNNER_TEMP/release-summary.md"
           )
-          env "${evidence[@]}" scripts/release/validate-readiness.sh
-          if env "${evidence[@]}" PHYSICAL_RESULT=BLOCKED scripts/release/validate-readiness.sh; then
+          env "${evidence[@]}" bash scripts/release/validate-readiness.sh
+          if env "${evidence[@]}" PHYSICAL_RESULT=BLOCKED bash scripts/release/validate-readiness.sh; then
             echo "Release validator accepted a blocked mandatory gate" >&2
             exit 1
           fi
