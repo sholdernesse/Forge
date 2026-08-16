@@ -9,6 +9,9 @@ export interface ExerciseGuide {
   selfChecks: string[];
   tempo: string;
   breathing: string;
+  motionId?: 'dumbbell-overhead-press';
+  primaryMuscles: string[];
+  secondaryMuscles: string[];
   safetyNote: string;
 }
 
@@ -24,6 +27,8 @@ const guides: ExerciseGuide[] = [
     selfChecks: ['From the side, the bar finishes over the shoulder and touches near the lower chest.', 'From the foot end, both wrists remain stacked above the elbows.', 'The first and final repetition use the same controlled touch point and hip position.'],
     tempo: 'Lower for about 2 seconds, pause softly at the chest, then press with control.',
     breathing: 'Brace before the descent; exhale through the press without losing your rib or shoulder position.',
+    primaryMuscles: ['Chest'],
+    secondaryMuscles: ['Triceps', 'front deltoids'],
     safetyNote: 'Use safeties or a spotter when benching with a barbell. Stop if you feel sharp shoulder, elbow, or chest pain.',
   },
   {
@@ -37,6 +42,8 @@ const guides: ExerciseGuide[] = [
     selfChecks: ['From the front, each knee follows the direction of the middle toes throughout the repetition.', 'From the side, the bar stays above the mid-foot and the torso angle remains controlled.', 'The box touch is quiet and repeatable rather than a drop or backward rock.'],
     tempo: 'Descend for 2–3 seconds, touch the box without relaxing, then stand smoothly.',
     breathing: 'Take a brace before descending; maintain pressure through the touch and exhale as you pass the hardest point.',
+    primaryMuscles: ['Quadriceps', 'glutes'],
+    secondaryMuscles: ['Hamstrings', 'core'],
     safetyNote: 'Use a load and depth you can control. Stop if back, hip, or knee discomfort becomes sharp or changes your movement.',
   },
   {
@@ -50,6 +57,8 @@ const guides: ExerciseGuide[] = [
     selfChecks: ['Place fingertips under the lower back and keep the pressure steady as the limbs move.', 'From the side, the ribs stay down rather than lifting as the arm reaches overhead.', 'Both sides use the same pain-free range and controlled speed.'],
     tempo: 'Reach for about 3 seconds, pause briefly, and return for about 2 seconds.',
     breathing: 'Exhale during the reach to maintain the brace; inhale quietly as you return and reset.',
+    primaryMuscles: ['Deep core'],
+    secondaryMuscles: ['Hip flexors'],
     safetyNote: 'Shorten the range if your lower back lifts from the mat. Stop if the movement causes back pain.',
   },
   {
@@ -63,6 +72,9 @@ const guides: ExerciseGuide[] = [
     selfChecks: ['From the side, the weights finish above the shoulders rather than in front of the face.', 'From the front, wrists remain stacked above elbows through the lower half.', 'Your rib position and torso angle look the same on the first and last repetition.'],
     tempo: 'Press smoothly for about 1–2 seconds and lower for about 2 seconds.',
     breathing: 'Brace before pressing; exhale through the effort while keeping the ribs stacked, then inhale as you reset.',
+    motionId: 'dumbbell-overhead-press',
+    primaryMuscles: ['Deltoids'],
+    secondaryMuscles: ['Triceps', 'upper chest'],
     safetyNote: 'Use a load you can press without leaning back. Stop if you feel sharp shoulder, neck, elbow, or back pain.',
   },
   {
@@ -76,6 +88,8 @@ const guides: ExerciseGuide[] = [
     selfChecks: ['From the side, the chest remains in contact with the pad throughout each repetition.', 'From behind, the shoulders stay level and the elbows follow similar paths.', 'The bottom position shows long arms without the shoulders suddenly rolling forward.'],
     tempo: 'Pull for about 1 second, pause briefly, and lower for 2–3 seconds.',
     breathing: 'Exhale as you pull; inhale during the controlled reach without losing contact with the pad.',
+    primaryMuscles: ['Upper back', 'lats'],
+    secondaryMuscles: ['Biceps', 'rear deltoids'],
     safetyNote: 'Adjust the bench and load if you cannot keep your torso supported. Stop for sharp shoulder, neck, or back pain.',
   },
   {
@@ -89,6 +103,8 @@ const guides: ExerciseGuide[] = [
     selfChecks: ['From the side, the top position forms a line from shoulders through hips to knees.', 'At lockout, the shins are close to vertical and pressure remains through the whole foot.', 'The ribs remain down and the finish comes from the hips rather than a lower-back arch.'],
     tempo: 'Lift for about 1–2 seconds, pause at lockout, and lower for about 2 seconds.',
     breathing: 'Brace before lifting; exhale near lockout while keeping the ribs down, then inhale as you lower.',
+    primaryMuscles: ['Glutes'],
+    secondaryMuscles: ['Hamstrings', 'quadriceps'],
     safetyNote: 'Use a stable bench, secure plates, and adequate bar padding. Stop for sharp back, hip, or knee pain.',
   },
 ];
