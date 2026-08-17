@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { beginWorkoutRest, clearWorkoutRest, completedSetCount, createTodayWorkout, isWorkoutFeedback, isWorkoutSession, totalSetCount, workoutMinutes, workoutRestSecondsRemaining } from './workoutSession.js';
+import { adjustWorkoutRest, beginWorkoutRest, clearWorkoutRest, completedSetCount, createTodayWorkout, isWorkoutFeedback, isWorkoutSession, nextIncompleteExerciseIndex, totalSetCount, workoutMinutes, workoutRestSecondsRemaining } from './workoutSession.js';
 
 describe('workout session', () => {
   it('creates the recovery workout with six loggable sets', () => {
@@ -24,6 +24,22 @@ describe('workout session', () => {
     expect(workoutRestSecondsRemaining(session, Date.parse('2026-08-12T12:00:35.250Z'))).toBe(55);
     expect(workoutRestSecondsRemaining(session, Date.parse('2026-08-12T12:02:00.000Z'))).toBe(0);
     expect(clearWorkoutRest(session).restEndsAt).toBeUndefined();
+  });
+
+  it('adjusts active rest without allowing a negative timer', () => {
+    const started = beginWorkoutRest(createTodayWorkout('2026-08-12'), 60, 0);
+    expect(workoutRestSecondsRemaining(adjustWorkoutRest(started, 15, 10_000), 10_000)).toBe(65);
+    expect(adjustWorkoutRest(started, -60, 10_000).restEndsAt).toBeUndefined();
+  });
+
+  it('advances to the next incomplete movement and wraps when needed', () => {
+    const session = createTodayWorkout('2026-08-12');
+    session.exercises[1]!.sets.forEach((set) => { set.completedAt = '2026-08-12T12:00:00.000Z'; });
+    expect(nextIncompleteExerciseIndex(session, 0)).toBe(2);
+    session.exercises[2]!.sets.forEach((set) => { set.completedAt = '2026-08-12T12:00:00.000Z'; });
+    expect(nextIncompleteExerciseIndex(session, 2)).toBe(0);
+    session.exercises[0]!.sets.forEach((set) => { set.completedAt = '2026-08-12T12:00:00.000Z'; });
+    expect(nextIncompleteExerciseIndex(session, 2)).toBeUndefined();
   });
 
   it('rejects invalid persisted rest deadlines', () => {
