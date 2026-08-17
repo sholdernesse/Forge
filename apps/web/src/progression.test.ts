@@ -22,6 +22,15 @@ describe('progression intelligence', () => {
     expect(recordPerformances(session, history)[0]).toMatchObject({ isPersonalRecord: true });
   });
 
+  it('does not turn warm-up sets into strength records or personal bests', () => {
+    const session = createTodayWorkout('2026-08-12');
+    session.exercises[2]!.sets.unshift({ id: 'warmup', kind: 'warmup', reps: 5, loadKg: 100, completedAt: '2026-08-12T11:55:00.000Z' });
+    session.exercises[2]!.sets[1]!.completedAt = '2026-08-12T12:00:00.000Z';
+    session.exercises[2]!.sets[1]!.loadKg = 5;
+    expect(recordPerformances(session, history)).toHaveLength(1);
+    expect(recordPerformances(session, history)[0]).toMatchObject({ loadKg: 5 });
+  });
+
   it('ranks movements by estimated-strength gain', () => {
     expect(strongestMovements(history)[0]).toMatchObject({ exerciseId: 'dead-bugs', gainPct: 4 });
   });
