@@ -1,4 +1,4 @@
-import type { WorkoutDiscomfort, WorkoutSession } from './workoutSession.js';
+import { isWorkingSet, type WorkoutDiscomfort, type WorkoutSession } from './workoutSession.js';
 import type { ScheduleOverrides } from './schedulePolicy.js';
 
 export type MuscleGroup = 'chest' | 'back' | 'shoulders' | 'biceps' | 'triceps' | 'quads' | 'hamstrings' | 'glutes' | 'calves' | 'core' | 'cardio';
@@ -45,7 +45,7 @@ export const demoSessionHistory: TrainingSessionRecord[] = [
 export function summarizeWorkout(session: WorkoutSession, durationMinutes: number): TrainingSessionRecord {
   const muscleSets: Partial<Record<MuscleGroup, number>> = {};
   for (const exercise of session.exercises) {
-    const completedSets = exercise.sets.filter((set) => set.completedAt).length;
+    const completedSets = exercise.sets.filter((set) => isWorkingSet(set) && set.completedAt).length;
     if (!completedSets) continue;
     for (const muscle of exerciseMuscles[exercise.id] ?? []) muscleSets[muscle] = (muscleSets[muscle] ?? 0) + completedSets;
   }
@@ -63,8 +63,8 @@ export function summarizeWorkout(session: WorkoutSession, durationMinutes: numbe
     exerciseSummaries: session.exercises.map((exercise) => ({
       exerciseId: exercise.id,
       name: exercise.name,
-      completedSets: exercise.sets.filter((set) => set.completedAt).length,
-      totalSets: exercise.sets.length,
+      completedSets: exercise.sets.filter((set) => isWorkingSet(set) && set.completedAt).length,
+      totalSets: exercise.sets.filter(isWorkingSet).length,
     })),
   };
 }
