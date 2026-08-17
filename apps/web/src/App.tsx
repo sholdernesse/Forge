@@ -10,7 +10,7 @@ import { demoGoals, demoHistory, demoProfile } from './demoData.js';
 import { cacheDashboardState, clearDashboardState, dashboardStateUpdatedAt, DASHBOARD_SAVED_EVENT, loadDashboardState, saveDashboardState, type CheckIn, type CoachMessage, type DashboardSaveEventDetail } from './dashboardStorage.js';
 import { DashboardSyncClient, DashboardSyncConflictError, dashboardSyncConfig, newerThanLocal, type RemoteDashboard, type SyncStatus } from './dashboardSync.js';
 import { WorkoutPlayer } from './WorkoutPlayer.js';
-import { clearWorkoutRest, completedSetCount, isWorkingSet, createTodayWorkout, totalSetCount, workoutElapsedMinutes, workoutMinutes, type WorkoutFeedback, type WorkoutSession } from './workoutSession.js';
+import { clearWorkoutRest, completedSetCount, isWorkingSet, createTodayWorkout, totalSetCount, workoutElapsedMinutes, type WorkoutFeedback, type WorkoutSession } from './workoutSession.js';
 import { demoExerciseHistory, exerciseProgressTimeline, recordPerformances, strongestMovements, type ExercisePerformance } from './progression.js';
 import { demoTrainingPreferences, generateTrainingPlan } from './trainingPlanner.js';
 import { demoSessionHistory, summarizeWorkout, trainingWeek, weeklyVolume, type TrainingSessionRecord } from './volumeLedger.js';
