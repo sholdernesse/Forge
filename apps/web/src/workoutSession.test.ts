@@ -99,6 +99,7 @@ describe('workout session', () => {
     expect(nextWorkoutStep(session, 2)).toEqual({
       exerciseIndex: 2,
       setIndex: 0,
+      exerciseId: 'dead-bugs',
       exerciseName: 'Dead bugs',
       setLabel: 'Warm-up 1',
       targetLabel: '8 reps · unloaded',
