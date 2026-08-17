@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Dumbbell, Search, Sparkles, X } from 'lucide-react';
 import { ExerciseGuide } from './ExerciseGuide.js';
 import { exerciseGuides, type ExerciseGuide as ExerciseGuideModel } from './exerciseGuides.js';
+import { useAccessibleDialog } from './useAccessibleDialog.js';
 
 type LibraryFilter = 'all' | 'animated';
 
@@ -13,6 +14,7 @@ export function MovementLibrary({ onClose }: MovementLibraryProps) {
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<LibraryFilter>('all');
   const [selected, setSelected] = useState<ExerciseGuideModel | null>(null);
+  const dialogRef = useAccessibleDialog(onClose);
   const guides = useMemo(() => {
     const normalized = query.trim().toLowerCase();
     return exerciseGuides().filter((guide) => {
@@ -27,7 +29,7 @@ export function MovementLibrary({ onClose }: MovementLibraryProps) {
 
   return <>
     <div className="movement-library-backdrop" onMouseDown={onClose}>
-      <section className="movement-library" role="dialog" aria-modal="true" aria-labelledby="movement-library-title" tabIndex={-1} autoFocus onMouseDown={(event) => event.stopPropagation()}>
+      <section ref={dialogRef} className="movement-library" role="dialog" aria-modal="true" aria-labelledby="movement-library-title" tabIndex={-1} onMouseDown={(event) => event.stopPropagation()}>
         <header>
           <div><span className="section-label">LEARN ANYTIME</span><h2 id="movement-library-title">Movement Library</h2><p>Explore form without changing today’s adaptive workout.</p></div>
           <button onClick={onClose} aria-label="Close movement library"><X size={20} /></button>
