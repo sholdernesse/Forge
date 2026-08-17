@@ -98,6 +98,18 @@ export function clearWorkoutRest(session: WorkoutSession): WorkoutSession {
   return withoutRest;
 }
 
+export function adjustWorkoutRest(session: WorkoutSession, deltaSeconds: number, now = Date.now()): WorkoutSession {
+  const nextSeconds = workoutRestSecondsRemaining(session, now) + Math.trunc(deltaSeconds);
+  return nextSeconds > 0 ? beginWorkoutRest(session, nextSeconds, now) : clearWorkoutRest(session);
+}
+
+export function nextIncompleteExerciseIndex(session: WorkoutSession, currentIndex: number): number | undefined {
+  if (!session.exercises.length) return undefined;
+  const indexes = session.exercises.map((_, index) => index);
+  const ordered = [...indexes.filter((index) => index > currentIndex), ...indexes.filter((index) => index <= currentIndex)];
+  return ordered.find((index) => session.exercises[index]!.sets.some((set) => !set.completedAt));
+}
+
 export function workoutRestSecondsRemaining(session: WorkoutSession, now = Date.now()): number {
   if (!session.restEndsAt) return 0;
   const deadline = Date.parse(session.restEndsAt);
