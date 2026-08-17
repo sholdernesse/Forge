@@ -1,5 +1,5 @@
 import type { DigitalTwin } from '@forge/digital-twin';
-import type { WorkoutExercise, WorkoutSession } from './workoutSession.js';
+import { addWarmupSet, type WorkoutExercise, type WorkoutSession } from './workoutSession.js';
 import { weeklyVolume, type TrainingSessionRecord } from './volumeLedger.js';
 import { applyDeload, assessDeload, assessTrainingFeedback, type ScheduleIntent } from './schedulePolicy.js';
 
@@ -21,6 +21,24 @@ function repExercise(id: string, name: string, detail: string, sets: number, rep
 
 function durationExercise(id: string, name: string, detail: string, minutes: number): WorkoutExercise {
   return { id, name, detail, mode: 'duration', restSeconds: 30, sets: [{ id: `${id}-1`, durationMinutes: minutes }] };
+}
+
+function includePrimaryWarmup(session: WorkoutSession): WorkoutSession {
+  const exerciseIndex = session.exercises.findIndex((exercise) => exercise.mode === 'reps' && exercise.sets.some((set) => (set.loadKg ?? 0) > 0));
+  if (exerciseIndex < 0) return session;
+  const exercise = session.exercises[exerciseIndex]!;
+  const working = exercise.sets.find((set) => set.kind !== 'warmup')!;
+  const withWarmup = addWarmupSet(exercise);
+  const warmupLoad = Math.round((working.loadKg ?? 0) * 0.5 * 2) / 2;
+  return {
+    ...session,
+    exercises: session.exercises.map((item, index) => index === exerciseIndex ? {
+      ...withWarmup,
+      sets: withWarmup.sets.map((set) => set.kind === 'warmup'
+        ? { ...set, reps: Math.min(10, working.reps ?? 8), loadKg: warmupLoad }
+        : set),
+    } : item),
+  };
 }
 
 export function generateTrainingPlan(twin: DigitalTwin, preferences: TrainingPreferences, sessionHistory: TrainingSessionRecord[] = [], scheduleIntent: ScheduleIntent = 'adaptive'): WorkoutSession {
@@ -66,7 +84,7 @@ export function generateTrainingPlan(twin: DigitalTwin, preferences: TrainingPre
     : baseDeload;
   if (upperDay) {
     const neutralGrip = preferences.constraints.includes('elbow-sensitive');
-    return applyDeload({
+    return includePrimaryWarmup(applyDeload({
       id: `${date}-adaptive-upper`, date, title: 'Upper strength + delts', status: 'not-started', planType: 'upper-strength', intensity: readiness >= 82 ? 'high' : 'moderate',
       planReason: `Readiness is ${readiness}. Upper-body volume is further from its weekly target, while exercise choices respect elbow comfort.`,
       exercises: [
@@ -76,11 +94,11 @@ export function generateTrainingPlan(twin: DigitalTwin, preferences: TrainingPre
         repExercise('lateral-raise', 'Lateral raise', 'Lead with elbows · strict tempo', 3, 15, 6.8, 60),
         repExercise('band-face-pull', 'Band face pull', 'External rotation finish', 3, 20, 4.5, 45),
       ],
-    }, deload);
+    }, deload));
   }
 
   const backSensitive = preferences.constraints.includes('lower-back-sensitive');
-  return applyDeload({
+  return includePrimaryWarmup(applyDeload({
     id: `${date}-adaptive-lower`, date, title: 'Lower body + core', status: 'not-started', planType: 'lower-strength', intensity: readiness >= 82 ? 'high' : 'moderate',
     planReason: `Readiness is ${readiness}. Lower-body work is due; exercise selection limits unsupported spinal loading.`,
     exercises: [
@@ -90,5 +108,5 @@ export function generateTrainingPlan(twin: DigitalTwin, preferences: TrainingPre
       repExercise('standing-calf-raise', 'Standing calf raise', 'Two-second peak contraction', 3, 15, 27.2, 60),
       repExercise('dead-bugs', 'Dead bugs', 'Each side · slow exhale', 3, 10, 0, 60),
     ],
-  }, deload);
+  }, deload));
 }
