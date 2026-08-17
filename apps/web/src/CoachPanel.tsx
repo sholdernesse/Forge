@@ -16,6 +16,7 @@ const prompts = [
   'Should I train today?',
   'How is my recovery?',
   'What should I focus on nutritionally?',
+  'I feel discomfort during a movement.',
 ];
 
 export function CoachPanel({ twin, messages, onMessagesChange, onAction, onClose }: CoachPanelProps) {
@@ -30,7 +31,7 @@ export function CoachPanel({ twin, messages, onMessagesChange, onAction, onClose
     const nonce = `${Date.now()}-${messages.length}`;
     const nextMessages: CoachMessage[] = [...messages,
       { id: `question-${nonce}`, role: 'user', content: trimmed, recommendationIds: [], createdAt },
-      { id: `answer-${nonce}`, role: 'assistant', content: result.answer, recommendationIds: result.recommendationIds, suggestedAction: result.suggestedAction, createdAt },
+      { id: `answer-${nonce}`, role: 'assistant', content: result.answer, recommendationIds: result.recommendationIds, answerBasis: result.basis, suggestedAction: result.suggestedAction, createdAt },
     ];
     onMessagesChange(nextMessages.slice(-40));
     setQuestion('');
@@ -64,7 +65,7 @@ export function CoachPanel({ twin, messages, onMessagesChange, onAction, onClose
             <div className={message.role === 'user' ? 'user-question' : 'coach-answer'}><span>{message.role === 'user' ? 'You' : 'Forge Coach'}</span><p>{message.content}</p></div>
             {message.role === 'assistant' && <div className="coach-evidence">
               <h3><ShieldCheck size={16} /> Why I’m saying this</h3>
-              {evidence.length ? evidence.map((recommendation) => <div key={recommendation.id}><span><b>{recommendation.title}</b><small>{recommendation.reason}</small></span><strong>{recommendation.confidence}%</strong></div>) : <p>No category-specific adjustment is active. Add today’s recovery signals for more precise guidance.</p>}
+              {evidence.length ? evidence.map((recommendation) => <div key={recommendation.id}><span><b>{recommendation.title}</b><small>{recommendation.reason}</small></span><strong>{recommendation.confidence}%</strong></div>) : message.answerBasis === 'safety-boundary' ? <p>This response uses Forge’s symptom safety boundary, not a readiness score or diagnosis.</p> : message.answerBasis === 'insufficient-data' ? <p>Recent recovery data is required before Forge can make a supported adjustment.</p> : <p>No category-specific adjustment is active. Add today’s recovery signals for more precise guidance.</p>}
             </div>}
             {message.role === 'assistant' && message.suggestedAction && <button className="coach-handoff" onClick={() => onAction(message.suggestedAction!.type)}>{message.suggestedAction.label}<ArrowRight size={17} /></button>}
           </div>;
