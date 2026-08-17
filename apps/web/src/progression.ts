@@ -1,4 +1,4 @@
-import type { WorkoutSession } from './workoutSession.js';
+import { isWorkingSet, type WorkoutSession } from './workoutSession.js';
 
 export interface ExercisePerformance {
   exerciseId: string;
@@ -51,7 +51,7 @@ export function recordPerformances(session: WorkoutSession, history: ExercisePer
   for (const exercise of session.exercises) {
     if (exercise.mode !== 'reps') continue;
     for (const set of exercise.sets) {
-      if (!set.completedAt || !set.reps || !set.loadKg) continue;
+      if (!isWorkingSet(set) || !set.completedAt || !set.reps || !set.loadKg) continue;
       const oneRepMax = estimatedOneRepMax(set.loadKg, set.reps);
       const previousBest = Math.max(0, ...history.filter((entry) => entry.exerciseId === exercise.id).map((entry) => entry.estimatedOneRepMax));
       recorded.push({ exerciseId: exercise.id, exerciseName: exercise.name, date: session.date, reps: set.reps, loadKg: set.loadKg, estimatedOneRepMax: oneRepMax, ...(oneRepMax > previousBest ? { isPersonalRecord: true } : {}) });
