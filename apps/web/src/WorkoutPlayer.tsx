@@ -10,6 +10,7 @@ import {
   completedSetCount,
   isWorkingSet,
   nextIncompleteExerciseIndex,
+  nextWorkoutStep,
   removeLastWarmupSet,
   removeLastWorkoutSet,
   totalSetCount,
@@ -48,6 +49,7 @@ export function WorkoutPlayer({ session, onChange, onClose, onFinish, exerciseHi
   const total = totalSetCount(session);
   const progress = Math.round((completed / total) * 100);
   const restRemaining = workoutRestSecondsRemaining(session, clock);
+  const nextStep = nextWorkoutStep(session, activeExercise);
 
   useEffect(() => {
     if (restRemaining <= 0) return undefined;
@@ -100,6 +102,12 @@ export function WorkoutPlayer({ session, onChange, onClose, onFinish, exerciseHi
       <div className="workout-progress-label"><span>{completed} of {total} sets complete</span><strong>{progress}%</strong></div>
 
       {restRemaining > 0 && <div className="rest-timer"><Clock3 size={18} /><span><b>Rest</b><small>Next set when ready</small></span><strong role="timer" aria-live="polite">{Math.floor(restRemaining / 60)}:{String(restRemaining % 60).padStart(2, '0')}</strong><div className="rest-actions"><button onClick={() => onChange(adjustWorkoutRest(session, -15))} aria-label="Reduce rest by 15 seconds">−15s</button><button onClick={() => onChange(adjustWorkoutRest(session, 15))} aria-label="Add 15 seconds to rest">+15s</button><button onClick={() => onChange(clearWorkoutRest(session))}>Skip</button></div></div>}
+
+      {nextStep && <section className={`workout-next-step ${nextStep.kind}`} aria-label="Up next">
+        <Sparkles size={18} />
+        <span><small>UP NEXT · {nextStep.setLabel}</small><b>{nextStep.exerciseName}</b><em>{nextStep.targetLabel}</em></span>
+        <button onClick={() => setActiveExercise(nextStep.exerciseIndex)}>{nextStep.exerciseIndex === activeExercise ? 'Ready' : 'View set'}</button>
+      </section>}
 
       <div className="exercise-stack">
         {session.exercises.map((exercise, exerciseIndex) => {
