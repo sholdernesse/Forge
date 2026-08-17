@@ -63,11 +63,11 @@ main { margin-left: 228px; padding: 38px clamp(28px, 4vw, 64px) 64px; max-width:
 .workout-progress span { display: block; height: 100%; border-radius: inherit; background: #76fba5; transition: width .25s ease; }
 .workout-progress-label { display: flex; justify-content: space-between; padding: 0 22px 14px; color: #769287; font-size: 11px; }
 .workout-progress-label strong { color: #76fba5; }
-.rest-timer { display: grid; grid-template-columns: auto 1fr auto auto; gap: 12px; align-items: center; margin: 0 22px 14px; padding: 12px 14px; border: 1px solid #65551e; border-radius: 12px; background: #2a2410; color: #f3d875; }
+.rest-timer { display: grid; grid-template-columns: auto 1fr auto minmax(124px,auto); gap: 12px; align-items: center; margin: 0 22px 14px; padding: 12px 14px; border: 1px solid #65551e; border-radius: 12px; background: #2a2410; color: #f3d875; }
 .rest-timer span { display: grid; gap: 2px; }
 .rest-timer small { color: #a99a67; }
 .rest-timer strong { font-size: 21px; font-variant-numeric: tabular-nums; }
-.rest-timer button { border: 0; background: transparent; color: #f3d875; font-weight: 800; }
+.rest-timer button { border: 0; background: transparent; color: #f3d875; font-weight: 800; }.rest-actions{display:flex;align-items:center;justify-content:flex-end;gap:5px}.rest-actions button{padding:6px;border:1px solid #65551e;border-radius:7px}.rest-actions button:last-child{border-color:transparent}@media(max-width:600px){.rest-timer{grid-template-columns:auto 1fr auto}.rest-actions{grid-column:1/-1;justify-content:stretch}.rest-actions button{flex:1}}
 .exercise-stack { display: grid; gap: 10px; padding: 0 22px 22px; }
 .exercise-card { border: 1px solid #1d3b31; border-radius: 13px; background: #0d211a; overflow: hidden; }
 .exercise-card.expanded { border-color: #32624f; }
