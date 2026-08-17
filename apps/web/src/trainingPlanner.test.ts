@@ -13,7 +13,9 @@ function twinWith(sleepScore: number, sessions: number) {
 
 describe('adaptive training planner', () => {
   it('selects recovery work when readiness is suppressed', () => {
-    expect(generateTrainingPlan(twinWith(10, 2), demoTrainingPreferences)).toMatchObject({ planType: 'recovery', intensity: 'low' });
+    const plan = generateTrainingPlan(twinWith(10, 2), demoTrainingPreferences);
+    expect(plan).toMatchObject({ planType: 'recovery', intensity: 'low' });
+    expect(plan.exercises.flatMap((exercise) => exercise.sets).some((set) => set.kind === 'warmup')).toBe(false);
   });
 
   it('honors a rest-day override without letting a training override bypass unsafe readiness', () => {
@@ -25,6 +27,9 @@ describe('adaptive training planner', () => {
     const plan = generateTrainingPlan(twinWith(95, 2), demoTrainingPreferences);
     expect(plan.planType).toBe('upper-strength');
     expect(plan.exercises.find((exercise) => exercise.id === 'dumbbell-overhead-press')?.detail).toContain('Neutral grip');
+    const bench = plan.exercises.find((exercise) => exercise.id === 'barbell-bench')!;
+    expect(bench.sets[0]).toMatchObject({ kind: 'warmup', reps: 8, loadKg: 29.5 });
+    expect(bench.sets.filter((set) => set.kind !== 'warmup')).toHaveLength(4);
   });
 
   it('selects back-conscious lower exercises on the alternating session', () => {
@@ -34,6 +39,7 @@ describe('adaptive training planner', () => {
     expect(plan.planType).toBe('lower-strength');
     expect(plan.exercises.map((exercise) => exercise.id)).toContain('hip-thrust');
     expect(plan.exercises.map((exercise) => exercise.id)).not.toContain('romanian-deadlift');
+    expect(plan.exercises.find((exercise) => exercise.id === 'box-squat')?.sets[0]).toMatchObject({ kind: 'warmup', loadKg: 29.5 });
   });
 
   it('deloads after near-maximal effort and selects recovery after a stopped session', () => {
