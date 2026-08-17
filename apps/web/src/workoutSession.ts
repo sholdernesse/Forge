@@ -117,6 +117,23 @@ export function workoutRestSecondsRemaining(session: WorkoutSession, now = Date.
   return Math.max(0, Math.ceil((deadline - now) / 1000));
 }
 
+export function addWorkoutSet(exercise: WorkoutExercise, maximumSets = 12): WorkoutExercise {
+  if (exercise.sets.length >= maximumSets) return exercise;
+  const template = exercise.sets.at(-1);
+  const { completedAt: _completedAt, id: _id, ...prescription } = template ?? (
+    exercise.mode === 'duration' ? { durationMinutes: 1 } : { reps: 1, loadKg: 0 }
+  );
+  const usedIds = new Set(exercise.sets.map((set) => set.id));
+  let suffix = exercise.sets.length + 1;
+  while (usedIds.has(`${exercise.id}-extra-${suffix}`)) suffix += 1;
+  return { ...exercise, sets: [...exercise.sets, { ...prescription, id: `${exercise.id}-extra-${suffix}` }] };
+}
+
+export function removeLastWorkoutSet(exercise: WorkoutExercise): WorkoutExercise {
+  if (exercise.sets.length <= 1 || exercise.sets.at(-1)?.completedAt) return exercise;
+  return { ...exercise, sets: exercise.sets.slice(0, -1) };
+}
+
 export function completedSetCount(session: WorkoutSession): number {
   return session.exercises.flatMap((exercise) => exercise.sets).filter((set) => set.completedAt).length;
 }
