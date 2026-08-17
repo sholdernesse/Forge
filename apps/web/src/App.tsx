@@ -77,6 +77,13 @@ function Sparkline({ values }: { values: number[] }) {
   return <svg className="sparkline" viewBox="0 0 240 64" preserveAspectRatio="none"><polyline points={points} /></svg>;
 }
 
+interface ReflectionDraft {
+  mindScore: number;
+  bodyScore: number;
+  soulScore: number;
+  reflectionNote: string;
+}
+
 interface SyncConflictActions {
   useRemote(): Promise<void>;
   keepLocal(): Promise<void>;
@@ -88,6 +95,14 @@ export function App() {
   const [initialState] = useState(initialDashboardState);
   const [history, setHistory] = useState(initialState.history);
   const [checkInOpen, setCheckInOpen] = useState(false);
+  const [reflectionOpen, setReflectionOpen] = useState(false);
+  const initialReflection = initialState.history.find((day) => day.date === TODAY);
+  const [reflectionDraft, setReflectionDraft] = useState<ReflectionDraft>({
+    mindScore: initialReflection?.mindScore ?? 5,
+    bodyScore: initialReflection?.bodyScore ?? 5,
+    soulScore: initialReflection?.soulScore ?? 5,
+    reflectionNote: initialReflection?.reflectionNote ?? '',
+  });
   const [saved, setSaved] = useState(false);
   const [checkIn, setCheckIn] = useState<CheckIn>(initialState.checkIn);
   const [checkInDraft, setCheckInDraft] = useState<CheckIn>(initialState.checkIn);
@@ -302,6 +317,49 @@ export function App() {
     setCheckInOpen(true);
   }
 
+  function openReflection() {
+    const current = history.find((day) => day.date === TODAY);
+    setReflectionDraft({
+      mindScore: current?.mindScore ?? 5,
+      bodyScore: current?.bodyScore ?? 5,
+      soulScore: current?.soulScore ?? 5,
+      reflectionNote: current?.reflectionNote ?? '',
+    });
+    setReflectionOpen(true);
+  }
+
+  function saveReflection() {
+    const reflectedAt = new Date().toISOString();
+    const reflectionNote = reflectionDraft.reflectionNote.trim();
+    const nextHistory = history.map((day) => day.date === TODAY ? {
+      ...day,
+      mindScore: reflectionDraft.mindScore,
+      bodyScore: reflectionDraft.bodyScore,
+      soulScore: reflectionDraft.soulScore,
+      reflectedAt,
+      ...(reflectionNote ? { reflectionNote } : {}),
+    } : day);
+    const nextSavedAt = reflectedAt;
+    setHistory(nextHistory);
+    setSavedAt(nextSavedAt);
+    saveDashboardState(window.localStorage, {
+      history: nextHistory,
+      checkIn,
+      savedAt: nextSavedAt,
+      workoutSession: workout,
+      exerciseHistory,
+      sessionHistory,
+      scheduleOverrides,
+      foodEntries,
+      favoriteFoodIds,
+      savedMeals,
+      coachMessages,
+    });
+    setReflectionOpen(false);
+    setSaved(true);
+    window.setTimeout(() => setSaved(false), 2600);
+  }
+
   function persistWorkout(nextWorkout: WorkoutSession, nextHistory = history) {
     setWorkout(nextWorkout);
     saveDashboardState(window.localStorage, {
@@ -450,6 +508,7 @@ export function App() {
             {auth.status === 'signed-out' ? <button className="auth-button" onClick={() => void auth.signIn()}>Sign in</button> : auth.status === 'signed-in' ? <button className="auth-button signed-in" onClick={() => void auth.signOut()} title="Sign out">{auth.name ?? auth.username ?? 'Account'}</button> : null}
             <button className="topbar-settings" onClick={() => setSettingsOpen(true)} aria-label="Open Forge settings"><Settings size={18} /></button>
             <button className="library-button" onClick={() => setMovementLibraryOpen(true)}><BookOpen size={18} /> Movement Library</button>
+            <button className="reflection-button" onClick={openReflection}><HeartPulse size={18} /> Evening reflection</button>
             <button className="checkin-button" onClick={openCheckIn}><Plus size={18} /> Morning check-in</button>
           </div>
         </header>
@@ -579,6 +638,18 @@ export function App() {
           </article>
         </section>
       </main>
+
+      {reflectionOpen && <div className="drawer-backdrop" onMouseDown={() => setReflectionOpen(false)}>
+        <aside className="drawer reflection-drawer" role="dialog" aria-modal="true" aria-labelledby="reflection-title" tabIndex={-1} autoFocus onMouseDown={(event) => event.stopPropagation()}>
+          <div className="drawer-heading"><div><span className="section-label">END-OF-DAY SIGNALS</span><h2 id="reflection-title">Mind, body, soul</h2><p>Capture how the day felt. Forge uses this as personal context—not a diagnosis or a readiness clearance.</p></div><button onClick={() => setReflectionOpen(false)} aria-label="Close evening reflection"><X size={20} /></button></div>
+          <label>Mind <output>{reflectionDraft.mindScore}/10</output><input type="range" min="1" max="10" value={reflectionDraft.mindScore} onChange={(event) => setReflectionDraft({ ...reflectionDraft, mindScore: Number(event.target.value) })} /><small>Clarity, focus, and mental energy</small></label>
+          <label>Body <output>{reflectionDraft.bodyScore}/10</output><input type="range" min="1" max="10" value={reflectionDraft.bodyScore} onChange={(event) => setReflectionDraft({ ...reflectionDraft, bodyScore: Number(event.target.value) })} /><small>Physical energy and overall comfort</small></label>
+          <label>Soul <output>{reflectionDraft.soulScore}/10</output><input type="range" min="1" max="10" value={reflectionDraft.soulScore} onChange={(event) => setReflectionDraft({ ...reflectionDraft, soulScore: Number(event.target.value) })} /><small>Connection, purpose, and fulfillment</small></label>
+          <label className="reflection-note">Optional reflection <span>{reflectionDraft.reflectionNote.length}/280</span><textarea maxLength={280} rows={4} placeholder="What helped today, and what would support tomorrow?" value={reflectionDraft.reflectionNote} onChange={(event) => setReflectionDraft({ ...reflectionDraft, reflectionNote: event.target.value })} /></label>
+          <button className="save-checkin" onClick={saveReflection}><Sparkles size={18} /> Save evening reflection</button>
+          <small className="privacy-note">Saved with today’s Digital Twin snapshot and synchronized securely when you are signed in.</small>
+        </aside>
+      </div>}
 
       {checkInOpen && <div className="drawer-backdrop" onMouseDown={() => setCheckInOpen(false)}>
         <aside className="drawer" role="dialog" aria-modal="true" aria-labelledby="checkin-title" tabIndex={-1} autoFocus onMouseDown={(event) => event.stopPropagation()}>
