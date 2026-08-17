@@ -1,13 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Check, ChevronDown, Clock3, Eye, Minus, Plus, Repeat2, Sparkles, Trophy, X } from 'lucide-react';
 import {
+  addWarmupSet,
   addWorkoutSet,
   adjustWorkoutRest,
   applyWorkoutSetPatch,
   beginWorkoutRest,
   clearWorkoutRest,
   completedSetCount,
+  isWorkingSet,
   nextIncompleteExerciseIndex,
+  removeLastWarmupSet,
   removeLastWorkoutSet,
   totalSetCount,
   workoutRestSecondsRemaining,
@@ -106,6 +109,8 @@ export function WorkoutPlayer({ session, onChange, onClose, onFinish, exerciseHi
           const guide = exerciseGuide(exercise.id);
           const alternatives = exerciseSubstitutions(exercise.id);
           const hasCompletedSets = exercise.sets.some((set) => set.completedAt);
+          const warmupCount = exercise.sets.filter((set) => set.kind === 'warmup').length;
+          const removableWarmup = exercise.sets.some((set) => set.kind === 'warmup' && !set.completedAt);
           return <article className={`exercise-card ${expanded ? 'expanded' : ''}`} key={exercise.id}>
             <button className="exercise-heading" onClick={() => setActiveExercise(exerciseIndex)}>
               <span className={`exercise-number ${exerciseComplete ? 'complete' : ''}`}>{exerciseComplete ? <Check size={17} /> : exerciseIndex + 1}</span>
@@ -142,12 +147,17 @@ export function WorkoutPlayer({ session, onChange, onClose, onFinish, exerciseHi
               </>}
               {target && <div className="progression-tip"><Sparkles size={16} /><span><b>Forge target: {target.loadKg} kg × {target.reps}</b><small>{target.reason}</small></span><button onClick={() => onChange({ ...session, exercises: session.exercises.map((item, index) => index === exerciseIndex ? { ...item, sets: item.sets.map((set) => ({ ...set, reps: target.reps, loadKg: target.loadKg })) } : item) })}>Apply</button></div>}
               <div className="set-row set-labels"><span>SET</span><span>{exercise.mode === 'duration' ? 'MINUTES' : 'REPS'}</span><span>{exercise.mode === 'duration' ? 'PACE' : 'LOAD KG'}</span><span>DONE</span></div>
-              {exercise.sets.map((set, setIndex) => <div className={`set-row ${set.completedAt ? 'done' : ''}`} key={set.id}>
-                <strong>{setIndex + 1}</strong>
+              {exercise.sets.map((set, setIndex) => <div className={`set-row ${set.kind === 'warmup' ? 'warmup' : ''} ${set.completedAt ? 'done' : ''}`} key={set.id}>
+                <strong>{set.kind === 'warmup' ? `W${exercise.sets.slice(0, setIndex + 1).filter((item) => item.kind === 'warmup').length}` : exercise.sets.slice(0, setIndex + 1).filter(isWorkingSet).length}{set.kind === 'warmup' && <small>Warm-up</small>}</strong>
                 <div className="stepper"><button onClick={() => updateSet(exerciseIndex, setIndex, exercise.mode === 'duration' ? { durationMinutes: Math.max(1, (set.durationMinutes ?? 1) - 1) } : { reps: Math.max(1, (set.reps ?? 1) - 1) })}><Minus size={14} /></button><input aria-label={`${exercise.name} set ${setIndex + 1} ${exercise.mode === 'duration' ? 'minutes' : 'reps'}`} type="number" min="1" step="1" value={exercise.mode === 'duration' ? set.durationMinutes : set.reps} onChange={(event) => updateSet(exerciseIndex, setIndex, exercise.mode === 'duration' ? { durationMinutes: event.currentTarget.valueAsNumber } : { reps: event.currentTarget.valueAsNumber })} /><button onClick={() => updateSet(exerciseIndex, setIndex, exercise.mode === 'duration' ? { durationMinutes: (set.durationMinutes ?? 0) + 1 } : { reps: (set.reps ?? 0) + 1 })}><Plus size={14} /></button></div>
                 {exercise.mode === 'reps' ? <input className="load-input" aria-label={`${exercise.name} set ${setIndex + 1} load`} type="number" min="0" step="2.5" value={set.loadKg ?? 0} onChange={(event) => updateSet(exerciseIndex, setIndex, { loadKg: event.currentTarget.valueAsNumber })} /> : <span className="pace-label">Zone 2</span>}
                 <button className="set-check" onClick={() => toggleSet(exerciseIndex, setIndex)} aria-label={`Mark ${exercise.name} set ${setIndex + 1} ${set.completedAt ? 'incomplete' : 'complete'}`}><Check size={17} /></button>
               </div>)}
+              {exercise.mode === 'reps' && <div className="warmup-set-actions" aria-label={`Adjust warm-up sets for ${exercise.name}`}>
+                <span>{warmupCount ? `${warmupCount} warm-up set${warmupCount === 1 ? '' : 's'} · excluded from progression` : 'Warm-ups are excluded from progression'}</span>
+                <button disabled={!removableWarmup} onClick={() => onChange({ ...session, exercises: session.exercises.map((item, index) => index === exerciseIndex ? removeLastWarmupSet(item) : item) })}><Minus size={14} />Remove warm-up</button>
+                <button disabled={exercise.sets.length >= 12} onClick={() => onChange({ ...session, exercises: session.exercises.map((item, index) => index === exerciseIndex ? addWarmupSet(item) : item) })}><Plus size={14} />Add warm-up</button>
+              </div>}
               <div className="set-count-actions" aria-label={`Adjust sets for ${exercise.name}`}>
                 <button disabled={exercise.sets.length <= 1 || Boolean(exercise.sets.at(-1)?.completedAt)} onClick={() => onChange({ ...session, exercises: session.exercises.map((item, index) => index === exerciseIndex ? removeLastWorkoutSet(item) : item) })}><Minus size={14} />Remove set</button>
                 <span>{exercise.sets.length} planned set{exercise.sets.length === 1 ? '' : 's'}</span>
