@@ -117,6 +117,14 @@ export function workoutRestSecondsRemaining(session: WorkoutSession, now = Date.
   return Math.max(0, Math.ceil((deadline - now) / 1000));
 }
 
+export function applyWorkoutSetPatch(set: WorkoutSetLog, patch: Partial<WorkoutSetLog>): WorkoutSetLog {
+  const next = { ...set, ...patch };
+  if (patch.reps !== undefined) next.reps = Number.isFinite(patch.reps) ? Math.max(1, Math.round(patch.reps)) : (set.reps ?? 1);
+  if (patch.durationMinutes !== undefined) next.durationMinutes = Number.isFinite(patch.durationMinutes) ? Math.max(1, Math.round(patch.durationMinutes)) : (set.durationMinutes ?? 1);
+  if (patch.loadKg !== undefined) next.loadKg = Number.isFinite(patch.loadKg) ? Math.max(0, patch.loadKg) : (set.loadKg ?? 0);
+  return next;
+}
+
 export function addWorkoutSet(exercise: WorkoutExercise, maximumSets = 12): WorkoutExercise {
   if (exercise.sets.length >= maximumSets) return exercise;
   const template: WorkoutSetLog = exercise.sets.at(-1) ?? (exercise.mode === 'duration'
@@ -162,5 +170,20 @@ export function isWorkoutSession(value: unknown): value is WorkoutSession {
     && session.exercises.every((exercise) => exercise
       && typeof exercise.id === 'string'
       && typeof exercise.name === 'string'
-      && Array.isArray(exercise.sets));
+      && typeof exercise.detail === 'string'
+      && ['duration', 'reps'].includes(exercise.mode)
+      && typeof exercise.restSeconds === 'number'
+      && Number.isFinite(exercise.restSeconds)
+      && exercise.restSeconds >= 0
+      && (exercise.substitutedFromId === undefined || typeof exercise.substitutedFromId === 'string')
+      && (exercise.substitutedFromName === undefined || typeof exercise.substitutedFromName === 'string')
+      && Array.isArray(exercise.sets)
+      && exercise.sets.length > 0
+      && exercise.sets.every((set) => set
+        && typeof set.id === 'string'
+        && (set.completedAt === undefined || (typeof set.completedAt === 'string' && Number.isFinite(Date.parse(set.completedAt))))
+        && (exercise.mode === 'duration'
+          ? typeof set.durationMinutes === 'number' && Number.isFinite(set.durationMinutes) && set.durationMinutes >= 1
+          : typeof set.reps === 'number' && Number.isInteger(set.reps) && set.reps >= 1
+            && typeof set.loadKg === 'number' && Number.isFinite(set.loadKg) && set.loadKg >= 0)));
 }
