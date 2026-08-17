@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { adjustWorkoutRest, beginWorkoutRest, clearWorkoutRest, completedSetCount, createTodayWorkout, isWorkoutFeedback, isWorkoutSession, nextIncompleteExerciseIndex, totalSetCount, workoutMinutes, workoutRestSecondsRemaining } from './workoutSession.js';
+import { addWorkoutSet, adjustWorkoutRest, beginWorkoutRest, clearWorkoutRest, completedSetCount, createTodayWorkout, isWorkoutFeedback, isWorkoutSession, nextIncompleteExerciseIndex, removeLastWorkoutSet, totalSetCount, workoutMinutes, workoutRestSecondsRemaining } from './workoutSession.js';
 
 describe('workout session', () => {
   it('creates the recovery workout with six loggable sets', () => {
@@ -40,6 +40,26 @@ describe('workout session', () => {
     expect(nextIncompleteExerciseIndex(session, 2)).toBe(0);
     session.exercises[0]!.sets.forEach((set) => { set.completedAt = '2026-08-12T12:00:00.000Z'; });
     expect(nextIncompleteExerciseIndex(session, 2)).toBeUndefined();
+  });
+
+  it('adds a set from the current prescription with a stable unique id', () => {
+    const exercise = createTodayWorkout('2026-08-12').exercises[2]!;
+    exercise.sets.at(-1)!.completedAt = '2026-08-12T12:00:00.000Z';
+    const added = addWorkoutSet(exercise);
+    expect(added.sets).toHaveLength(4);
+    expect(added.sets.at(-1)).toEqual({ id: 'dead-bugs-extra-4', reps: 10, loadKg: 0 });
+    expect(exercise.sets).toHaveLength(3);
+  });
+
+  it('bounds set additions and never removes completed or only sets', () => {
+    const exercise = createTodayWorkout('2026-08-12').exercises[2]!;
+    expect(addWorkoutSet(exercise, 3)).toBe(exercise);
+    const added = addWorkoutSet(exercise);
+    expect(removeLastWorkoutSet(added).sets).toHaveLength(3);
+    added.sets.at(-1)!.completedAt = '2026-08-12T12:00:00.000Z';
+    expect(removeLastWorkoutSet(added)).toBe(added);
+    const oneSet = createTodayWorkout('2026-08-12').exercises[0]!;
+    expect(removeLastWorkoutSet(oneSet)).toBe(oneSet);
   });
 
   it('rejects invalid persisted rest deadlines', () => {
