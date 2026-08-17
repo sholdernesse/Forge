@@ -45,9 +45,20 @@ export class CoachService {
   ask(twin: DigitalTwin, question: string): CoachAnswer {
     const recommendations = this.engine.generate(twin);
     const normalized = question.toLowerCase();
+    const symptomQuestion = /\b(pain|painful|hurt|hurting|injury|injured|sharp|discomfort|pinch|pinching)\b/.test(normalized);
     const nutritionQuestion = normalized.includes('protein') || normalized.includes('calorie') || normalized.includes('food') || normalized.includes('nutrition');
     const recoveryQuestion = normalized.includes('sleep') || normalized.includes('recover') || normalized.includes('sore') || normalized.includes('stress');
     const trainingQuestion = normalized.includes('train') || normalized.includes('workout') || normalized.includes('lift');
+    if (symptomQuestion) {
+      const safetyEvidence = recommendations.filter((recommendation) => recommendation.category === 'recovery' || recommendation.category === 'sleep');
+      return {
+        answer: 'I cannot diagnose an injury or use readiness to clear a painful movement. Stop the movement if discomfort is sharp, worsening, persistent, or changes your form. Record the recovery signal, choose a comfortable alternative only if normal movement is pain-free, and seek qualified medical guidance when symptoms are significant or do not settle.',
+        basis: 'safety-boundary',
+        recommendationIds: safetyEvidence.slice(0, 3).map((recommendation) => recommendation.id),
+        suggestedAction: { type: 'open-check-in', label: 'Update recovery signals' },
+      };
+    }
+
     const relevant = nutritionQuestion
       ? recommendations.filter((r) => r.category === 'nutrition')
       : recoveryQuestion
@@ -70,6 +81,12 @@ export class CoachService {
           ? { type: 'open-check-in', label: 'Update recovery signals' }
           : { type: 'open-workout', label: 'Open today’s workout' };
 
-    return { answer, recommendationIds: relevant.slice(0, 3).map((r) => r.id), suggestedAction };
+    const basis = relevant.length
+      ? 'recommendations'
+      : twin.recovery.status === 'insufficient-data'
+        ? 'insufficient-data'
+        : 'readiness';
+
+    return { answer, basis, recommendationIds: relevant.slice(0, 3).map((r) => r.id), suggestedAction };
   }
 }
