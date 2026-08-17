@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Check, ChevronDown, Clock3, Eye, Minus, Plus, Repeat2, Sparkles, Trophy, X } from 'lucide-react';
 import {
+  adjustWorkoutRest,
   beginWorkoutRest,
   clearWorkoutRest,
   completedSetCount,
+  nextIncompleteExerciseIndex,
   totalSetCount,
   workoutRestSecondsRemaining,
   type WorkoutDiscomfort,
@@ -75,6 +77,11 @@ export function WorkoutPlayer({ session, onChange, onClose, onFinish, exerciseHi
         : currentExercise),
     };
     onChange(set.completedAt ? nextSession : beginWorkoutRest(nextSession, exercise.restSeconds));
+    const exerciseNowComplete = nextSession.exercises[exerciseIndex]!.sets.every((item) => item.completedAt);
+    if (!set.completedAt && exerciseNowComplete) {
+      const nextExercise = nextIncompleteExerciseIndex(nextSession, exerciseIndex);
+      if (nextExercise !== undefined) setActiveExercise(nextExercise);
+    }
   }
 
   return <div className="workout-backdrop" onMouseDown={onClose}>
@@ -88,7 +95,7 @@ export function WorkoutPlayer({ session, onChange, onClose, onFinish, exerciseHi
       <div className="workout-progress"><span style={{ width: `${progress}%` }} /></div>
       <div className="workout-progress-label"><span>{completed} of {total} sets complete</span><strong>{progress}%</strong></div>
 
-      {restRemaining > 0 && <div className="rest-timer"><Clock3 size={18} /><span><b>Rest</b><small>Next set when ready</small></span><strong>{Math.floor(restRemaining / 60)}:{String(restRemaining % 60).padStart(2, '0')}</strong><button onClick={() => onChange(clearWorkoutRest(session))}>Skip</button></div>}
+      {restRemaining > 0 && <div className="rest-timer"><Clock3 size={18} /><span><b>Rest</b><small>Next set when ready</small></span><strong role="timer" aria-live="polite">{Math.floor(restRemaining / 60)}:{String(restRemaining % 60).padStart(2, '0')}</strong><div className="rest-actions"><button onClick={() => onChange(adjustWorkoutRest(session, -15))} aria-label="Reduce rest by 15 seconds">−15s</button><button onClick={() => onChange(adjustWorkoutRest(session, 15))} aria-label="Add 15 seconds to rest">+15s</button><button onClick={() => onChange(clearWorkoutRest(session))}>Skip</button></div></div>}
 
       <div className="exercise-stack">
         {session.exercises.map((exercise, exerciseIndex) => {
