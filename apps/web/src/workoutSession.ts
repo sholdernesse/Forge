@@ -33,6 +33,7 @@ export interface WorkoutExercise {
 export interface WorkoutNextStep {
   exerciseIndex: number;
   setIndex: number;
+  exerciseId: string;
   exerciseName: string;
   setLabel: string;
   targetLabel: string;
@@ -202,7 +203,7 @@ export function nextWorkoutStep(session: WorkoutSession, preferredExerciseIndex 
       : (set.loadKg ?? 0) > 0
         ? `${set.reps ?? 1} reps × ${set.loadKg} kg`
         : `${set.reps ?? 1} reps · unloaded`;
-    return { exerciseIndex, setIndex, exerciseName: exercise.name, setLabel, targetLabel, kind };
+    return { exerciseIndex, setIndex, exerciseId: exercise.id, exerciseName: exercise.name, setLabel, targetLabel, kind };
   }
   return undefined;
 }
