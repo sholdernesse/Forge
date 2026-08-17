@@ -10,7 +10,7 @@ import { demoGoals, demoHistory, demoProfile } from './demoData.js';
 import { cacheDashboardState, clearDashboardState, dashboardStateUpdatedAt, DASHBOARD_SAVED_EVENT, loadDashboardState, saveDashboardState, type CheckIn, type CoachMessage, type DashboardSaveEventDetail } from './dashboardStorage.js';
 import { DashboardSyncClient, DashboardSyncConflictError, dashboardSyncConfig, newerThanLocal, type RemoteDashboard, type SyncStatus } from './dashboardSync.js';
 import { WorkoutPlayer } from './WorkoutPlayer.js';
-import { clearWorkoutRest, completedSetCount, createTodayWorkout, totalSetCount, workoutMinutes, type WorkoutFeedback, type WorkoutSession } from './workoutSession.js';
+import { clearWorkoutRest, completedSetCount, isWorkingSet, createTodayWorkout, totalSetCount, workoutMinutes, type WorkoutFeedback, type WorkoutSession } from './workoutSession.js';
 import { demoExerciseHistory, exerciseProgressTimeline, recordPerformances, strongestMovements, type ExercisePerformance } from './progression.js';
 import { demoTrainingPreferences, generateTrainingPlan } from './trainingPlanner.js';
 import { demoSessionHistory, summarizeWorkout, trainingWeek, weeklyVolume, type TrainingSessionRecord } from './volumeLedger.js';
@@ -501,7 +501,11 @@ export function App() {
             {workout.status !== 'not-started' && <div className="workout-state-row"><span><b>{workout.status === 'completed' ? 'Workout complete' : 'Workout in progress'}</b><small>{completedSetCount(workout)} of {totalSetCount(workout)} sets logged</small></span><strong>{Math.round(completedSetCount(workout) / totalSetCount(workout) * 100)}%</strong></div>}
             {workout.feedback && <div className={`workout-feedback-summary discomfort-${workout.feedback.discomfort}`}><HeartPulse size={18} /><span><b>Session felt {workout.feedback.perceivedExertion}/10</b><small>{workout.feedback.discomfort === 'none' ? 'No discomfort affected the session.' : workout.feedback.discomfort === 'mild' ? 'Mild discomfort was recorded for conservative planning.' : 'The session was stopped because of discomfort.'}{workout.feedback.note ? ` ${workout.feedback.note}` : ''}</small></span></div>}
             <div className="workout-list">
-              {workout.exercises.slice(0, 4).map((exercise, index) => <div key={exercise.id}><span>{String(index + 1).padStart(2, '0')}</span><div><strong>{exercise.name}</strong><small>{exercise.sets.length} set{exercise.sets.length === 1 ? '' : 's'} · {exercise.detail}</small></div><ChevronRight size={18} /></div>)}
+              {workout.exercises.slice(0, 4).map((exercise, index) => {
+                const workingSets = exercise.sets.filter(isWorkingSet).length;
+                const warmupSets = exercise.sets.length - workingSets;
+                return <div key={exercise.id}><span>{String(index + 1).padStart(2, '0')}</span><div><strong>{exercise.name}</strong><small>{workingSets} working set{workingSets === 1 ? '' : 's'}{warmupSets ? ` + ${warmupSets} warm-up` : ''} · {exercise.detail}</small></div><ChevronRight size={18} /></div>;
+              })}
             </div>
             <div className="workout-actions"><button className="primary-action" onClick={openWorkout}><Dumbbell size={18} /> {workout.status === 'not-started' ? 'Start workout' : workout.status === 'completed' ? 'Review workout' : 'Resume workout'} <ArrowRight size={18} /></button><button className="movement-library-button" onClick={() => setMovementLibraryOpen(true)}><BookOpen size={18} /> Explore movement guides</button></div>
           </article>
