@@ -223,6 +223,15 @@ export function workoutMinutes(session: WorkoutSession): number {
   ), 0);
 }
 
+export function workoutElapsedMinutes(session: WorkoutSession, now = Date.now()): number {
+  const startedAt = session.startedAt ? Date.parse(session.startedAt) : Number.NaN;
+  const endedAt = session.completedAt ? Date.parse(session.completedAt) : now;
+  if (!Number.isFinite(startedAt) || !Number.isFinite(endedAt) || endedAt < startedAt) {
+    return Math.max(1, Math.min(600, workoutMinutes(session)));
+  }
+  return Math.max(1, Math.min(600, Math.round((endedAt - startedAt) / 60_000)));
+}
+
 export function isWorkoutSession(value: unknown): value is WorkoutSession {
   if (!value || typeof value !== 'object') return false;
   const session = value as Partial<WorkoutSession>;
@@ -231,6 +240,9 @@ export function isWorkoutSession(value: unknown): value is WorkoutSession {
     && typeof session.title === 'string'
     && ['not-started', 'in-progress', 'completed'].includes(session.status ?? '')
     && (session.feedback === undefined || isWorkoutFeedback(session.feedback))
+    && (session.startedAt === undefined || (typeof session.startedAt === 'string' && Number.isFinite(Date.parse(session.startedAt))))
+    && (session.completedAt === undefined || (typeof session.completedAt === 'string' && Number.isFinite(Date.parse(session.completedAt))))
+    && !(session.startedAt && session.completedAt && Date.parse(session.completedAt) < Date.parse(session.startedAt))
     && (session.restEndsAt === undefined || (typeof session.restEndsAt === 'string' && Number.isFinite(Date.parse(session.restEndsAt))))
     && Array.isArray(session.exercises)
     && session.exercises.every((exercise) => exercise
