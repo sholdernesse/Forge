@@ -30,6 +30,15 @@ export interface WorkoutExercise {
   substitutedFromName?: string;
 }
 
+export interface WorkoutNextStep {
+  exerciseIndex: number;
+  setIndex: number;
+  exerciseName: string;
+  setLabel: string;
+  targetLabel: string;
+  kind: WorkoutSetKind;
+}
+
 export interface WorkoutSession {
   id: string;
   date: string;
@@ -174,6 +183,28 @@ export function addWorkoutSet(exercise: WorkoutExercise, maximumSets = 12): Work
 export function removeLastWorkoutSet(exercise: WorkoutExercise): WorkoutExercise {
   if (exercise.sets.length <= 1 || exercise.sets.at(-1)?.completedAt) return exercise;
   return { ...exercise, sets: exercise.sets.slice(0, -1) };
+}
+
+export function nextWorkoutStep(session: WorkoutSession, preferredExerciseIndex = 0): WorkoutNextStep | undefined {
+  const indexes = session.exercises.map((_, index) => index);
+  const preferred = indexes.includes(preferredExerciseIndex) ? [preferredExerciseIndex] : [];
+  const ordered = [...preferred, ...indexes.filter((index) => index !== preferredExerciseIndex)];
+  for (const exerciseIndex of ordered) {
+    const exercise = session.exercises[exerciseIndex]!;
+    const setIndex = exercise.sets.findIndex((set) => !set.completedAt);
+    if (setIndex < 0) continue;
+    const set = exercise.sets[setIndex]!;
+    const kind: WorkoutSetKind = set.kind ?? 'working';
+    const sameKindOrdinal = exercise.sets.slice(0, setIndex + 1).filter((item) => (item.kind ?? 'working') === kind).length;
+    const setLabel = kind === 'warmup' ? `Warm-up ${sameKindOrdinal}` : `Set ${sameKindOrdinal}`;
+    const targetLabel = exercise.mode === 'duration'
+      ? `${set.durationMinutes ?? 1} min`
+      : (set.loadKg ?? 0) > 0
+        ? `${set.reps ?? 1} reps × ${set.loadKg} kg`
+        : `${set.reps ?? 1} reps · unloaded`;
+    return { exerciseIndex, setIndex, exerciseName: exercise.name, setLabel, targetLabel, kind };
+  }
+  return undefined;
 }
 
 export function completedSetCount(session: WorkoutSession): number {
