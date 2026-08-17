@@ -106,7 +106,7 @@ export function WorkoutPlayer({ session, onChange, onClose, onFinish, exerciseHi
       {nextStep && <section className={`workout-next-step ${nextStep.kind}`} aria-label="Up next">
         <Sparkles size={18} />
         <span><small>UP NEXT · {nextStep.setLabel}</small><b>{nextStep.exerciseName}</b><em>{nextStep.targetLabel}</em></span>
-        <button onClick={() => setActiveExercise(nextStep.exerciseIndex)}>{nextStep.exerciseIndex === activeExercise ? 'Ready' : 'View set'}</button>
+        {nextStep.exerciseIndex !== activeExercise && <button onClick={() => setActiveExercise(nextStep.exerciseIndex)}>View set</button>}
       </section>}
 
       <div className="exercise-stack">
