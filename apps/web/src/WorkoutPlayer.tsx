@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Check, ChevronDown, Clock3, Eye, Minus, Plus, Repeat2, Sparkles, Trophy, X } from 'lucide-react';
 import {
+  addWorkoutSet,
   adjustWorkoutRest,
   beginWorkoutRest,
   clearWorkoutRest,
   completedSetCount,
   nextIncompleteExerciseIndex,
+  removeLastWorkoutSet,
   totalSetCount,
   workoutRestSecondsRemaining,
   type WorkoutDiscomfort,
@@ -145,6 +147,11 @@ export function WorkoutPlayer({ session, onChange, onClose, onFinish, exerciseHi
                 {exercise.mode === 'reps' ? <input className="load-input" aria-label={`${exercise.name} set ${setIndex + 1} load`} type="number" min="0" step="2.5" value={set.loadKg ?? 0} onChange={(event) => updateSet(exerciseIndex, setIndex, { loadKg: Number(event.target.value) })} /> : <span className="pace-label">Zone 2</span>}
                 <button className="set-check" onClick={() => toggleSet(exerciseIndex, setIndex)} aria-label={`Mark ${exercise.name} set ${setIndex + 1} ${set.completedAt ? 'incomplete' : 'complete'}`}><Check size={17} /></button>
               </div>)}
+              <div className="set-count-actions" aria-label={`Adjust sets for ${exercise.name}`}>
+                <button disabled={exercise.sets.length <= 1 || Boolean(exercise.sets.at(-1)?.completedAt)} onClick={() => onChange({ ...session, exercises: session.exercises.map((item, index) => index === exerciseIndex ? removeLastWorkoutSet(item) : item) })}><Minus size={14} />Remove set</button>
+                <span>{exercise.sets.length} planned set{exercise.sets.length === 1 ? '' : 's'}</span>
+                <button disabled={exercise.sets.length >= 12} onClick={() => onChange({ ...session, exercises: session.exercises.map((item, index) => index === exerciseIndex ? addWorkoutSet(item) : item) })}><Plus size={14} />Add set</button>
+              </div>
             </div>}
           </article>;
         })}
