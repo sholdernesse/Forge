@@ -337,7 +337,7 @@ export function App() {
       bodyScore: reflectionDraft.bodyScore,
       soulScore: reflectionDraft.soulScore,
       reflectedAt,
-      ...(reflectionNote ? { reflectionNote } : {}),
+      reflectionNote,
     } : day);
     const nextSavedAt = reflectedAt;
     setHistory(nextHistory);
