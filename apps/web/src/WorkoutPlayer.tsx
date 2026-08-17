@@ -76,12 +76,10 @@ export function WorkoutPlayer({ session, onChange, onClose, onFinish, exerciseHi
         ? { ...currentExercise, sets: currentExercise.sets.map((currentSet, currentSetIndex) => currentSetIndex === setIndex ? nextSet : currentSet) }
         : currentExercise),
     };
-    onChange(set.completedAt ? nextSession : beginWorkoutRest(nextSession, exercise.restSeconds));
+    const nextExercise = set.completedAt ? undefined : nextIncompleteExerciseIndex(nextSession, exerciseIndex);
+    onChange(nextExercise === undefined ? nextSession : beginWorkoutRest(nextSession, exercise.restSeconds));
     const exerciseNowComplete = nextSession.exercises[exerciseIndex]!.sets.every((item) => item.completedAt);
-    if (!set.completedAt && exerciseNowComplete) {
-      const nextExercise = nextIncompleteExerciseIndex(nextSession, exerciseIndex);
-      if (nextExercise !== undefined) setActiveExercise(nextExercise);
-    }
+    if (!set.completedAt && exerciseNowComplete && nextExercise !== undefined) setActiveExercise(nextExercise);
   }
 
   return <div className="workout-backdrop" onMouseDown={onClose}>
