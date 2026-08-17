@@ -50,6 +50,7 @@ export function WorkoutPlayer({ session, onChange, onClose, onFinish, exerciseHi
   const progress = Math.round((completed / total) * 100);
   const restRemaining = workoutRestSecondsRemaining(session, clock);
   const nextStep = nextWorkoutStep(session, activeExercise);
+  const nextGuide = nextStep ? exerciseGuide(nextStep.exerciseId) : undefined;
 
   useEffect(() => {
     if (restRemaining <= 0) return undefined;
@@ -105,8 +106,11 @@ export function WorkoutPlayer({ session, onChange, onClose, onFinish, exerciseHi
 
       {nextStep && <section className={`workout-next-step ${nextStep.kind}`} aria-label="Up next">
         <Sparkles size={18} />
-        <span><small>UP NEXT · {nextStep.setLabel}</small><b>{nextStep.exerciseName}</b><em>{nextStep.targetLabel}</em></span>
-        {nextStep.exerciseIndex !== activeExercise && <button onClick={() => setActiveExercise(nextStep.exerciseIndex)}>View set</button>}
+        <span><small>UP NEXT · {nextStep.setLabel}</small><b>{nextStep.exerciseName}</b><em>{nextStep.targetLabel}</em>{nextGuide && <small className="next-tempo">TEMPO · {nextGuide.tempo}</small>}</span>
+        <div className="next-step-actions">
+          {nextStep.exerciseIndex !== activeExercise && <button onClick={() => setActiveExercise(nextStep.exerciseIndex)}>View set</button>}
+          {nextGuide && <button onClick={() => setActiveGuide(nextGuide)}><Eye size={13} />Form</button>}
+        </div>
       </section>}
 
       <div className="exercise-stack">
