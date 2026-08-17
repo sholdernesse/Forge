@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addWorkoutSet, adjustWorkoutRest, beginWorkoutRest, clearWorkoutRest, completedSetCount, createTodayWorkout, isWorkoutFeedback, isWorkoutSession, nextIncompleteExerciseIndex, removeLastWorkoutSet, totalSetCount, workoutMinutes, workoutRestSecondsRemaining } from './workoutSession.js';
+import { addWorkoutSet, applyWorkoutSetPatch, adjustWorkoutRest, beginWorkoutRest, clearWorkoutRest, completedSetCount, createTodayWorkout, isWorkoutFeedback, isWorkoutSession, nextIncompleteExerciseIndex, removeLastWorkoutSet, totalSetCount, workoutMinutes, workoutRestSecondsRemaining } from './workoutSession.js';
 
 describe('workout session', () => {
   it('creates the recovery workout with six loggable sets', () => {
@@ -60,6 +60,22 @@ describe('workout session', () => {
     expect(removeLastWorkoutSet(added)).toBe(added);
     const oneSet = createTodayWorkout('2026-08-12').exercises[0]!;
     expect(removeLastWorkoutSet(oneSet)).toBe(oneSet);
+  });
+
+  it('normalizes direct set edits before they reach persisted history', () => {
+    const set = { id: 'set-1', reps: 8, loadKg: 20 };
+    expect(applyWorkoutSetPatch(set, { reps: -2, loadKg: -5 })).toEqual({ id: 'set-1', reps: 1, loadKg: 0 });
+    expect(applyWorkoutSetPatch(set, { reps: 7.6 })).toEqual({ id: 'set-1', reps: 8, loadKg: 20 });
+    expect(applyWorkoutSetPatch(set, { reps: Number.NaN, loadKg: Number.POSITIVE_INFINITY })).toEqual(set);
+    expect(applyWorkoutSetPatch({ id: 'timed', durationMinutes: 5 }, { durationMinutes: 0 })).toEqual({ id: 'timed', durationMinutes: 1 });
+  });
+
+  it('rejects malformed set values in restored sessions', () => {
+    const session = createTodayWorkout('2026-08-12');
+    expect(isWorkoutSession({ ...session, exercises: [{ ...session.exercises[2], sets: [{ id: 'bad', reps: 0, loadKg: 10 }] }] })).toBe(false);
+    expect(isWorkoutSession({ ...session, exercises: [{ ...session.exercises[2], sets: [{ id: 'bad', reps: 8.5, loadKg: 10 }] }] })).toBe(false);
+    expect(isWorkoutSession({ ...session, exercises: [{ ...session.exercises[2], sets: [{ id: 'bad', reps: 8, loadKg: -1 }] }] })).toBe(false);
+    expect(isWorkoutSession({ ...session, exercises: [{ ...session.exercises[0], sets: [{ id: 'bad', durationMinutes: 0 }] }] })).toBe(false);
   });
 
   it('rejects invalid persisted rest deadlines', () => {
