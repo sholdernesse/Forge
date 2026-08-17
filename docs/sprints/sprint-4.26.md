@@ -13,7 +13,9 @@ Keep an active workout usable and predictable across mobile interruptions, neste
 - accessible rest countdown with add 15 seconds, reduce 15 seconds, and Skip controls
 - automatic expansion of the next incomplete movement after the current movement is completed
 - no unnecessary rest timer after the final set of the workout
-- deterministic coverage for rest persistence, adjustment, expiration, validation, and movement advancement
+- bounded Add set and Remove set controls that preserve completed work
+- normalization and restored-state validation for repetitions, duration, load, timestamps, and exercise shape
+- deterministic coverage for rest persistence, adjustment, expiration, set editing, data validation, and movement advancement
 
 ## Acceptance
 
@@ -24,6 +26,8 @@ Keep an active workout usable and predictable across mobile interruptions, neste
 - completing the final workout set does not start another rest period
 - Escape closes only the active nested dialog
 - keyboard focus remains within the active dialog and returns to its opener on close
+- users can add or remove incomplete planned sets without deleting completed work
+- invalid numeric set values cannot enter synchronized progression history
 
 ## Scheduled visual-production work
 
