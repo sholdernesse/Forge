@@ -13,8 +13,11 @@ export interface CoachingEvaluation {
   newDecisionCount: number;
 }
 
+export type CoachAnswerBasis = 'recommendations' | 'safety-boundary' | 'insufficient-data' | 'readiness';
+
 export interface CoachAnswer {
   answer: string;
+  basis: CoachAnswerBasis;
   recommendationIds: string[];
   suggestedAction: CoachSuggestedAction;
 }
