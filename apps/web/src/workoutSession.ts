@@ -8,8 +8,11 @@ export interface WorkoutFeedback {
   note?: string;
 }
 
+export type WorkoutSetKind = 'warmup' | 'working';
+
 export interface WorkoutSetLog {
   id: string;
+  kind?: WorkoutSetKind;
   reps?: number;
   loadKg?: number;
   durationMinutes?: number;
@@ -117,6 +120,33 @@ export function workoutRestSecondsRemaining(session: WorkoutSession, now = Date.
   return Math.max(0, Math.ceil((deadline - now) / 1000));
 }
 
+export function isWorkingSet(set: WorkoutSetLog): boolean {
+  return set.kind !== 'warmup';
+}
+
+export function addWarmupSet(exercise: WorkoutExercise, maximumSets = 12): WorkoutExercise {
+  if (exercise.mode !== 'reps' || exercise.sets.length >= maximumSets) return exercise;
+  const firstWorking = exercise.sets.find(isWorkingSet);
+  const usedIds = new Set(exercise.sets.map((set) => set.id));
+  let suffix = exercise.sets.filter((set) => set.kind === 'warmup').length + 1;
+  while (usedIds.has(`${exercise.id}-warmup-${suffix}`)) suffix += 1;
+  const warmup: WorkoutSetLog = {
+    id: `${exercise.id}-warmup-${suffix}`,
+    kind: 'warmup',
+    reps: Math.min(10, firstWorking?.reps ?? 8),
+    loadKg: 0,
+  };
+  const firstWorkingIndex = exercise.sets.findIndex(isWorkingSet);
+  const insertAt = firstWorkingIndex < 0 ? exercise.sets.length : firstWorkingIndex;
+  return { ...exercise, sets: [...exercise.sets.slice(0, insertAt), warmup, ...exercise.sets.slice(insertAt)] };
+}
+
+export function removeLastWarmupSet(exercise: WorkoutExercise): WorkoutExercise {
+  const index = exercise.sets.findLastIndex((set) => set.kind === 'warmup' && !set.completedAt);
+  if (index < 0) return exercise;
+  return { ...exercise, sets: exercise.sets.filter((_, setIndex) => setIndex !== index) };
+}
+
 export function applyWorkoutSetPatch(set: WorkoutSetLog, patch: Partial<WorkoutSetLog>): WorkoutSetLog {
   const next = { ...set, ...patch };
   if (patch.reps !== undefined) next.reps = Number.isFinite(patch.reps) ? Math.max(1, Math.round(patch.reps)) : (set.reps ?? 1);
@@ -181,6 +211,7 @@ export function isWorkoutSession(value: unknown): value is WorkoutSession {
       && exercise.sets.length > 0
       && exercise.sets.every((set) => set
         && typeof set.id === 'string'
+        && (set.kind === undefined || ['warmup', 'working'].includes(set.kind))
         && (set.completedAt === undefined || (typeof set.completedAt === 'string' && Number.isFinite(Date.parse(set.completedAt))))
         && (exercise.mode === 'duration'
           ? typeof set.durationMinutes === 'number' && Number.isFinite(set.durationMinutes) && set.durationMinutes >= 1
