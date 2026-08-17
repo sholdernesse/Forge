@@ -27,7 +27,7 @@ const fallback: DashboardState = {
 describe('dashboard storage', () => {
   it('round trips a saved check-in and history', () => {
     const storage = new MemoryStorage();
-    const state = { ...fallback, savedAt: '2026-08-12T12:00:00.000Z', workoutSession: createTodayWorkout('2026-08-12'), sessionHistory: demoSessionHistory, scheduleOverrides: { '2026-08-13': 'rest' as const }, foodEntries: demoFoodEntries, favoriteFoodIds: ['chicken-breast'], savedMeals: [{ id: 'lunch', name: 'Lunch', items: [{ foodId: 'chicken-breast', quantity: 1 }] }], coachMessages: [{ id: 'm1', role: 'assistant' as const, content: 'Train today.', recommendationIds: [], suggestedAction: { type: 'open-workout' as const, label: 'Open today’s workout' }, createdAt: '2026-08-12T12:01:00.000Z' }] };
+    const state = { ...fallback, savedAt: '2026-08-12T12:00:00.000Z', workoutSession: createTodayWorkout('2026-08-12'), sessionHistory: demoSessionHistory, scheduleOverrides: { '2026-08-13': 'rest' as const }, foodEntries: demoFoodEntries, favoriteFoodIds: ['chicken-breast'], savedMeals: [{ id: 'lunch', name: 'Lunch', items: [{ foodId: 'chicken-breast', quantity: 1 }] }], coachMessages: [{ id: 'm1', role: 'assistant' as const, content: 'Train today.', recommendationIds: [], answerBasis: 'recommendations' as const, suggestedAction: { type: 'open-workout' as const, label: 'Open today’s workout' }, createdAt: '2026-08-12T12:01:00.000Z' }] };
     saveDashboardState(storage, state);
     expect(loadDashboardState(storage, fallback)).toEqual(state);
   });
@@ -60,6 +60,13 @@ describe('dashboard storage', () => {
     const loaded = loadDashboardState(storage, fallback);
     expect(loaded.coachMessages).toHaveLength(40);
     expect(loaded.coachMessages?.[0]?.id).toBe('m2');
+  });
+
+  it('rejects unsupported Coach answer evidence classifications', () => {
+    const storage = new MemoryStorage();
+    storage.setItem(DASHBOARD_STORAGE_KEY, JSON.stringify({ version: 10, updatedAt: '2026-08-12T13:00:00.000Z', ...fallback, coachMessages: [{ id: 'm1', role: 'assistant', content: 'Unsupported basis.', recommendationIds: [], answerBasis: 'diagnosis', createdAt: '2026-08-12T12:00:00.000Z' }] }));
+
+    expect(loadDashboardState(storage, fallback).coachMessages).toEqual([]);
   });
 
   it('rejects unsupported Coach handoff actions', () => {
