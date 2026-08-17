@@ -4,7 +4,7 @@
 - `decisions/` — architecture decision records
 - `sprints/` — sprint scope and acceptance notes
 
-Current delivery: [Sprint 4.29 — Coach Symptom Safety Boundary](./sprints/sprint-4.29.md).
+Current delivery: [Sprint 4.30 — Evening Mind, Body, Soul Reflection](./sprints/sprint-4.30.md).
 
 Deployment: [Microsoft Entra External ID for Forge](./deployment/entra-external-id.md).
 
