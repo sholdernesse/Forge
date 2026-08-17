@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addWarmupSet, addWorkoutSet, applyWorkoutSetPatch, adjustWorkoutRest, beginWorkoutRest, clearWorkoutRest, completedSetCount, createTodayWorkout, isWorkoutFeedback, isWorkoutSession, isWorkingSet, nextIncompleteExerciseIndex, removeLastWarmupSet, removeLastWorkoutSet, totalSetCount, workoutMinutes, workoutRestSecondsRemaining } from './workoutSession.js';
+import { addWarmupSet, addWorkoutSet, applyWorkoutSetPatch, adjustWorkoutRest, beginWorkoutRest, clearWorkoutRest, completedSetCount, createTodayWorkout, isWorkoutFeedback, isWorkoutSession, isWorkingSet, nextIncompleteExerciseIndex, nextWorkoutStep, removeLastWarmupSet, removeLastWorkoutSet, totalSetCount, workoutMinutes, workoutRestSecondsRemaining } from './workoutSession.js';
 
 describe('workout session', () => {
   it('creates the recovery workout with six loggable sets', () => {
@@ -91,6 +91,29 @@ describe('workout session', () => {
   it('only permits warm-up sets for repetition exercises', () => {
     const durationExercise = createTodayWorkout('2026-08-12').exercises[0]!;
     expect(addWarmupSet(durationExercise)).toBe(durationExercise);
+  });
+
+  it('identifies the next set in the selected movement with a clear target', () => {
+    const session = createTodayWorkout('2026-08-12');
+    session.exercises[2]!.sets.unshift({ id: 'dead-bugs-warmup-1', kind: 'warmup', reps: 8, loadKg: 0 });
+    expect(nextWorkoutStep(session, 2)).toEqual({
+      exerciseIndex: 2,
+      setIndex: 0,
+      exerciseName: 'Dead bugs',
+      setLabel: 'Warm-up 1',
+      targetLabel: '8 reps · unloaded',
+      kind: 'warmup',
+    });
+    session.exercises[2]!.sets[0]!.completedAt = '2026-08-12T12:00:00.000Z';
+    expect(nextWorkoutStep(session, 2)).toMatchObject({ setIndex: 1, setLabel: 'Set 1', targetLabel: '10 reps · unloaded', kind: 'working' });
+  });
+
+  it('falls through completed movements and returns no step when finished', () => {
+    const session = createTodayWorkout('2026-08-12');
+    session.exercises[0]!.sets.forEach((set) => { set.completedAt = '2026-08-12T12:00:00.000Z'; });
+    expect(nextWorkoutStep(session, 0)).toMatchObject({ exerciseIndex: 1, exerciseName: 'Hip + thoracic mobility', targetLabel: '5 min' });
+    session.exercises.forEach((exercise) => exercise.sets.forEach((set) => { set.completedAt = '2026-08-12T12:00:00.000Z'; }));
+    expect(nextWorkoutStep(session, 0)).toBeUndefined();
   });
 
   it('rejects invalid persisted rest deadlines', () => {
