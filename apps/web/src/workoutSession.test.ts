@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addWorkoutSet, applyWorkoutSetPatch, adjustWorkoutRest, beginWorkoutRest, clearWorkoutRest, completedSetCount, createTodayWorkout, isWorkoutFeedback, isWorkoutSession, nextIncompleteExerciseIndex, removeLastWorkoutSet, totalSetCount, workoutMinutes, workoutRestSecondsRemaining } from './workoutSession.js';
+import { addWarmupSet, addWorkoutSet, applyWorkoutSetPatch, adjustWorkoutRest, beginWorkoutRest, clearWorkoutRest, completedSetCount, createTodayWorkout, isWorkoutFeedback, isWorkoutSession, isWorkingSet, nextIncompleteExerciseIndex, removeLastWarmupSet, removeLastWorkoutSet, totalSetCount, workoutMinutes, workoutRestSecondsRemaining } from './workoutSession.js';
 
 describe('workout session', () => {
   it('creates the recovery workout with six loggable sets', () => {
@@ -76,6 +76,21 @@ describe('workout session', () => {
     expect(isWorkoutSession({ ...session, exercises: [{ ...session.exercises[2], sets: [{ id: 'bad', reps: 8.5, loadKg: 10 }] }] })).toBe(false);
     expect(isWorkoutSession({ ...session, exercises: [{ ...session.exercises[2], sets: [{ id: 'bad', reps: 8, loadKg: -1 }] }] })).toBe(false);
     expect(isWorkoutSession({ ...session, exercises: [{ ...session.exercises[0], sets: [{ id: 'bad', durationMinutes: 0 }] }] })).toBe(false);
+  });
+
+  it('adds and removes warm-up sets without mutating working prescriptions', () => {
+    const exercise = createTodayWorkout('2026-08-12').exercises[2]!;
+    const withWarmup = addWarmupSet(exercise);
+    expect(withWarmup.sets[0]).toEqual({ id: 'dead-bugs-warmup-1', kind: 'warmup', reps: 10, loadKg: 0 });
+    expect(withWarmup.sets.filter(isWorkingSet)).toEqual(exercise.sets);
+    expect(removeLastWarmupSet(withWarmup)).toEqual(exercise);
+    withWarmup.sets[0]!.completedAt = '2026-08-12T12:00:00.000Z';
+    expect(removeLastWarmupSet(withWarmup)).toBe(withWarmup);
+  });
+
+  it('only permits warm-up sets for repetition exercises', () => {
+    const durationExercise = createTodayWorkout('2026-08-12').exercises[0]!;
+    expect(addWarmupSet(durationExercise)).toBe(durationExercise);
   });
 
   it('rejects invalid persisted rest deadlines', () => {
