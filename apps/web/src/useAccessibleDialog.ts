@@ -1,6 +1,6 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type RefObject } from 'react';
 
-const dialogStack: Array<React.RefObject<HTMLElement | null>> = [];
+const dialogStack: Array<RefObject<HTMLElement | null>> = [];
 
 export function useAccessibleDialog(onClose: () => void) {
   const dialogRef = useRef<HTMLElement>(null);
@@ -9,7 +9,7 @@ export function useAccessibleDialog(onClose: () => void) {
   useEffect(() => {
     const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : undefined;
     const previousOverflow = document.body.style.overflow;
-    const ref = dialogRef as React.RefObject<HTMLElement | null>;
+    const ref = dialogRef as RefObject<HTMLElement | null>;
     dialogStack.push(ref);
     document.body.style.overflow = 'hidden';
     dialogRef.current?.focus();
