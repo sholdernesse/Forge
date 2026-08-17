@@ -4,7 +4,7 @@ import type { ExercisePerformance } from './progression.js';
 import { isTrainingSessionRecord, type TrainingSessionRecord } from './volumeLedger.js';
 import type { ScheduleOverrides } from './schedulePolicy.js';
 import type { FoodEntry, SavedMeal } from './foodLog.js';
-import type { CoachSuggestedAction } from '@forge/coach';
+import type { CoachAnswerBasis, CoachSuggestedAction } from '@forge/coach';
 
 export type CheckIn = Required<
   Pick<DailySnapshot, 'sleepScore' | 'sleepHours' | 'soreness' | 'stress' | 'weightKg'>
@@ -15,6 +15,7 @@ export interface CoachMessage {
   role: 'user' | 'assistant';
   content: string;
   recommendationIds: string[];
+  answerBasis?: CoachAnswerBasis;
   suggestedAction?: CoachSuggestedAction;
   createdAt: string;
 }
@@ -72,6 +73,7 @@ function isCoachMessage(value: unknown): value is CoachMessage {
   return typeof candidate.id === 'string' && candidate.id.length > 0 && candidate.id.length <= 100
     && (candidate.role === 'user' || candidate.role === 'assistant')
     && typeof candidate.content === 'string' && candidate.content.length > 0 && candidate.content.length <= 2_000
+    && (candidate.answerBasis === undefined || ['recommendations', 'safety-boundary', 'insufficient-data', 'readiness'].includes(candidate.answerBasis))
     && Array.isArray(candidate.recommendationIds) && candidate.recommendationIds.every((id) => typeof id === 'string' && id.length <= 200)
     && (candidate.suggestedAction === undefined || isCoachAction(candidate.suggestedAction))
     && typeof candidate.createdAt === 'string' && !Number.isNaN(Date.parse(candidate.createdAt));
