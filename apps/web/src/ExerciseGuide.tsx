@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { AlertTriangle, CheckCircle2, Eye, ShieldAlert, TimerReset, Wind, X } from 'lucide-react';
 import type { ExerciseGuide as ExerciseGuideModel } from './exerciseGuides.js';
 import { ExerciseMotion } from './ExerciseMotion.js';
+import { useAccessibleDialog } from './useAccessibleDialog.js';
 
 interface ExerciseGuideProps {
   guide: ExerciseGuideModel;
@@ -13,6 +14,7 @@ type GuideTab = 'setup' | 'movement' | 'mistakes' | 'check';
 export function ExerciseGuide({ guide, onClose }: ExerciseGuideProps) {
   const [tab, setTab] = useState<GuideTab>('setup');
   const [discomfort, setDiscomfort] = useState(false);
+  const dialogRef = useAccessibleDialog(onClose);
   const content = tab === 'setup'
     ? guide.setup
     : tab === 'movement'
@@ -22,7 +24,7 @@ export function ExerciseGuide({ guide, onClose }: ExerciseGuideProps) {
         : guide.selfChecks;
 
   return <div className="form-guide-backdrop" onMouseDown={onClose}>
-    <section className="form-guide" role="dialog" aria-modal="true" aria-labelledby="form-guide-title" tabIndex={-1} autoFocus onMouseDown={(event) => event.stopPropagation()}>
+    <section ref={dialogRef} className="form-guide" role="dialog" aria-modal="true" aria-labelledby="form-guide-title" tabIndex={-1} onMouseDown={(event) => event.stopPropagation()}>
       <header><div><span className="section-label">VISUAL FORM GUIDE</span><h2 id="form-guide-title">{guide.title}</h2></div><button onClick={onClose} aria-label="Close form guide"><X size={20} /></button></header>
       {guide.motionId ? <ExerciseMotion primaryMuscles={guide.primaryMuscles} secondaryMuscles={guide.secondaryMuscles} /> : <figure><img src={guide.imageSrc} alt={guide.imageAlt} /><figcaption><Eye size={15} /> Compare your setup and finishing position before adding load.</figcaption></figure>}
       <div className="guide-performance" aria-label="Movement rhythm">
