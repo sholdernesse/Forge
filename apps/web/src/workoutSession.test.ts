@@ -122,7 +122,8 @@ describe('workout session', () => {
     session.startedAt = '2026-08-12T12:00:00.000Z';
     session.completedAt = '2026-08-12T12:47:29.000Z';
     expect(workoutElapsedMinutes(session)).toBe(47);
-    expect(workoutElapsedMinutes({ ...session, completedAt: undefined }, Date.parse('2026-08-12T12:15:31.000Z'))).toBe(16);
+    const { completedAt: _completedAt, ...inProgress } = session;
+    expect(workoutElapsedMinutes(inProgress, Date.parse('2026-08-12T12:15:31.000Z'))).toBe(16);
   });
 
   it('bounds elapsed time and falls back safely for legacy sessions', () => {
