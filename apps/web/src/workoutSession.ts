@@ -142,7 +142,11 @@ export function addWarmupSet(exercise: WorkoutExercise, maximumSets = 12): Worko
 }
 
 export function removeLastWarmupSet(exercise: WorkoutExercise): WorkoutExercise {
-  const index = exercise.sets.findLastIndex((set) => set.kind === 'warmup' && !set.completedAt);
+  let index = -1;
+  for (let setIndex = exercise.sets.length - 1; setIndex >= 0; setIndex -= 1) {
+    const set = exercise.sets[setIndex]!;
+    if (set.kind === 'warmup' && !set.completedAt) { index = setIndex; break; }
+  }
   if (index < 0) return exercise;
   return { ...exercise, sets: exercise.sets.filter((_, setIndex) => setIndex !== index) };
 }
