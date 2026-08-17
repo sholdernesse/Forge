@@ -45,7 +45,7 @@ export class CoachService {
   ask(twin: DigitalTwin, question: string): CoachAnswer {
     const recommendations = this.engine.generate(twin);
     const normalized = question.toLowerCase();
-    const symptomQuestion = /\b(pain|painful|hurt|hurting|injury|injured|sharp|discomfort|pinch|pinching)\b/.test(normalized);
+    const symptomQuestion = /\b(pain|painful|hurt|hurts|hurting|injury|injured|sharp|discomfort|pinch|pinching)\b/.test(normalized);
     const nutritionQuestion = normalized.includes('protein') || normalized.includes('calorie') || normalized.includes('food') || normalized.includes('nutrition');
     const recoveryQuestion = normalized.includes('sleep') || normalized.includes('recover') || normalized.includes('sore') || normalized.includes('stress');
     const trainingQuestion = normalized.includes('train') || normalized.includes('workout') || normalized.includes('lift');
