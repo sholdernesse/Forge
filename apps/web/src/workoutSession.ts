@@ -39,6 +39,7 @@ export interface WorkoutSession {
   planReason?: string;
   intensity?: 'low' | 'moderate' | 'high';
   feedback?: WorkoutFeedback;
+  restEndsAt?: string;
 }
 
 export function isWorkoutFeedback(value: unknown): value is WorkoutFeedback {
@@ -87,6 +88,23 @@ export function createTodayWorkout(date: string): WorkoutSession {
   };
 }
 
+export function beginWorkoutRest(session: WorkoutSession, seconds: number, now = Date.now()): WorkoutSession {
+  if (!Number.isFinite(seconds) || seconds <= 0) return clearWorkoutRest(session);
+  return { ...session, restEndsAt: new Date(now + Math.ceil(seconds) * 1000).toISOString() };
+}
+
+export function clearWorkoutRest(session: WorkoutSession): WorkoutSession {
+  const { restEndsAt: _restEndsAt, ...withoutRest } = session;
+  return withoutRest;
+}
+
+export function workoutRestSecondsRemaining(session: WorkoutSession, now = Date.now()): number {
+  if (!session.restEndsAt) return 0;
+  const deadline = Date.parse(session.restEndsAt);
+  if (!Number.isFinite(deadline)) return 0;
+  return Math.max(0, Math.ceil((deadline - now) / 1000));
+}
+
 export function completedSetCount(session: WorkoutSession): number {
   return session.exercises.flatMap((exercise) => exercise.sets).filter((set) => set.completedAt).length;
 }
@@ -110,6 +128,7 @@ export function isWorkoutSession(value: unknown): value is WorkoutSession {
     && typeof session.title === 'string'
     && ['not-started', 'in-progress', 'completed'].includes(session.status ?? '')
     && (session.feedback === undefined || isWorkoutFeedback(session.feedback))
+    && (session.restEndsAt === undefined || (typeof session.restEndsAt === 'string' && Number.isFinite(Date.parse(session.restEndsAt))))
     && Array.isArray(session.exercises)
     && session.exercises.every((exercise) => exercise
       && typeof exercise.id === 'string'
