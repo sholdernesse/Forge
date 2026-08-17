@@ -4,7 +4,7 @@
 - `decisions/` — architecture decision records
 - `sprints/` — sprint scope and acceptance notes
 
-Current delivery: [Sprint 4.28 — Clear Next Actions](./sprints/sprint-4.28.md).
+Current delivery: [Sprint 4.29 — Coach Symptom Safety Boundary](./sprints/sprint-4.29.md).
 
 Deployment: [Microsoft Entra External ID for Forge](./deployment/entra-external-id.md).
 
