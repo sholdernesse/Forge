@@ -82,6 +82,7 @@ main { margin-left: 228px; padding: 38px clamp(28px, 4vw, 64px) 64px; max-width:
 .set-table { padding: 0 14px 14px; }
 .set-row { display: grid; grid-template-columns: 44px 1.3fr 1fr 48px; gap: 10px; align-items: center; min-height: 50px; padding: 6px 8px; border-top: 1px solid #19372d; }
 .set-row > strong { color: #87a398; text-align: center; }
+.set-count-actions{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;padding:10px 8px 2px;border-top:1px solid #19372d}.set-count-actions span{color:#67857a;font-size:9px;font-weight:800;text-align:center}.set-count-actions button{display:flex;align-items:center;justify-content:center;gap:5px;padding:8px;border:1px solid #29483d;border-radius:8px;background:#10251e;color:#9db7ad;font-size:9px;font-weight:800}.set-count-actions button:disabled{cursor:not-allowed;opacity:.4}@media(max-width:460px){.set-count-actions{grid-template-columns:1fr 1fr}.set-count-actions span{grid-column:1/-1;grid-row:1}}
 .set-row.done { background: rgba(118, 251, 165, .055); }
 .set-labels { min-height: 28px; color: #5f7d72; font-size: 9px; font-weight: 800; letter-spacing: .08em; }
 .set-labels span:first-child, .set-labels span:last-child { text-align: center; }
