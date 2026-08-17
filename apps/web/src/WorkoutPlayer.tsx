@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Check, ChevronDown, Clock3, Eye, Minus, Plus, Repeat2, Sparkles, Trophy, X } from 'lucide-react';
 import {
+  beginWorkoutRest,
+  clearWorkoutRest,
   completedSetCount,
   totalSetCount,
+  workoutRestSecondsRemaining,
   type WorkoutDiscomfort,
   type WorkoutFeedback,
   type WorkoutSession,
@@ -25,7 +28,7 @@ interface WorkoutPlayerProps {
 export function WorkoutPlayer({ session, onChange, onClose, onFinish, exerciseHistory }: WorkoutPlayerProps) {
   const firstIncomplete = session.exercises.findIndex((exercise) => exercise.sets.some((set) => !set.completedAt));
   const [activeExercise, setActiveExercise] = useState(Math.max(0, firstIncomplete));
-  const [restRemaining, setRestRemaining] = useState(0);
+  const [clock, setClock] = useState(() => Date.now());
   const [activeGuide, setActiveGuide] = useState<ExerciseGuideModel | null>(null);
   const [swapExerciseId, setSwapExerciseId] = useState<string | null>(null);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
@@ -36,10 +39,11 @@ export function WorkoutPlayer({ session, onChange, onClose, onFinish, exerciseHi
   const completed = completedSetCount(session);
   const total = totalSetCount(session);
   const progress = Math.round((completed / total) * 100);
+  const restRemaining = workoutRestSecondsRemaining(session, clock);
 
   useEffect(() => {
     if (restRemaining <= 0) return undefined;
-    const timer = window.setInterval(() => setRestRemaining((current) => Math.max(0, current - 1)), 1000);
+    const timer = window.setInterval(() => setClock(Date.now()), 1000);
     return () => window.clearInterval(timer);
   }, [restRemaining]);
 
@@ -64,13 +68,13 @@ export function WorkoutPlayer({ session, onChange, onClose, onFinish, exerciseHi
     const nextSet: WorkoutSetLog = set.completedAt
       ? Object.fromEntries(Object.entries(set).filter(([key]) => key !== 'completedAt')) as WorkoutSetLog
       : { ...set, completedAt: new Date().toISOString() };
-    onChange({
+    const nextSession: WorkoutSession = {
       ...session,
       exercises: session.exercises.map((currentExercise, currentExerciseIndex) => currentExerciseIndex === exerciseIndex
         ? { ...currentExercise, sets: currentExercise.sets.map((currentSet, currentSetIndex) => currentSetIndex === setIndex ? nextSet : currentSet) }
         : currentExercise),
-    });
-    if (!set.completedAt) setRestRemaining(exercise.restSeconds);
+    };
+    onChange(set.completedAt ? nextSession : beginWorkoutRest(nextSession, exercise.restSeconds));
   }
 
   return <div className="workout-backdrop" onMouseDown={onClose}>
@@ -84,7 +88,7 @@ export function WorkoutPlayer({ session, onChange, onClose, onFinish, exerciseHi
       <div className="workout-progress"><span style={{ width: `${progress}%` }} /></div>
       <div className="workout-progress-label"><span>{completed} of {total} sets complete</span><strong>{progress}%</strong></div>
 
-      {restRemaining > 0 && <div className="rest-timer"><Clock3 size={18} /><span><b>Rest</b><small>Next set when ready</small></span><strong>{Math.floor(restRemaining / 60)}:{String(restRemaining % 60).padStart(2, '0')}</strong><button onClick={() => setRestRemaining(0)}>Skip</button></div>}
+      {restRemaining > 0 && <div className="rest-timer"><Clock3 size={18} /><span><b>Rest</b><small>Next set when ready</small></span><strong>{Math.floor(restRemaining / 60)}:{String(restRemaining % 60).padStart(2, '0')}</strong><button onClick={() => onChange(clearWorkoutRest(session))}>Skip</button></div>}
 
       <div className="exercise-stack">
         {session.exercises.map((exercise, exerciseIndex) => {
