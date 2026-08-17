@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { completedSetCount, createTodayWorkout, isWorkoutFeedback, isWorkoutSession, totalSetCount, workoutMinutes } from './workoutSession.js';
+import { beginWorkoutRest, clearWorkoutRest, completedSetCount, createTodayWorkout, isWorkoutFeedback, isWorkoutSession, totalSetCount, workoutMinutes, workoutRestSecondsRemaining } from './workoutSession.js';
 
 describe('workout session', () => {
   it('creates the recovery workout with six loggable sets', () => {
@@ -16,6 +16,20 @@ describe('workout session', () => {
     session.exercises[2]!.sets[0]!.completedAt = '2026-08-12T12:32:00.000Z';
     expect(completedSetCount(session)).toBe(2);
     expect(workoutMinutes(session)).toBe(32);
+  });
+
+  it('keeps rest timing accurate across close, reopen, and elapsed time', () => {
+    const session = beginWorkoutRest(createTodayWorkout('2026-08-12'), 90, Date.parse('2026-08-12T12:00:00.000Z'));
+    expect(session.restEndsAt).toBe('2026-08-12T12:01:30.000Z');
+    expect(workoutRestSecondsRemaining(session, Date.parse('2026-08-12T12:00:35.250Z'))).toBe(55);
+    expect(workoutRestSecondsRemaining(session, Date.parse('2026-08-12T12:02:00.000Z'))).toBe(0);
+    expect(clearWorkoutRest(session).restEndsAt).toBeUndefined();
+  });
+
+  it('rejects invalid persisted rest deadlines', () => {
+    const session = createTodayWorkout('2026-08-12');
+    expect(isWorkoutSession({ ...session, restEndsAt: 'not-a-date' })).toBe(false);
+    expect(isWorkoutSession(beginWorkoutRest(session, 60, 0))).toBe(true);
   });
 
   it('rejects malformed persisted sessions', () => {
