@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addWarmupSet, addWorkoutSet, applyWorkoutSetPatch, adjustWorkoutRest, beginWorkoutRest, clearWorkoutRest, completedSetCount, createTodayWorkout, isWorkoutFeedback, isWorkoutSession, isWorkingSet, nextIncompleteExerciseIndex, nextWorkoutStep, removeLastWarmupSet, removeLastWorkoutSet, totalSetCount, workoutMinutes, workoutRestSecondsRemaining } from './workoutSession.js';
+import { addWarmupSet, addWorkoutSet, applyWorkoutSetPatch, adjustWorkoutRest, beginWorkoutRest, clearWorkoutRest, completedSetCount, createTodayWorkout, isWorkoutFeedback, isWorkoutSession, isWorkingSet, nextIncompleteExerciseIndex, nextWorkoutStep, removeLastWarmupSet, removeLastWorkoutSet, totalSetCount, workoutElapsedMinutes, workoutMinutes, workoutRestSecondsRemaining } from './workoutSession.js';
 
 describe('workout session', () => {
   it('creates the recovery workout with six loggable sets', () => {
@@ -115,6 +115,22 @@ describe('workout session', () => {
     expect(nextWorkoutStep(session, 0)).toMatchObject({ exerciseIndex: 1, exerciseName: 'Hip + thoracic mobility', targetLabel: '5 min' });
     session.exercises.forEach((exercise) => exercise.sets.forEach((set) => { set.completedAt = '2026-08-12T12:00:00.000Z'; }));
     expect(nextWorkoutStep(session, 0)).toBeUndefined();
+  });
+
+  it('uses real elapsed time for completed workout history', () => {
+    const session = createTodayWorkout('2026-08-12');
+    session.startedAt = '2026-08-12T12:00:00.000Z';
+    session.completedAt = '2026-08-12T12:47:29.000Z';
+    expect(workoutElapsedMinutes(session)).toBe(47);
+    expect(workoutElapsedMinutes({ ...session, completedAt: undefined }, Date.parse('2026-08-12T12:15:31.000Z'))).toBe(16);
+  });
+
+  it('bounds elapsed time and falls back safely for legacy sessions', () => {
+    const session = createTodayWorkout('2026-08-12');
+    expect(workoutElapsedMinutes(session)).toBe(1);
+    expect(workoutElapsedMinutes({ ...session, startedAt: '2026-08-12T12:00:00.000Z' }, Date.parse('2026-08-13T12:00:00.000Z'))).toBe(600);
+    expect(isWorkoutSession({ ...session, startedAt: 'not-a-date' })).toBe(false);
+    expect(isWorkoutSession({ ...session, startedAt: '2026-08-12T13:00:00.000Z', completedAt: '2026-08-12T12:00:00.000Z' })).toBe(false);
   });
 
   it('rejects invalid persisted rest deadlines', () => {
