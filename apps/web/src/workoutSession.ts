@@ -119,10 +119,10 @@ export function workoutRestSecondsRemaining(session: WorkoutSession, now = Date.
 
 export function addWorkoutSet(exercise: WorkoutExercise, maximumSets = 12): WorkoutExercise {
   if (exercise.sets.length >= maximumSets) return exercise;
-  const template = exercise.sets.at(-1);
-  const { completedAt: _completedAt, id: _id, ...prescription } = template ?? (
-    exercise.mode === 'duration' ? { durationMinutes: 1 } : { reps: 1, loadKg: 0 }
-  );
+  const template: WorkoutSetLog = exercise.sets.at(-1) ?? (exercise.mode === 'duration'
+    ? { id: 'template', durationMinutes: 1 }
+    : { id: 'template', reps: 1, loadKg: 0 });
+  const { completedAt: _completedAt, id: _id, ...prescription } = template;
   const usedIds = new Set(exercise.sets.map((set) => set.id));
   let suffix = exercise.sets.length + 1;
   while (usedIds.has(`${exercise.id}-extra-${suffix}`)) suffix += 1;
