@@ -3,6 +3,7 @@ import { Check, ChevronDown, Clock3, Eye, Minus, Plus, Repeat2, Sparkles, Trophy
 import {
   addWorkoutSet,
   adjustWorkoutRest,
+  applyWorkoutSetPatch,
   beginWorkoutRest,
   clearWorkoutRest,
   completedSetCount,
@@ -61,7 +62,7 @@ export function WorkoutPlayer({ session, onChange, onClose, onFinish, exerciseHi
     onChange({
       ...session,
       exercises: session.exercises.map((exercise, currentExercise) => currentExercise === exerciseIndex
-        ? { ...exercise, sets: exercise.sets.map((set, currentSet) => currentSet === setIndex ? { ...set, ...patch } : set) }
+        ? { ...exercise, sets: exercise.sets.map((set, currentSet) => currentSet === setIndex ? applyWorkoutSetPatch(set, patch) : set) }
         : exercise),
     });
   }
@@ -143,8 +144,8 @@ export function WorkoutPlayer({ session, onChange, onClose, onFinish, exerciseHi
               <div className="set-row set-labels"><span>SET</span><span>{exercise.mode === 'duration' ? 'MINUTES' : 'REPS'}</span><span>{exercise.mode === 'duration' ? 'PACE' : 'LOAD KG'}</span><span>DONE</span></div>
               {exercise.sets.map((set, setIndex) => <div className={`set-row ${set.completedAt ? 'done' : ''}`} key={set.id}>
                 <strong>{setIndex + 1}</strong>
-                <div className="stepper"><button onClick={() => updateSet(exerciseIndex, setIndex, exercise.mode === 'duration' ? { durationMinutes: Math.max(1, (set.durationMinutes ?? 1) - 1) } : { reps: Math.max(1, (set.reps ?? 1) - 1) })}><Minus size={14} /></button><input aria-label={`${exercise.name} set ${setIndex + 1} ${exercise.mode === 'duration' ? 'minutes' : 'reps'}`} type="number" value={exercise.mode === 'duration' ? set.durationMinutes : set.reps} onChange={(event) => updateSet(exerciseIndex, setIndex, exercise.mode === 'duration' ? { durationMinutes: Number(event.target.value) } : { reps: Number(event.target.value) })} /><button onClick={() => updateSet(exerciseIndex, setIndex, exercise.mode === 'duration' ? { durationMinutes: (set.durationMinutes ?? 0) + 1 } : { reps: (set.reps ?? 0) + 1 })}><Plus size={14} /></button></div>
-                {exercise.mode === 'reps' ? <input className="load-input" aria-label={`${exercise.name} set ${setIndex + 1} load`} type="number" min="0" step="2.5" value={set.loadKg ?? 0} onChange={(event) => updateSet(exerciseIndex, setIndex, { loadKg: Number(event.target.value) })} /> : <span className="pace-label">Zone 2</span>}
+                <div className="stepper"><button onClick={() => updateSet(exerciseIndex, setIndex, exercise.mode === 'duration' ? { durationMinutes: Math.max(1, (set.durationMinutes ?? 1) - 1) } : { reps: Math.max(1, (set.reps ?? 1) - 1) })}><Minus size={14} /></button><input aria-label={`${exercise.name} set ${setIndex + 1} ${exercise.mode === 'duration' ? 'minutes' : 'reps'}`} type="number" min="1" step="1" value={exercise.mode === 'duration' ? set.durationMinutes : set.reps} onChange={(event) => updateSet(exerciseIndex, setIndex, exercise.mode === 'duration' ? { durationMinutes: event.currentTarget.valueAsNumber } : { reps: event.currentTarget.valueAsNumber })} /><button onClick={() => updateSet(exerciseIndex, setIndex, exercise.mode === 'duration' ? { durationMinutes: (set.durationMinutes ?? 0) + 1 } : { reps: (set.reps ?? 0) + 1 })}><Plus size={14} /></button></div>
+                {exercise.mode === 'reps' ? <input className="load-input" aria-label={`${exercise.name} set ${setIndex + 1} load`} type="number" min="0" step="2.5" value={set.loadKg ?? 0} onChange={(event) => updateSet(exerciseIndex, setIndex, { loadKg: event.currentTarget.valueAsNumber })} /> : <span className="pace-label">Zone 2</span>}
                 <button className="set-check" onClick={() => toggleSet(exerciseIndex, setIndex)} aria-label={`Mark ${exercise.name} set ${setIndex + 1} ${set.completedAt ? 'incomplete' : 'complete'}`}><Check size={17} /></button>
               </div>)}
               <div className="set-count-actions" aria-label={`Adjust sets for ${exercise.name}`}>
