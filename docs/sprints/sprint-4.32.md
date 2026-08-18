@@ -1,39 +1,34 @@
-# Sprint 4.32 — Consistent Exercise Form Visuals
+# Sprint 4.32 — Consistent AI Character Form Guides
 
 ## Goal
 
-Make every form guide feel like one trustworthy Forge system instead of a collection of unrelated pictures.
+Make every form guide feel like one trustworthy Forge system while preserving the photorealistic AI-generated characters established for the product.
 
 ## Delivered
 
-- one reusable Forge motion renderer across every covered exercise
-- exercise-specific start and finish poses for:
-  - barbell bench press
-  - controlled box squat
-  - dead bug
-  - dumbbell overhead press
-  - chest-supported dumbbell row
-  - barbell hip thrust
-- consistent character anatomy, line weight, equipment color, muscle highlighting, framing, background, and typography
-- a recommended camera angle labeled on every guide
-- consistent start/finish phase language
-- shared play, pause, restart, and slow-speed controls
-- consistent primary and secondary muscle legends
-- removal of mixed raster/SVG thumbnails from the movement library
-- a standardized Forge motion preview treatment in the library
-- automated enforcement that every covered guide has a unique motion scene
+- retained the original AI character guides for barbell bench press, controlled box squat, and dead bug
+- added matching AI character guides for dumbbell overhead press, chest-supported dumbbell row, and barbell hip thrust
+- the same premium dark home-gym setting across the complete guide set
+- consistent two-panel start/finish compositions with a vertical divider
+- consistent character identity, clothing continuity, camera position, lighting, framing, and equipment treatment within each exercise
+- realistic male and female AI-generated fitness characters
+- restored AI character previews throughout the Movement Library
+- removed stick-figure rendering from the active form-guide experience
+- retained written setup, movement, tempo, breathing, self-check, mistake, and safety guidance
+- automated enforcement that every covered guide uses a distinct WebP character asset
 
 ## Product boundary
 
-These visuals teach observable setup, path, tempo, and end position. They are reference animations rather than personalized biomechanics, diagnosis, or proof that a user’s form is safe.
+The character images teach observable setup and finishing positions. They are reference visuals rather than diagnosis, personalized biomechanics, or proof that a user’s form is safe.
 
-Male and female character variants remain scheduled as the next character-system layer. They will share these same motion definitions so sex selection cannot create inconsistent exercise mechanics or artwork.
+The future male/female preference will select a complete matching character set. Both variants must use the same exercise mechanics, framing specification, and acceptance review so the two libraries cannot drift apart.
 
 ## Acceptance
 
-- no covered form guide falls back to the old mixed image styles
-- every exercise has its own motion identifier and pose sequence
-- muscle colors and controls mean the same thing throughout the library
-- reduced-motion preferences continue to show a stable reference pose
+- all six covered exercises display AI-generated characters
+- no active guide falls back to SVG or stick-figure artwork
+- each exercise has a distinct two-position WebP asset
+- start and finish positions use the same character and environment within an exercise
+- the dark Forge gym aesthetic remains consistent across exercises
 - viewing a guide does not change the assigned workout
 - lint, typecheck, tests, production build, security checks, infrastructure compilation, and container builds pass
