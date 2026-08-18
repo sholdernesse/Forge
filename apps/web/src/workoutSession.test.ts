@@ -147,8 +147,10 @@ describe('workout session', () => {
   });
 
   it('bounds post-workout feedback without requiring a note', () => {
+    expect(isWorkoutFeedback({ perceivedExertion: 7, discomfort: 'mild', movementQuality: 'controlled' })).toBe(true);
     expect(isWorkoutFeedback({ perceivedExertion: 7, discomfort: 'mild' })).toBe(true);
     expect(isWorkoutFeedback({ perceivedExertion: 7.5, discomfort: 'mild' })).toBe(false);
     expect(isWorkoutFeedback({ perceivedExertion: 7, discomfort: 'injured' })).toBe(false);
+    expect(isWorkoutFeedback({ perceivedExertion: 7, discomfort: 'none', movementQuality: 'perfect' })).toBe(false);
   });
 });
