@@ -10,6 +10,8 @@ export interface TrainingHistoryEntry {
   muscleLabel: string;
   effortLabel?: string;
   discomfortLabel?: string;
+  movementQualityLabel?: string;
+  movementQuality?: TrainingSessionRecord['movementQuality'];
   tone: 'complete' | 'caution' | 'stopped';
   feedbackNote?: string;
   exercises: Array<{ id: string; name: string; completionLabel: string }>;
@@ -54,7 +56,11 @@ export function trainingHistoryEntries(records: TrainingSessionRecord[], limit =
         muscleLabel: muscles.length ? muscles.slice(0, 3).map(([muscle]) => muscleNames[muscle]).join(' · ') : 'Recovery work',
         ...(record.perceivedExertion ? { effortLabel: `Effort ${record.perceivedExertion}/10` } : {}),
         ...(record.discomfort && record.discomfort !== 'none' ? { discomfortLabel: record.discomfort === 'stopped' ? 'Stopped for discomfort' : 'Mild discomfort' } : {}),
-        tone: record.discomfort === 'stopped' ? 'stopped' : record.discomfort === 'mild' ? 'caution' : 'complete',
+        ...(record.movementQuality ? {
+          movementQuality: record.movementQuality,
+          movementQualityLabel: record.movementQuality === 'controlled' ? 'Controlled movement' : record.movementQuality === 'mixed' ? 'Mixed movement quality' : 'Form broke down',
+        } : {}),
+        tone: record.discomfort === 'stopped' || record.movementQuality === 'breakdown' ? 'stopped' : record.discomfort === 'mild' || record.movementQuality === 'mixed' ? 'caution' : 'complete',
         ...(record.feedbackNote ? { feedbackNote: record.feedbackNote } : {}),
         exercises: record.exerciseSummaries?.map((exercise) => ({ id: exercise.exerciseId, name: exercise.name, completionLabel: `${exercise.completedSets} of ${exercise.totalSets} sets` })) ?? [],
         muscleBreakdown: muscles.map(([muscle, sets]) => `${muscleNames[muscle]} ${sets}`),
