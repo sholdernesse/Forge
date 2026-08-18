@@ -4,7 +4,7 @@
 - `decisions/` — architecture decision records
 - `sprints/` — sprint scope and acceptance notes
 
-Current delivery: [Sprint 4.36 — Movement Quality Comparison](./sprints/sprint-4.36.md).
+Current delivery: [Sprint 4.37 — Explainable Comparison Coaching](./sprints/sprint-4.37.md).
 
 Deployment: [Microsoft Entra External ID for Forge](./deployment/entra-external-id.md).
 
