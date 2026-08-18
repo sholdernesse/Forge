@@ -1,3 +1,5 @@
+import type { ExerciseMotionId } from './ExerciseMotion.js';
+
 export interface ExerciseGuide {
   exerciseId: string;
   title: string;
@@ -9,7 +11,7 @@ export interface ExerciseGuide {
   selfChecks: string[];
   tempo: string;
   breathing: string;
-  motionId?: 'dumbbell-overhead-press';
+  motionId: ExerciseMotionId;
   primaryMuscles: string[];
   secondaryMuscles: string[];
   safetyNote: string;
@@ -18,6 +20,7 @@ export interface ExerciseGuide {
 const guides: ExerciseGuide[] = [
   {
     exerciseId: 'barbell-bench',
+    motionId: 'barbell-bench',
     title: 'Barbell bench press',
     imageSrc: '/exercises/barbell-bench-guide.webp',
     imageAlt: 'Barbell bench press shown at the top and controlled bottom positions.',
@@ -33,6 +36,7 @@ const guides: ExerciseGuide[] = [
   },
   {
     exerciseId: 'box-squat',
+    motionId: 'box-squat',
     title: 'Controlled box squat',
     imageSrc: '/exercises/box-squat-guide.webp',
     imageAlt: 'Barbell box squat shown standing and at a controlled touch to the box.',
@@ -48,6 +52,7 @@ const guides: ExerciseGuide[] = [
   },
   {
     exerciseId: 'dead-bugs',
+    motionId: 'dead-bugs',
     title: 'Dead bug',
     imageSrc: '/exercises/dead-bug-guide.webp',
     imageAlt: 'Dead bug shown in the starting position and with opposite arm and leg extended.',
@@ -79,6 +84,7 @@ const guides: ExerciseGuide[] = [
   },
   {
     exerciseId: 'chest-supported-row',
+    motionId: 'chest-supported-row',
     title: 'Chest-supported dumbbell row',
     imageSrc: '/exercises/chest-supported-row-guide.svg',
     imageAlt: 'Chest-supported dumbbell row shown with arms extended and elbows pulled beside the torso.',
@@ -94,6 +100,7 @@ const guides: ExerciseGuide[] = [
   },
   {
     exerciseId: 'hip-thrust',
+    motionId: 'hip-thrust',
     title: 'Barbell hip thrust',
     imageSrc: '/exercises/hip-thrust-guide.svg',
     imageAlt: 'Hip thrust shown in the lowered position and at a controlled shoulder-to-knee lockout.',
