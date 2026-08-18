@@ -4,7 +4,7 @@ import { ExerciseGuide } from './ExerciseGuide.js';
 import { exerciseGuides, type ExerciseGuide as ExerciseGuideModel } from './exerciseGuides.js';
 import { useAccessibleDialog } from './useAccessibleDialog.js';
 
-type LibraryFilter = 'all' | 'animated';
+type LibraryFilter = 'all' | 'ai-character';
 
 interface MovementLibraryProps {
   onClose(): void;
@@ -18,7 +18,7 @@ export function MovementLibrary({ onClose }: MovementLibraryProps) {
   const guides = useMemo(() => {
     const normalized = query.trim().toLowerCase();
     return exerciseGuides().filter((guide) => {
-      if (filter === 'animated' && !guide.motionId) return false;
+      if (filter === 'ai-character' && !guide.imageSrc.endsWith('.webp')) return false;
       return !normalized || [
         guide.title,
         ...guide.primaryMuscles,
@@ -38,7 +38,7 @@ export function MovementLibrary({ onClose }: MovementLibraryProps) {
           <label><Search size={16} /><span className="sr-only">Search movements or muscles</span><input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search movement or muscle" /></label>
           <div role="group" aria-label="Movement guide filter">
             <button className={filter === 'all' ? 'active' : ''} aria-pressed={filter === 'all'} onClick={() => setFilter('all')}>All guides</button>
-            <button className={filter === 'animated' ? 'active' : ''} aria-pressed={filter === 'animated'} onClick={() => setFilter('animated')}><Sparkles size={14} /> Animated</button>
+            <button className={filter === 'ai-character' ? 'active' : ''} aria-pressed={filter === 'ai-character'} onClick={() => setFilter('ai-character')}><Sparkles size={14} /> AI characters</button>
           </div>
         </div>
         <div className="movement-library-summary"><span>{guides.length} guide{guides.length === 1 ? '' : 's'}</span><small>Viewing a guide never changes your program.</small></div>
