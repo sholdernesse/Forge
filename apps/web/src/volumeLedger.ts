@@ -1,4 +1,4 @@
-import { isWorkingSet, type WorkoutDiscomfort, type WorkoutSession } from './workoutSession.js';
+import { isWorkingSet, type MovementQuality, type WorkoutDiscomfort, type WorkoutSession } from './workoutSession.js';
 import type { ScheduleOverrides } from './schedulePolicy.js';
 
 export type MuscleGroup = 'chest' | 'back' | 'shoulders' | 'biceps' | 'triceps' | 'quads' | 'hamstrings' | 'glutes' | 'calves' | 'core' | 'cardio';
@@ -11,6 +11,7 @@ export interface TrainingSessionRecord {
   durationMinutes: number;
   perceivedExertion?: number;
   discomfort?: WorkoutDiscomfort;
+  movementQuality?: MovementQuality;
   feedbackNote?: string;
   exerciseSummaries?: ExerciseSessionSummary[];
 }
@@ -58,6 +59,7 @@ export function summarizeWorkout(session: WorkoutSession, durationMinutes: numbe
     ...(session.feedback ? {
       perceivedExertion: session.feedback.perceivedExertion,
       discomfort: session.feedback.discomfort,
+      ...(session.feedback.movementQuality ? { movementQuality: session.feedback.movementQuality } : {}),
       ...(session.feedback.note ? { feedbackNote: session.feedback.note } : {}),
     } : {}),
     exerciseSummaries: session.exercises.map((exercise) => ({
@@ -82,6 +84,7 @@ export function isTrainingSessionRecord(value: unknown): value is TrainingSessio
   if (!Object.entries(record.muscleSets).every(([muscle, sets]) => muscleGroups.includes(muscle as MuscleGroup) && typeof sets === 'number' && Number.isInteger(sets) && sets >= 0 && sets <= 100)) return false;
   if (record.perceivedExertion !== undefined && (!Number.isInteger(record.perceivedExertion) || record.perceivedExertion < 1 || record.perceivedExertion > 10)) return false;
   if (record.discomfort !== undefined && !['none', 'mild', 'stopped'].includes(record.discomfort)) return false;
+  if (record.movementQuality !== undefined && !['controlled', 'mixed', 'breakdown'].includes(record.movementQuality)) return false;
   if (record.feedbackNote !== undefined && (typeof record.feedbackNote !== 'string' || record.feedbackNote.length > 240)) return false;
   return record.exerciseSummaries === undefined || (Array.isArray(record.exerciseSummaries) && record.exerciseSummaries.length <= 30 && record.exerciseSummaries.every((summary) => summary
     && typeof summary.exerciseId === 'string' && summary.exerciseId.length > 0 && summary.exerciseId.length <= 200
