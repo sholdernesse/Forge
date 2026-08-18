@@ -1,5 +1,3 @@
-import type { ExerciseMotionId } from './ExerciseMotion.js';
-
 export interface ExerciseGuide {
   exerciseId: string;
   title: string;
@@ -11,7 +9,6 @@ export interface ExerciseGuide {
   selfChecks: string[];
   tempo: string;
   breathing: string;
-  motionId: ExerciseMotionId;
   primaryMuscles: string[];
   secondaryMuscles: string[];
   safetyNote: string;
@@ -20,7 +17,6 @@ export interface ExerciseGuide {
 const guides: ExerciseGuide[] = [
   {
     exerciseId: 'barbell-bench',
-    motionId: 'barbell-bench',
     title: 'Barbell bench press',
     imageSrc: '/exercises/barbell-bench-guide.webp',
     imageAlt: 'Barbell bench press shown at the top and controlled bottom positions.',
@@ -36,7 +32,6 @@ const guides: ExerciseGuide[] = [
   },
   {
     exerciseId: 'box-squat',
-    motionId: 'box-squat',
     title: 'Controlled box squat',
     imageSrc: '/exercises/box-squat-guide.webp',
     imageAlt: 'Barbell box squat shown standing and at a controlled touch to the box.',
@@ -52,7 +47,6 @@ const guides: ExerciseGuide[] = [
   },
   {
     exerciseId: 'dead-bugs',
-    motionId: 'dead-bugs',
     title: 'Dead bug',
     imageSrc: '/exercises/dead-bug-guide.webp',
     imageAlt: 'Dead bug shown in the starting position and with opposite arm and leg extended.',
@@ -77,14 +71,12 @@ const guides: ExerciseGuide[] = [
     selfChecks: ['From the side, the weights finish above the shoulders rather than in front of the face.', 'From the front, wrists remain stacked above elbows through the lower half.', 'Your rib position and torso angle look the same on the first and last repetition.'],
     tempo: 'Press smoothly for about 1–2 seconds and lower for about 2 seconds.',
     breathing: 'Brace before pressing; exhale through the effort while keeping the ribs stacked, then inhale as you reset.',
-    motionId: 'dumbbell-overhead-press',
     primaryMuscles: ['Deltoids'],
     secondaryMuscles: ['Triceps', 'upper chest'],
     safetyNote: 'Use a load you can press without leaning back. Stop if you feel sharp shoulder, neck, elbow, or back pain.',
   },
   {
     exerciseId: 'chest-supported-row',
-    motionId: 'chest-supported-row',
     title: 'Chest-supported dumbbell row',
     imageSrc: '/exercises/chest-supported-row-guide-v2.webp',
     imageAlt: 'Chest-supported dumbbell row shown with arms extended and elbows pulled beside the torso.',
@@ -100,7 +92,6 @@ const guides: ExerciseGuide[] = [
   },
   {
     exerciseId: 'hip-thrust',
-    motionId: 'hip-thrust',
     title: 'Barbell hip thrust',
     imageSrc: '/exercises/hip-thrust-guide-v2.webp',
     imageAlt: 'Hip thrust shown in the lowered position and at a controlled shoulder-to-knee lockout.',
