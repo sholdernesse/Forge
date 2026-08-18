@@ -1,10 +1,12 @@
 export type ExerciseMode = 'duration' | 'reps';
 export type WorkoutStatus = 'not-started' | 'in-progress' | 'completed';
 export type WorkoutDiscomfort = 'none' | 'mild' | 'stopped';
+export type MovementQuality = 'controlled' | 'mixed' | 'breakdown';
 
 export interface WorkoutFeedback {
   perceivedExertion: number;
   discomfort: WorkoutDiscomfort;
+  movementQuality?: MovementQuality;
   note?: string;
 }
 
@@ -63,6 +65,7 @@ export function isWorkoutFeedback(value: unknown): value is WorkoutFeedback {
     && feedback.perceivedExertion >= 1
     && feedback.perceivedExertion <= 10
     && ['none', 'mild', 'stopped'].includes(feedback.discomfort ?? '')
+    && (feedback.movementQuality === undefined || ['controlled', 'mixed', 'breakdown'].includes(feedback.movementQuality))
     && (feedback.note === undefined || (typeof feedback.note === 'string' && feedback.note.length <= 240));
 }
 
