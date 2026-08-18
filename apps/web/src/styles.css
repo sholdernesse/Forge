@@ -651,3 +651,30 @@ h1 { font-size: clamp(28px, 3vw, 40px); letter-spacing: -.04em; margin-top: 5px;
 }
 .training-comparison-story.caution > div { color: #ffb36c; }
 .training-comparison-story.neutral { border-color: rgba(120, 149, 138, 0.28); }
+
+
+/* Sprint 4.38: carry the last workout lesson into today's session */
+.workout-carry-forward {
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  gap: 0.65rem;
+  align-items: start;
+  margin: 0 20px 12px;
+  border: 1px solid rgba(131, 248, 170, 0.22);
+  border-radius: 0.75rem;
+  background: rgba(16, 37, 30, 0.72);
+  color: #83f8aa;
+  padding: 0.75rem 0.8rem;
+}
+.workout-carry-forward > svg { margin-top: 0.12rem; }
+.workout-carry-forward > span { display: grid; gap: 0.18rem; }
+.workout-carry-forward small { color: #6f8d81; font-size: 0.62rem; font-weight: 900; letter-spacing: 0.08em; }
+.workout-carry-forward b { color: #dbeee3; font-size: 0.78rem; }
+.workout-carry-forward em { color: #9db7ad; font-size: 0.7rem; font-style: normal; line-height: 1.45; }
+.workout-carry-forward.control { border-color: rgba(255, 179, 108, 0.24); color: #ffb36c; }
+.workout-carry-forward.caution {
+  border-color: rgba(255, 140, 140, 0.3);
+  background: rgba(65, 25, 25, 0.22);
+  color: #ff8c8c;
+}
+@media(max-width:600px){.workout-carry-forward{margin-inline:12px}}
