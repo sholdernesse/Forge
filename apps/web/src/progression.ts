@@ -1,4 +1,4 @@
-import { isWorkingSet, type WorkoutSession } from './workoutSession.js';
+import { isWorkingSet, type MovementQuality, type WorkoutSession } from './workoutSession.js';
 
 export interface ExercisePerformance {
   exerciseId: string;
@@ -8,6 +8,7 @@ export interface ExercisePerformance {
   loadKg: number;
   estimatedOneRepMax: number;
   isPersonalRecord?: boolean;
+  movementQuality?: MovementQuality;
 }
 
 export interface ProgressionTarget {
@@ -42,6 +43,8 @@ export function estimatedOneRepMax(loadKg: number, reps: number): number {
 export function progressionTarget(history: ExercisePerformance[], exerciseId: string): ProgressionTarget | undefined {
   const latest = history.filter((entry) => entry.exerciseId === exerciseId).sort((a, b) => b.date.localeCompare(a.date))[0];
   if (!latest) return undefined;
+  if (latest.movementQuality === 'mixed') return { reps: latest.reps, loadKg: latest.loadKg, reason: 'Repeat this target until range and tempo stay controlled.' };
+  if (latest.movementQuality === 'breakdown') return { reps: latest.reps, loadKg: latest.loadKg, reason: 'Hold progression and rebuild repeatable technique before adding work.' };
   if (latest.reps < 12) return { reps: latest.reps + 1, loadKg: latest.loadKg, reason: 'Add one clean rep before increasing load.' };
   return { reps: 8, loadKg: Math.round((latest.loadKg + 2.5) * 10) / 10, reason: 'Rep range is complete; use the smallest safe load increase.' };
 }
@@ -54,7 +57,7 @@ export function recordPerformances(session: WorkoutSession, history: ExercisePer
       if (!isWorkingSet(set) || !set.completedAt || !set.reps || !set.loadKg) continue;
       const oneRepMax = estimatedOneRepMax(set.loadKg, set.reps);
       const previousBest = Math.max(0, ...history.filter((entry) => entry.exerciseId === exercise.id).map((entry) => entry.estimatedOneRepMax));
-      recorded.push({ exerciseId: exercise.id, exerciseName: exercise.name, date: session.date, reps: set.reps, loadKg: set.loadKg, estimatedOneRepMax: oneRepMax, ...(oneRepMax > previousBest ? { isPersonalRecord: true } : {}) });
+      recorded.push({ exerciseId: exercise.id, exerciseName: exercise.name, date: session.date, reps: set.reps, loadKg: set.loadKg, estimatedOneRepMax: oneRepMax, ...(session.feedback?.movementQuality ? { movementQuality: session.feedback.movementQuality } : {}), ...(oneRepMax > previousBest ? { isPersonalRecord: true } : {}) });
     }
   }
   return recorded;
