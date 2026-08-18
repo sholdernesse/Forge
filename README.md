@@ -2,9 +2,9 @@
 
 Forge is an AI-powered fitness coaching platform centered on a persistent Digital Twin, explainable recommendations, and a daily coaching experience.
 
-## Sprint 4.31
+## Sprint 4.32
 
-Sprint 4.31 turns recent mind, body, and soul reflections into a clear personal story while keeping subjective wellbeing context separate from readiness and workout clearance.
+Sprint 4.32 gives every covered exercise one consistent Forge motion language, with exercise-specific animated poses, shared muscle highlighting, and the same controls and safety boundaries throughout the movement library.
 
 ```bash
 corepack enable
