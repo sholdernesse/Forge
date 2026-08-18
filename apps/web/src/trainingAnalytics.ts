@@ -13,6 +13,9 @@ export interface TrainingTrendSummary {
   averageEffort?: number;
   feedbackCoverage: number;
   discomfortSessions: number;
+  qualityCoverage: number;
+  controlledQualityPct?: number;
+  progressionHoldSessions: number;
   activeWeeks: number;
   weeks: TrainingWeekSummary[];
 }
@@ -43,12 +46,17 @@ export function trainingTrendSummary(records: TrainingSessionRecord[], asOfDate:
     return time >= windowStart && time <= anchor.getTime();
   });
   const efforts = recent.map((record) => record.perceivedExertion).filter((value): value is number => value !== undefined);
+  const qualityRated = recent.filter((record) => record.movementQuality !== undefined);
+  const controlled = qualityRated.filter((record) => record.movementQuality === 'controlled').length;
   return {
     sessions: recent.length,
     minutes: recent.reduce((total, record) => total + record.durationMinutes, 0),
     ...(efforts.length ? { averageEffort: Math.round(efforts.reduce((total, value) => total + value, 0) / efforts.length * 10) / 10 } : {}),
     feedbackCoverage: recent.length ? Math.round(efforts.length / recent.length * 100) : 0,
     discomfortSessions: recent.filter((record) => record.discomfort === 'mild' || record.discomfort === 'stopped').length,
+    qualityCoverage: recent.length ? Math.round(qualityRated.length / recent.length * 100) : 0,
+    ...(qualityRated.length ? { controlledQualityPct: Math.round(controlled / qualityRated.length * 100) } : {}),
+    progressionHoldSessions: qualityRated.length - controlled,
     activeWeeks: weeks.filter((week) => week.sessions > 0).length,
     weeks,
   };
