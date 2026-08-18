@@ -4,7 +4,7 @@
 - `decisions/` — architecture decision records
 - `sprints/` — sprint scope and acceptance notes
 
-Current delivery: [Sprint 4.30 — Evening Mind, Body, Soul Reflection](./sprints/sprint-4.30.md).
+Current delivery: [Sprint 4.31 — Reflection History Story](./sprints/sprint-4.31.md).
 
 Deployment: [Microsoft Entra External ID for Forge](./deployment/entra-external-id.md).
 
