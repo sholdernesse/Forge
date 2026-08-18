@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import type { DailySnapshot } from '@forge/digital-twin';
 import { reflectionTrend } from './reflectionHistory.js';
 
 describe('reflection history', () => {
@@ -23,7 +24,7 @@ describe('reflection history', () => {
   });
 
   it('bounds the view and rejects invalid limits', () => {
-    const history = Array.from({ length: 9 }, (_, index) => ({
+    const history: DailySnapshot[] = Array.from({ length: 9 }, (_, index) => ({
       date: `2026-08-${String(index + 1).padStart(2, '0')}`,
       mindScore: 5,
       bodyScore: 5,
