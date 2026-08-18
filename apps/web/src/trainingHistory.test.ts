@@ -11,6 +11,18 @@ describe('training history timeline', () => {
     expect(entries[0]!.muscleLabel).toBe('Chest · Back · Triceps');
   });
 
+  it('projects movement quality with a tone that makes progression holds visible', () => {
+    expect(trainingHistoryEntries([{ workoutId: 'mixed', date: '2026-08-12', title: 'Upper', durationMinutes: 40, muscleSets: { shoulders: 6 }, movementQuality: 'mixed' }])[0]).toMatchObject({
+      movementQuality: 'mixed',
+      movementQualityLabel: 'Mixed movement quality',
+      tone: 'caution',
+    });
+    expect(trainingHistoryEntries([{ workoutId: 'breakdown', date: '2026-08-12', title: 'Upper', durationMinutes: 40, muscleSets: { shoulders: 6 }, movementQuality: 'breakdown' }])[0]).toMatchObject({
+      movementQualityLabel: 'Form broke down',
+      tone: 'stopped',
+    });
+  });
+
   it('bounds the timeline and labels sessions without hard sets as recovery work', () => {
     const records = Array.from({ length: 8 }, (_, index) => ({ workoutId: `${index}`, date: `2026-08-${String(index + 1).padStart(2, '0')}`, title: 'Recovery', durationMinutes: 20, muscleSets: {} }));
     const entries = trainingHistoryEntries(records, 3);
