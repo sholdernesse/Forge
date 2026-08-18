@@ -5,12 +5,12 @@ describe('training trend summary', () => {
   it('builds four Monday-aligned weeks without including future sessions', () => {
     const summary = trainingTrendSummary([
       { workoutId: 'old', date: '2026-07-21', title: 'Old', durationMinutes: 30, muscleSets: {} },
-      { workoutId: 'one', date: '2026-08-03', title: 'One', durationMinutes: 40, muscleSets: {}, perceivedExertion: 7 },
-      { workoutId: 'two', date: '2026-08-11', title: 'Two', durationMinutes: 50, muscleSets: {}, perceivedExertion: 9, discomfort: 'mild' },
+      { workoutId: 'one', date: '2026-08-03', title: 'One', durationMinutes: 40, muscleSets: {}, perceivedExertion: 7, movementQuality: 'controlled' },
+      { workoutId: 'two', date: '2026-08-11', title: 'Two', durationMinutes: 50, muscleSets: {}, perceivedExertion: 9, discomfort: 'mild', movementQuality: 'mixed' },
       { workoutId: 'future', date: '2026-08-13', title: 'Future', durationMinutes: 60, muscleSets: {} },
     ], '2026-08-12');
     expect(summary.weeks.map((week) => week.startDate)).toEqual(['2026-07-20', '2026-07-27', '2026-08-03', '2026-08-10']);
-    expect(summary).toMatchObject({ sessions: 3, minutes: 120, averageEffort: 8, feedbackCoverage: 67, discomfortSessions: 1, activeWeeks: 3 });
+    expect(summary).toMatchObject({ sessions: 3, minutes: 120, averageEffort: 8, feedbackCoverage: 67, discomfortSessions: 1, qualityCoverage: 67, controlledQualityPct: 50, progressionHoldSessions: 1, activeWeeks: 3 });
   });
 
   it('distinguishes missing feedback from low effort', () => {
