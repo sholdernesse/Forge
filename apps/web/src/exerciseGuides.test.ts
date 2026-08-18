@@ -23,9 +23,9 @@ describe('exercise guides', () => {
     expect(new Set(guides.map((guide) => guide.imageSrc)).size).toBe(guides.length);
   });
 
-  it('launches motion with explicit muscle intent on the overhead press pilot', () => {
+  it('keeps explicit muscle intent on the overhead press character guide', () => {
     const guide = exerciseGuide('dumbbell-overhead-press')!;
-    expect(guide.motionId).toBe('dumbbell-overhead-press');
+    expect(guide.imageSrc).toBe('/exercises/dumbbell-overhead-press-guide-v2.webp');
     expect(guide.primaryMuscles).toEqual(['Deltoids']);
     expect(guide.secondaryMuscles).toEqual(expect.arrayContaining(['Triceps', 'upper chest']));
   });
