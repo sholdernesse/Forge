@@ -13,13 +13,25 @@ describe('progression intelligence', () => {
     expect(progressionTarget(history, 'dead-bugs')).toMatchObject({ reps: 8, loadKg: 7.5 });
   });
 
+  it('holds progression when the latest movement quality was not controlled', () => {
+    const mixed = [...history, { ...history.at(-1)!, date: '2026-08-09', movementQuality: 'mixed' as const }];
+    expect(progressionTarget(mixed, 'dead-bugs')).toEqual({
+      reps: 12,
+      loadKg: 5,
+      reason: 'Repeat this target until range and tempo stay controlled.',
+    });
+    const breakdown = [...history, { ...history.at(-1)!, date: '2026-08-09', movementQuality: 'breakdown' as const }];
+    expect(progressionTarget(breakdown, 'dead-bugs')?.reason).toMatch(/Hold progression/);
+  });
+
   it('detects a personal record from a completed set', () => {
     const session = createTodayWorkout('2026-08-12');
     const set = session.exercises[2]!.sets[0]!;
     set.loadKg = 7.5;
     set.reps = 10;
     set.completedAt = '2026-08-12T12:00:00.000Z';
-    expect(recordPerformances(session, history)[0]).toMatchObject({ isPersonalRecord: true });
+    session.feedback = { perceivedExertion: 8, discomfort: 'none', movementQuality: 'controlled' };
+    expect(recordPerformances(session, history)[0]).toMatchObject({ isPersonalRecord: true, movementQuality: 'controlled' });
   });
 
   it('does not turn warm-up sets into strength records or personal bests', () => {
