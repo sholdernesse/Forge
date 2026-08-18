@@ -435,3 +435,59 @@ h1 { font-size: clamp(28px, 3vw, 40px); letter-spacing: -.04em; margin-top: 5px;
   .reflection-chart { gap: 0.3rem; }
   .reflection-chart small { font-size: 0.6rem; }
 }
+
+
+/* Sprint 4.32: one Forge visual language for every movement guide */
+.motion-limb,.motion-weight,.motion-equipment {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.motion-limb { stroke: #83f8aa; stroke-width: 11; }
+.motion-weight { stroke: #ffb36c; stroke-width: 8; }
+.motion-equipment { stroke: #527c68; stroke-width: 6; }
+.motion-equipment-fill { fill: #18352b; stroke: #527c68; stroke-width: 3; }
+.motion-camera { fill: #607f73; font: bold 11px Arial, sans-serif; letter-spacing: .08em; }
+.forge-character .motion-head { fill: #10251e; }
+.forge-character .motion-start-frame,
+.forge-character .motion-finish-frame { stroke: none; }
+.forge-character .motion-body { stroke: #83f8aa; }
+.motion-library-visual img { display: none; }
+.movement-library-visual.standardized {
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 50% 38%, #173d2d 0, #07130f 65%);
+}
+.movement-library-figure {
+  position: relative;
+  width: 42px;
+  height: 64px;
+}
+.movement-library-figure i {
+  position: absolute;
+  display: block;
+  background: #83f8aa;
+  border-radius: 99px;
+}
+.movement-library-figure i:nth-child(1) {
+  top: 2px;
+  left: 15px;
+  width: 13px;
+  height: 13px;
+  border: 3px solid #83f8aa;
+  background: #10251e;
+  border-radius: 50%;
+}
+.movement-library-figure i:nth-child(2) {
+  top: 20px;
+  left: 19px;
+  width: 5px;
+  height: 28px;
+}
+.movement-library-figure i:nth-child(3) {
+  top: 27px;
+  left: 4px;
+  width: 34px;
+  height: 5px;
+  box-shadow: 7px 24px 0 -1px #83f8aa, -7px 24px 0 -1px #83f8aa;
+}
