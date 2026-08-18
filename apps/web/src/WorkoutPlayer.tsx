@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Check, ChevronDown, Clock3, Eye, Minus, Plus, Repeat2, Sparkles, Trophy, X } from 'lucide-react';
+import { Check, ChevronDown, Clock3, Eye, Minus, Plus, Repeat2, Sparkles, Target, Trophy, X } from 'lucide-react';
 import {
   addWarmupSet,
   addWorkoutSet,
@@ -26,6 +26,7 @@ import { useAccessibleDialog } from './useAccessibleDialog.js';
 import { exerciseGuide, type ExerciseGuide as ExerciseGuideModel } from './exerciseGuides.js';
 import { ExerciseGuide } from './ExerciseGuide.js';
 import { applyExerciseSubstitution, exerciseSubstitutions } from './exerciseSubstitutions.js';
+import type { WorkoutCarryForward } from './workoutFocus.js';
 
 interface WorkoutPlayerProps {
   session: WorkoutSession;
@@ -33,9 +34,10 @@ interface WorkoutPlayerProps {
   onClose(): void;
   onFinish(feedback: WorkoutFeedback): void;
   exerciseHistory: ExercisePerformance[];
+  carryForward?: WorkoutCarryForward;
 }
 
-export function WorkoutPlayer({ session, onChange, onClose, onFinish, exerciseHistory }: WorkoutPlayerProps) {
+export function WorkoutPlayer({ session, onChange, onClose, onFinish, exerciseHistory, carryForward }: WorkoutPlayerProps) {
   const firstIncomplete = session.exercises.findIndex((exercise) => exercise.sets.some((set) => !set.completedAt));
   const [activeExercise, setActiveExercise] = useState(Math.max(0, firstIncomplete));
   const [clock, setClock] = useState(() => Date.now());
@@ -103,6 +105,8 @@ export function WorkoutPlayer({ session, onChange, onClose, onFinish, exerciseHi
 
       <div className="workout-progress"><span style={{ width: `${progress}%` }} /></div>
       <div className="workout-progress-label"><span>{completed} of {total} sets complete</span><strong>{progress}%</strong></div>
+
+      {carryForward && <section className={`workout-carry-forward ${carryForward.tone}`} aria-label="Focus carried forward from your last matching workout"><Target size={18} /><span><small>FROM {new Date(`${carryForward.sourceDate}T12:00:00Z`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })}</small><b>{carryForward.headline}</b><em>{carryForward.action}</em></span></section>}
 
       {restRemaining > 0 && <div className="rest-timer"><Clock3 size={18} /><span><b>Rest</b><small>Next set when ready</small></span><strong role="timer" aria-live="polite">{Math.floor(restRemaining / 60)}:{String(restRemaining % 60).padStart(2, '0')}</strong><div className="rest-actions"><button onClick={() => onChange(adjustWorkoutRest(session, -15))} aria-label="Reduce rest by 15 seconds">−15s</button><button onClick={() => onChange(adjustWorkoutRest(session, 15))} aria-label="Add 15 seconds to rest">+15s</button><button onClick={() => onChange(clearWorkoutRest(session))}>Skip</button></div></div>}
 
