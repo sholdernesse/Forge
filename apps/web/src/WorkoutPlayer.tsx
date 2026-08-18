@@ -131,7 +131,18 @@ export function WorkoutPlayer({ session, onChange, onClose, onFinish, exerciseHi
             </button>
             {expanded && <div className="set-table">
               {exercise.substitutedFromName && <div className="substitution-origin"><Repeat2 size={15} />Swapped from {exercise.substitutedFromName}</div>}
-              {guide && <button className="watch-form" onClick={() => setActiveGuide(guide)}><Eye size={17} /><span><b>Watch form</b><small>See setup, movement, and common mistakes</small></span></button>}
+              {guide && <>
+                <button className="watch-form" onClick={() => setActiveGuide(guide)}><Eye size={17} /><span><b>Watch AI character form guide</b><small>Compare setup and finishing position before the set</small></span></button>
+                <section className="movement-standard" aria-label={`${exercise.name} movement standard`}>
+                  <header><span><Repeat2 size={15} />MOVEMENT STANDARD</span><b>{guide.tempo}</b></header>
+                  <div>
+                    <span><small>1 · START</small><b>{guide.setup[0]}</b></span>
+                    <span><small>2 · MOVE</small><b>{guide.movement[0]}</b></span>
+                    <span><small>3 · CONTROL</small><b>{guide.selfChecks[2]}</b></span>
+                  </div>
+                  <p>Use the full comfortable range you can control. Quality stays ahead of load.</p>
+                </section>
+              </>}
               {alternatives.length > 0 && <>
                 <button
                   className="swap-exercise"
