@@ -25,7 +25,7 @@ describe('reflection history', () => {
 
   it('bounds the view and rejects invalid limits', () => {
     const history: DailySnapshot[] = Array.from({ length: 9 }, (_, index) => ({
-      date: `2026-08-${String(index + 1).padStart(2, '0')}`,
+      date: `2026-08-${String(index + 1).padStart(2, '0')}` as DailySnapshot['date'],
       mindScore: 5,
       bodyScore: 5,
       soulScore: 5,
