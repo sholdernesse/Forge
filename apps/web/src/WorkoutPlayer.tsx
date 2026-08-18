@@ -15,6 +15,7 @@ import {
   removeLastWorkoutSet,
   totalSetCount,
   workoutRestSecondsRemaining,
+  type MovementQuality,
   type WorkoutDiscomfort,
   type WorkoutFeedback,
   type WorkoutSession,
@@ -43,6 +44,7 @@ export function WorkoutPlayer({ session, onChange, onClose, onFinish, exerciseHi
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [perceivedExertion, setPerceivedExertion] = useState(session.feedback?.perceivedExertion ?? 5);
   const [discomfort, setDiscomfort] = useState<WorkoutDiscomfort>(session.feedback?.discomfort ?? 'none');
+  const [movementQuality, setMovementQuality] = useState<MovementQuality>(session.feedback?.movementQuality ?? 'controlled');
   const [feedbackNote, setFeedbackNote] = useState(session.feedback?.note ?? '');
   const dialogRef = useAccessibleDialog(() => activeGuide ? setActiveGuide(null) : onClose());
   const completed = completedSetCount(session);
@@ -196,6 +198,9 @@ export function WorkoutPlayer({ session, onChange, onClose, onFinish, exerciseHi
         <h3 id="workout-feedback-title">How did that session feel?</h3>
         <p>This helps Forge compare the planned effort with what you experienced.</p>
         <label>Overall effort <output>{perceivedExertion}/10</output><input type="range" min="1" max="10" value={perceivedExertion} onChange={(event) => setPerceivedExertion(Number(event.target.value))} /></label>
+        <fieldset><legend>How consistent was your movement quality?</legend><div className="feedback-options quality-options">
+          {([['controlled', 'Controlled'], ['mixed', 'Mixed'], ['breakdown', 'Form broke down']] as const).map(([value, label]) => <button className={movementQuality === value ? 'active' : ''} type="button" aria-pressed={movementQuality === value} key={value} onClick={() => setMovementQuality(value)}>{label}</button>)}
+        </div><small className="feedback-help">{movementQuality === 'controlled' ? 'Full comfortable range and intended tempo stayed repeatable.' : movementQuality === 'mixed' ? 'Some reps shortened or sped up; Forge will hold progression.' : 'Technique changed materially; Forge will not increase the next target.'}</small></fieldset>
         <fieldset><legend>Did discomfort affect the session?</legend><div className="feedback-options">
           {([['none', 'No'], ['mild', 'A little'], ['stopped', 'I stopped']] as const).map(([value, label]) => <button className={discomfort === value ? 'active' : ''} type="button" aria-pressed={discomfort === value} key={value} onClick={() => setDiscomfort(value)}>{label}</button>)}
         </div></fieldset>
@@ -206,7 +211,7 @@ export function WorkoutPlayer({ session, onChange, onClose, onFinish, exerciseHi
       <footer className="workout-footer">
         <div><Trophy size={20} /><span><b>Finish when the work is done</b><small>Your training load will update Today.</small></span></div>
         {feedbackOpen
-          ? <div className="feedback-actions"><button className="feedback-cancel" onClick={() => setFeedbackOpen(false)}>Back</button><button onClick={() => onFinish({ perceivedExertion, discomfort, ...(feedbackNote.trim() ? { note: feedbackNote.trim() } : {}) })}>Save workout <Check size={18} /></button></div>
+          ? <div className="feedback-actions"><button className="feedback-cancel" onClick={() => setFeedbackOpen(false)}>Back</button><button onClick={() => onFinish({ perceivedExertion, discomfort, movementQuality, ...(feedbackNote.trim() ? { note: feedbackNote.trim() } : {}) })}>Save workout <Check size={18} /></button></div>
           : <button disabled={completed === 0 || session.status === 'completed'} onClick={() => setFeedbackOpen(true)}>{session.status === 'completed' ? 'Workout saved' : 'Finish workout'} <Check size={18} /></button>}
       </footer>
       {activeGuide && <ExerciseGuide guide={activeGuide} onClose={() => setActiveGuide(null)} />}
