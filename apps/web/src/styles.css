@@ -237,7 +237,7 @@ h1 { font-size: clamp(28px, 3vw, 40px); letter-spacing: -.04em; margin-top: 5px;
 .coach-orb { width: 38px; height: 38px; border-radius: 12px; background: #6effa4; color: #092016; display: grid; place-items: center; margin-bottom: 21px; box-shadow: 0 0 30px rgba(110,255,164,.18); }
 .coach-card h2 { margin-top: 8px; font-size: 22px; }.coach-card > p { color: #8ba59c; line-height: 1.55; font-size: 13px; max-width: 90%; }
 .coach-action { border: 1px solid #23493a; background: #0c231b; border-radius: 11px; padding: 12px; display: flex; align-items: center; gap: 10px; color: #cae4da; font-size: 12px; line-height: 1.35; }
-.coach-action button { margin-left: auto; flex: 0 0 auto; width: 30px; height: 30px; border-radius: 8px; border: 0; background: #75fba5; color: #082017; display: grid; place-items: center; }
+.coach-action button { margin-left: auto; flex: 0 0 auto; min-height: 34px; border-radius: 8px; border: 0; background: #75fba5; color: #082017; display: flex; align-items: center; justify-content: center; gap: 7px; padding: 8px 10px; font-size: 9px; font-weight: 900; white-space: nowrap; }
 .sidebar-coach { width: 100%; border: 0; background: transparent; color: #67857a; display: flex; align-items: center; gap: 13px; padding: 11px 13px; border-radius: 9px; font: inherit; cursor: pointer; }
 .sidebar-coach:hover { color: #78fba5; background: #102a21; }
 .coach-panel { position: absolute; right: 0; top: 0; bottom: 0; width: min(520px, 100%); display: flex; flex-direction: column; background: radial-gradient(circle at 85% 5%, rgba(118,251,165,.1), transparent 30%), #081914; border-left: 1px solid #23463a; box-shadow: -25px 0 70px #0008; }
@@ -678,3 +678,7 @@ h1 { font-size: clamp(28px, 3vw, 40px); letter-spacing: -.04em; margin-top: 5px;
   color: #ff8c8c;
 }
 @media(max-width:600px){.workout-carry-forward{margin-inline:12px}}
+
+
+/* Sprint 4.39: explicit primary Coach action */
+@media(max-width:600px){.coach-action{align-items:stretch;flex-direction:column}.coach-action button{width:100%;margin-left:0}}
