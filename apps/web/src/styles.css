@@ -351,3 +351,87 @@ h1 { font-size: clamp(28px, 3vw, 40px); letter-spacing: -.04em; margin-top: 5px;
 @media (max-width: 760px) {
   .reflection-button { width: 100%; justify-content: center; }
 }
+
+
+/* Sprint 4.31: reflection history story */
+.reflection-icon { color: #a78bfa; }
+.reflection-latest {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.65rem;
+  margin: 1rem 0;
+}
+.reflection-latest span {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  border: 1px solid rgba(167, 139, 250, 0.2);
+  border-radius: 0.8rem;
+  background: rgba(124, 58, 237, 0.08);
+  padding: 0.75rem;
+}
+.reflection-latest small { color: var(--muted); }
+.reflection-latest b { font-size: 1.15rem; }
+.reflection-chart {
+  display: flex;
+  align-items: end;
+  gap: 0.5rem;
+  min-height: 8rem;
+  margin: 0.75rem 0 1rem;
+}
+.reflection-chart > div {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+.reflection-chart > div > span {
+  position: relative;
+  width: 100%;
+  height: 6.5rem;
+  overflow: hidden;
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+}
+.reflection-chart i {
+  position: absolute;
+  inset: auto 0 0;
+  border-radius: 0.5rem;
+  background: linear-gradient(180deg, #a78bfa, #6d28d9);
+}
+.reflection-chart small { color: var(--muted); font-size: 0.68rem; }
+.reflection-history-panel blockquote {
+  margin: 0.8rem 0;
+  border-left: 3px solid #8b5cf6;
+  padding-left: 0.8rem;
+  color: var(--muted);
+  font-style: italic;
+}
+.reflection-boundary {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  margin-top: 0.8rem;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+.reflection-boundary svg { flex: 0 0 auto; margin-top: 0.05rem; }
+.reflection-history-action {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1rem;
+  border: 1px solid rgba(167, 139, 250, 0.32);
+  border-radius: 0.75rem;
+  background: rgba(124, 58, 237, 0.12);
+  color: #ddd6fe;
+  padding: 0.75rem 0.85rem;
+}
+@media (max-width: 520px) {
+  .reflection-latest { gap: 0.4rem; }
+  .reflection-latest span { padding: 0.6rem; }
+  .reflection-chart { gap: 0.3rem; }
+  .reflection-chart small { font-size: 0.6rem; }
+}
