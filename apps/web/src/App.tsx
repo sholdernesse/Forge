@@ -688,7 +688,7 @@ export function App() {
         </aside>
       </div>}
 
-      {workoutOpen && <WorkoutPlayer session={workout} exerciseHistory={exerciseHistory} carryForward={currentWorkoutFocus} onChange={persistWorkout} onClose={() => setWorkoutOpen(false)} onFinish={finishWorkout} />}
+      {workoutOpen && <WorkoutPlayer session={workout} exerciseHistory={exerciseHistory} {...(currentWorkoutFocus ? { carryForward: currentWorkoutFocus } : {})} onChange={persistWorkout} onClose={() => setWorkoutOpen(false)} onFinish={finishWorkout} />}
       {foodLoggerOpen && <FoodLogger date={TODAY} entries={foodEntries} favoriteFoodIds={favoriteFoodIds} savedMeals={savedMeals} onChange={updateFoodEntries} onPreferencesChange={updateFoodPreferences} onClose={() => setFoodLoggerOpen(false)} />}
       {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} onGeneratePlan={generateNewPlan} onReset={resetPrototype} />}
       {coachOpen && <CoachPanel twin={twin} messages={coachMessages} onMessagesChange={updateCoachMessages} onAction={handleCoachAction} onClose={() => setCoachOpen(false)} />}
