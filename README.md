@@ -4,7 +4,7 @@ Forge is an AI-powered fitness coaching platform centered on a persistent Digita
 
 ## Sprint 4.32
 
-Sprint 4.32 gives every covered exercise one consistent Forge motion language, with exercise-specific animated poses, shared muscle highlighting, and the same controls and safety boundaries throughout the movement library.
+Sprint 4.32 gives every covered exercise a consistent photorealistic AI-character form guide, with matching two-position compositions, premium Forge gym styling, and the same written coaching and safety boundaries throughout the movement library.
 
 ```bash
 corepack enable
