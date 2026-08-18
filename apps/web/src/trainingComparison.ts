@@ -6,6 +6,7 @@ export interface TrainingSessionComparison {
   duration: { current: number; previous: number; delta: number };
   completedSets: { current: number; previous: number; delta: number };
   effort?: { current: number; previous: number; delta: number };
+  movementQuality?: { current: NonNullable<TrainingSessionRecord['movementQuality']>; previous: NonNullable<TrainingSessionRecord['movementQuality']>; delta: number };
   exercises: Array<{ exerciseId: string; name: string; currentSets: number; previousSets: number; delta: number }>;
 }
 
@@ -13,6 +14,8 @@ export interface TrainingSessionNeighbors {
   previousWorkoutId?: string;
   nextWorkoutId?: string;
 }
+
+const qualityRank = { breakdown: 0, mixed: 1, controlled: 2 } as const;
 
 function totalSets(record: TrainingSessionRecord) {
   return Object.values(record.muscleSets).reduce((total, sets) => total + (sets ?? 0), 0);
@@ -51,6 +54,9 @@ export function compareTrainingSession(records: TrainingSessionRecord[], workout
     exercises,
     ...(current.perceivedExertion !== undefined && previous.perceivedExertion !== undefined ? {
       effort: { current: current.perceivedExertion, previous: previous.perceivedExertion, delta: current.perceivedExertion - previous.perceivedExertion },
+    } : {}),
+    ...(current.movementQuality && previous.movementQuality ? {
+      movementQuality: { current: current.movementQuality, previous: previous.movementQuality, delta: qualityRank[current.movementQuality] - qualityRank[previous.movementQuality] },
     } : {}),
   };
 }
