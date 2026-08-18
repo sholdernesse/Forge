@@ -491,3 +491,65 @@ h1 { font-size: clamp(28px, 3vw, 40px); letter-spacing: -.04em; margin-top: 5px;
   height: 5px;
   box-shadow: 7px 24px 0 -1px #83f8aa, -7px 24px 0 -1px #83f8aa;
 }
+
+
+/* Sprint 4.33: in-workout movement standards */
+.movement-standard {
+  display: grid;
+  gap: 0.7rem;
+  margin: 0.65rem 0;
+  border: 1px solid rgba(131, 248, 170, 0.2);
+  border-radius: 0.8rem;
+  background: rgba(16, 37, 30, 0.72);
+  padding: 0.8rem;
+}
+.movement-standard header {
+  display: grid;
+  gap: 0.3rem;
+}
+.movement-standard header span {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #83f8aa;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+.movement-standard header b {
+  color: #dbeee3;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+.movement-standard > div {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+.movement-standard > div span {
+  display: grid;
+  align-content: start;
+  gap: 0.25rem;
+  border-left: 2px solid #315d4c;
+  padding-left: 0.55rem;
+}
+.movement-standard > div small {
+  color: #83f8aa;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+}
+.movement-standard > div b {
+  color: #a9c0b7;
+  font-size: 0.7rem;
+  font-weight: 650;
+  line-height: 1.4;
+}
+.movement-standard p {
+  margin: 0;
+  color: #78958a;
+  font-size: 0.7rem;
+}
+@media (max-width: 600px) {
+  .movement-standard > div { grid-template-columns: 1fr; }
+}
