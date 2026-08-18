@@ -31,6 +31,7 @@ import { nextTrainingHistoryCount, TRAINING_HISTORY_PAGE_SIZE, visibleTrainingHi
 import { compareTrainingSession, trainingSessionNeighbors } from './trainingComparison.js';
 import { trainingComparisonStory } from './trainingComparisonStory.js';
 import { workoutCarryForward } from './workoutFocus.js';
+import { todayCoachAction } from './todayCoachAction.js';
 import { MovementLibrary } from './MovementLibrary.js';
 import { reflectionTrend } from './reflectionHistory.js';
 
@@ -162,6 +163,8 @@ export function App() {
   const selectedTrainingStory = selectedTrainingComparison ? trainingComparisonStory(selectedTrainingComparison) : undefined;
   const selectedTrainingNeighbors = selectedHistoryId ? trainingSessionNeighbors(sessionHistory, selectedHistoryId) : {};
   const currentWorkoutFocus = workoutCarryForward(sessionHistory, workout.title, workout.date);
+  const coachPriority = brief.recommendations[0];
+  const coachPrimaryAction = todayCoachAction(coachPriority, workout.status);
   const trainingTrend = trainingTrendSummary(sessionHistory, TODAY);
   const maxWeeklyMinutes = Math.max(1, ...trainingTrend.weeks.map((week) => week.minutes));
   const reflections = reflectionTrend(history);
@@ -544,10 +547,10 @@ export function App() {
           <article className="hero-card coach-card" id="coach">
             <div className="coach-orb"><Sparkles size={21} /></div>
             <span className="section-label">FORGE COACH</span>
-            <h2>{brief.recommendations[0]?.title ?? 'Stay the course'}</h2>
-            <p>{brief.recommendations[0]?.reason ?? 'Your recovery signals support the plan already in place.'}</p>
-            <div className="coach-action"><span>{brief.recommendations[0]?.action ?? 'Complete your planned session and keep nutrition consistent.'}</span><button onClick={() => setCoachOpen(true)} aria-label="Open AI Coach"><ArrowRight size={18} /></button></div>
-            <div className="confidence"><span>Decision confidence</span><strong>{brief.recommendations[0]?.confidence ?? 76}%</strong></div>
+            <h2>{coachPriority?.title ?? 'Stay the course'}</h2>
+            <p>{coachPriority?.reason ?? 'Your recovery signals support the plan already in place.'}</p>
+            <div className="coach-action"><span>{coachPriority?.action ?? 'Complete your planned session and keep nutrition consistent.'}</span><button onClick={() => handleCoachAction(coachPrimaryAction.action)}>{coachPrimaryAction.label}<ArrowRight size={18} /></button></div>
+            <div className="confidence"><span>Decision confidence</span><strong>{coachPriority?.confidence ?? 76}%</strong></div>
           </article>
         </section>
 
