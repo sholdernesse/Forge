@@ -11,6 +11,7 @@ function recommendation(category: Recommendation['category']): Recommendation {
     action: 'Take the next step.',
     evidence: [],
     confidence: 82,
+    createdAt: '2026-08-12T11:30:00.000Z',
   };
 }
 
