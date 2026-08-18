@@ -567,3 +567,38 @@ h1 { font-size: clamp(28px, 3vw, 40px); letter-spacing: -.04em; margin-top: 5px;
 @media (max-width: 520px) {
   .quality-options { grid-template-columns: 1fr; }
 }
+
+
+/* Sprint 4.35: movement quality history */
+.history-signals {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.3rem;
+}
+.history-signals em {
+  border-radius: 999px;
+  padding: 0.25rem 0.45rem;
+  background: rgba(131, 248, 170, 0.1);
+  color: #83f8aa;
+  font-size: 0.65rem;
+  font-style: normal;
+  font-weight: 850;
+  white-space: nowrap;
+}
+.history-signals em.mixed {
+  background: rgba(255, 179, 108, 0.12);
+  color: #ffb36c;
+}
+.history-signals em.breakdown {
+  background: rgba(255, 107, 107, 0.12);
+  color: #ff8c8c;
+}
+.training-trend-note.quality {
+  border-color: rgba(255, 179, 108, 0.28);
+  background: rgba(255, 179, 108, 0.08);
+  color: #d5a267;
+}
+@media (max-width: 720px) {
+  .history-signals { grid-column: 2 / -1; justify-content: flex-start; }
+}
