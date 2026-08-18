@@ -17,10 +17,10 @@ describe('exercise guides', () => {
     }
   });
 
-  it('uses the same Forge motion system for every covered exercise', () => {
+  it('uses the same AI-character image format for every covered exercise', () => {
     const guides = exerciseGuides();
-    expect(guides.every((guide) => Boolean(guide.motionId))).toBe(true);
-    expect(new Set(guides.map((guide) => guide.motionId))).toEqual(new Set(exerciseGuideIds()));
+    expect(guides.every((guide) => guide.imageSrc.endsWith('.webp'))).toBe(true);
+    expect(new Set(guides.map((guide) => guide.imageSrc)).size).toBe(guides.length);
   });
 
   it('launches motion with explicit muscle intent on the overhead press pilot', () => {
