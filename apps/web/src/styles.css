@@ -616,3 +616,38 @@ h1 { font-size: clamp(28px, 3vw, 40px); letter-spacing: -.04em; margin-top: 5px;
   background: rgba(255, 179, 108, 0.07);
 }
 .history-comparison > .quality-comparison.declined b { color: #ffb36c; }
+
+
+/* Sprint 4.37: explainable comparison coaching */
+.training-comparison-story {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.25rem;
+  border: 1px solid rgba(131, 248, 170, 0.2);
+  border-radius: 0.8rem;
+  background: rgba(10, 28, 22, 0.78);
+  padding: 0.85rem;
+}
+.training-comparison-story h5,
+.training-comparison-story p { margin: 0; }
+.training-comparison-story h5 { color: #dbeee3; font-size: 0.9rem; }
+.training-comparison-story p { color: #8aa99d; font-size: 0.75rem; line-height: 1.5; }
+.training-comparison-story > div {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-top: 0.15rem;
+  color: #9fe3b7;
+  font-size: 0.74rem;
+  line-height: 1.45;
+}
+.training-comparison-story > div svg { flex: 0 0 auto; margin-top: 0.12rem; }
+.training-comparison-story > div span { display: grid; gap: 0.15rem; }
+.training-comparison-story.positive { border-color: rgba(131, 248, 170, 0.34); }
+.training-comparison-story.caution {
+  border-color: rgba(255, 179, 108, 0.32);
+  background: rgba(58, 35, 18, 0.24);
+}
+.training-comparison-story.caution > div { color: #ffb36c; }
+.training-comparison-story.neutral { border-color: rgba(120, 149, 138, 0.28); }
