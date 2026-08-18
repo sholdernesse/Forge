@@ -30,6 +30,7 @@ import { filterTrainingHistory, type TrainingHistoryFilter, type TrainingHistory
 import { nextTrainingHistoryCount, TRAINING_HISTORY_PAGE_SIZE, visibleTrainingHistoryCount } from './trainingHistoryPagination.js';
 import { compareTrainingSession, trainingSessionNeighbors } from './trainingComparison.js';
 import { MovementLibrary } from './MovementLibrary.js';
+import { reflectionTrend } from './reflectionHistory.js';
 
 const TODAY = '2026-08-12' as const;
 const NOW = '2026-08-12T11:30:00.000Z';
@@ -159,6 +160,7 @@ export function App() {
   const selectedTrainingNeighbors = selectedHistoryId ? trainingSessionNeighbors(sessionHistory, selectedHistoryId) : {};
   const trainingTrend = trainingTrendSummary(sessionHistory, TODAY);
   const maxWeeklyMinutes = Math.max(1, ...trainingTrend.weeks.map((week) => week.minutes));
+  const reflections = reflectionTrend(history);
 
   useEffect(() => {
     if (auth.status === 'loading' || auth.status === 'signed-out') {
@@ -575,6 +577,24 @@ export function App() {
             <Sparkline values={weights} />
             <div className="trend-labels"><span>Aug 6</span><span>Today</span></div>
             <div className="goal-row"><Target size={18} /><span><b>Goal trajectory</b><small>On pace for gradual recomposition</small></span><strong>On track</strong></div>
+          </article>
+
+          <article className="panel reflection-history-panel">
+            <div className="panel-heading"><div><span className="section-label">WHOLE-SELF CHECK-IN</span><h3>Your recent reflection story</h3></div><HeartPulse size={22} className="reflection-icon" /></div>
+            <p className="panel-copy">{reflections.story}</p>
+            {reflections.latest ? <>
+              <div className="reflection-latest" aria-label="Latest mind body and soul scores">
+                <span><small>Mind</small><b>{reflections.latest.mindScore}/10</b></span>
+                <span><small>Body</small><b>{reflections.latest.bodyScore}/10</b></span>
+                <span><small>Soul</small><b>{reflections.latest.soulScore}/10</b></span>
+              </div>
+              <div className="reflection-chart" aria-label="Recent overall reflection scores">
+                {reflections.entries.map((entry) => <div key={entry.date} title={`Mind ${entry.mindScore}, body ${entry.bodyScore}, soul ${entry.soulScore}`}><span><i style={{ height: `${entry.averageScore * 10}%` }} /></span><small>{new Date(`${entry.date}T12:00:00Z`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })}</small></div>)}
+              </div>
+              {reflections.latest.note && <blockquote>“{reflections.latest.note}”</blockquote>}
+            </> : <div className="empty-state">Your first evening reflection will appear here.</div>}
+            <div className="reflection-boundary"><ShieldAlert size={15} /><span>This history provides context. It does not diagnose symptoms or clear a workout.</span></div>
+            <button className="reflection-history-action" onClick={openReflection}>{reflections.latest?.date === TODAY ? 'Update today’s reflection' : 'Reflect on today'} <ArrowRight size={16} /></button>
           </article>
 
           <article className="panel recommendations-panel" id="nutrition">
