@@ -4,7 +4,7 @@ import { buildDigitalTwin, type DailySnapshot, type Recommendation } from '@forg
 import {
   Activity, Apple, ArrowRight, Award, BookOpen, Brain, CalendarDays, Check, ChevronRight, CircleUserRound, Cloud, CloudOff, Dumbbell,
   Download, Flame, Footprints, Gauge, HeartPulse, Home, Moon, Plus, Settings, ShieldAlert, Sparkles,
-  Save, Target, TrendingDown, Utensils, X,
+  Repeat2, Save, Target, TrendingDown, Utensils, X,
 } from 'lucide-react';
 import { demoGoals, demoHistory, demoProfile } from './demoData.js';
 import { cacheDashboardState, clearDashboardState, dashboardStateUpdatedAt, DASHBOARD_SAVED_EVENT, loadDashboardState, saveDashboardState, type CheckIn, type CoachMessage, type DashboardSaveEventDetail } from './dashboardStorage.js';
