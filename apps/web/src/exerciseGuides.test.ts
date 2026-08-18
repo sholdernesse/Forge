@@ -17,6 +17,12 @@ describe('exercise guides', () => {
     }
   });
 
+  it('uses the same Forge motion system for every covered exercise', () => {
+    const guides = exerciseGuides();
+    expect(guides.every((guide) => Boolean(guide.motionId))).toBe(true);
+    expect(new Set(guides.map((guide) => guide.motionId))).toEqual(new Set(exerciseGuideIds()));
+  });
+
   it('launches motion with explicit muscle intent on the overhead press pilot', () => {
     const guide = exerciseGuide('dumbbell-overhead-press')!;
     expect(guide.motionId).toBe('dumbbell-overhead-press');
