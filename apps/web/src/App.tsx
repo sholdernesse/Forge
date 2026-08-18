@@ -30,6 +30,7 @@ import { filterTrainingHistory, type TrainingHistoryFilter, type TrainingHistory
 import { nextTrainingHistoryCount, TRAINING_HISTORY_PAGE_SIZE, visibleTrainingHistoryCount } from './trainingHistoryPagination.js';
 import { compareTrainingSession, trainingSessionNeighbors } from './trainingComparison.js';
 import { trainingComparisonStory } from './trainingComparisonStory.js';
+import { workoutCarryForward } from './workoutFocus.js';
 import { MovementLibrary } from './MovementLibrary.js';
 import { reflectionTrend } from './reflectionHistory.js';
 
@@ -160,6 +161,7 @@ export function App() {
   const selectedTrainingComparison = selectedHistoryId ? compareTrainingSession(sessionHistory, selectedHistoryId) : undefined;
   const selectedTrainingStory = selectedTrainingComparison ? trainingComparisonStory(selectedTrainingComparison) : undefined;
   const selectedTrainingNeighbors = selectedHistoryId ? trainingSessionNeighbors(sessionHistory, selectedHistoryId) : {};
+  const currentWorkoutFocus = workoutCarryForward(sessionHistory, workout.title, workout.date);
   const trainingTrend = trainingTrendSummary(sessionHistory, TODAY);
   const maxWeeklyMinutes = Math.max(1, ...trainingTrend.weeks.map((week) => week.minutes));
   const reflections = reflectionTrend(history);
@@ -686,7 +688,7 @@ export function App() {
         </aside>
       </div>}
 
-      {workoutOpen && <WorkoutPlayer session={workout} exerciseHistory={exerciseHistory} onChange={persistWorkout} onClose={() => setWorkoutOpen(false)} onFinish={finishWorkout} />}
+      {workoutOpen && <WorkoutPlayer session={workout} exerciseHistory={exerciseHistory} carryForward={currentWorkoutFocus} onChange={persistWorkout} onClose={() => setWorkoutOpen(false)} onFinish={finishWorkout} />}
       {foodLoggerOpen && <FoodLogger date={TODAY} entries={foodEntries} favoriteFoodIds={favoriteFoodIds} savedMeals={savedMeals} onChange={updateFoodEntries} onPreferencesChange={updateFoodPreferences} onClose={() => setFoodLoggerOpen(false)} />}
       {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} onGeneratePlan={generateNewPlan} onReset={resetPrototype} />}
       {coachOpen && <CoachPanel twin={twin} messages={coachMessages} onMessagesChange={updateCoachMessages} onAction={handleCoachAction} onClose={() => setCoachOpen(false)} />}
