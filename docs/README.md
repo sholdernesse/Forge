@@ -4,7 +4,7 @@
 - `decisions/` — architecture decision records
 - `sprints/` — sprint scope and acceptance notes
 
-Current delivery: [Sprint 4.38 — Carry-Forward Workout Focus](./sprints/sprint-4.38.md).
+Current delivery: [Sprint 4.39 — Explicit Today Coach Action](./sprints/sprint-4.39.md).
 
 Deployment: [Microsoft Entra External ID for Forge](./deployment/entra-external-id.md).
 
