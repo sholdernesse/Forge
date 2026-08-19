@@ -1,5 +1,7 @@
 # Forge Documentation
 
+Canonical plan: [Forge Product Plan](./PRODUCT-PLAN.md).
+
 - `architecture/` — system design and package boundaries
 - `decisions/` — architecture decision records
 - `sprints/` — sprint scope and acceptance notes
