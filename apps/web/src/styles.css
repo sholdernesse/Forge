@@ -685,3 +685,7 @@ h1 { font-size: clamp(28px, 3vw, 40px); letter-spacing: -.04em; margin-top: 5px;
 
 
 /* Sprint 4.40: global navigation stays limited to five primary destinations. */
+
+
+/* Sprint 4.41: do not infer movement quality from an untouched default. */
+.feedback-help.required { color: #ffb36c; }
