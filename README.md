@@ -2,6 +2,8 @@
 
 Forge is an AI-powered fitness coaching platform centered on a persistent Digital Twin, explainable recommendations, and a daily coaching experience.
 
+Review the canonical [Forge Product Plan](./docs/PRODUCT-PLAN.md) for product principles, delivered scope, release blockers, and the prioritized roadmap.
+
 ## Sprint 4.41
 
 Sprint 4.41 requires an intentional movement-quality rating after training so progression never relies on an untouched default.
