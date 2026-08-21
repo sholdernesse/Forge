@@ -8,11 +8,11 @@ export interface DailySignalDefaults {
   weightKg: number;
 }
 
-export function localDateKey(now: Date): string {
+export function localDateKey(now: Date): DailySnapshot['date'] {
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, '0');
   const day = String(now.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  return `${year}-${month}-${day}` as DailySnapshot['date'];
 }
 
 export function localDateHeading(now: Date): string {
@@ -38,7 +38,7 @@ export function userFirstName(name?: string, username?: string): string {
 
 export function withTodaySnapshot(
   history: DailySnapshot[],
-  date: string,
+  date: DailySnapshot['date'],
   defaults: DailySignalDefaults,
 ): DailySnapshot[] {
   if (history.some((day) => day.date === date)) return history;
