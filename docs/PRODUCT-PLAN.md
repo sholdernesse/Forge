@@ -2,7 +2,7 @@
 
 > **Living plan:** This is the canonical product and delivery plan for Forge. Update it whenever scope, priorities, sequencing, or release status changes. Individual sprint files remain the implementation record.
 
-**Current checkpoint:** Sprint 4.43 on PR #2  
+**Current checkpoint:** Sprint 4.44 on PR #2  
 **Product stage:** Functional responsive prototype moving toward an authenticated release candidate  
 **Last reviewed:** August 21, 2026
 
@@ -99,6 +99,7 @@ See [Sprint 4 architecture](./architecture/sprint-4.md) for package and data-flo
 - Sync, offline, and conflict states.
 - User-local calendar context, time-aware greeting, and authenticated display identity.
 - Explicit demo-versus-personal first-run boundary with empty user-owned activity collections.
+- Three-step personal plan setup that supplies validated profile, goal, schedule, equipment, constraint, and nutrition-support inputs.
 
 ### Training
 
@@ -175,11 +176,11 @@ PR #2 should deliver a coherent, testable Forge web candidate with:
 
 **Objective:** Let users establish the inputs Forge currently demonstrates.
 
-- Goal selection and prioritization.
-- Experience level and preferred coaching depth.
-- Training schedule, available time, equipment, and location.
-- Movement limitations and conservative substitution preferences.
-- Nutrition goal, dietary preferences, and logging expectations.
+- ~~Primary goal selection.~~ Delivered in Sprint 4.44; secondary-goal prioritization remains.
+- ~~Experience level.~~ Delivered in Sprint 4.44; preferred coaching depth remains.
+- ~~Training schedule, available time, equipment, and location.~~ Delivered in Sprint 4.44.
+- ~~Supported movement considerations and conservative substitutions.~~ Initial lower-back and elbow boundaries delivered in Sprint 4.44; broader preferences remain.
+- ~~Nutrition support preference.~~ Delivered in Sprint 4.44; dietary preferences and logging expectations remain.
 - Clear review of what Forge will use and what requires user approval.
 
 **Exit:** Forge can generate the first honest plan without seeded profile assumptions.
