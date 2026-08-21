@@ -11,6 +11,7 @@ import {
 import { createTodayWorkout } from './workoutSession.js';
 import { demoSessionHistory } from './volumeLedger.js';
 import { demoFoodEntries } from './foodLog.js';
+import type { OnboardingProfile } from './onboarding.js';
 
 class MemoryStorage implements DashboardStorage {
   private readonly values = new Map<string, string>();
@@ -30,6 +31,36 @@ describe('dashboard storage', () => {
     const state = { ...fallback, savedAt: '2026-08-12T12:00:00.000Z', workoutSession: createTodayWorkout('2026-08-12'), sessionHistory: demoSessionHistory, scheduleOverrides: { '2026-08-13': 'rest' as const }, foodEntries: demoFoodEntries, favoriteFoodIds: ['chicken-breast'], savedMeals: [{ id: 'lunch', name: 'Lunch', items: [{ foodId: 'chicken-breast', quantity: 1 }] }], coachMessages: [{ id: 'm1', role: 'assistant' as const, content: 'Train today.', recommendationIds: [], answerBasis: 'recommendations' as const, suggestedAction: { type: 'open-workout' as const, label: 'Open today’s workout' }, createdAt: '2026-08-12T12:01:00.000Z' }] };
     saveDashboardState(storage, state);
     expect(loadDashboardState(storage, fallback)).toEqual(state);
+  });
+
+  it('round trips a valid onboarding profile and ignores malformed setup data', () => {
+    const storage = new MemoryStorage();
+    const onboardingProfile: OnboardingProfile = {
+      version: 1,
+      completedAt: '2026-08-21T12:00:00.000Z',
+      primaryGoal: 'return-to-consistency',
+      experience: 'new',
+      weeklyTrainingDays: 3,
+      sessionMinutes: 45,
+      location: 'home',
+      equipment: ['bodyweight', 'bands'],
+      constraints: [],
+      nutritionApproach: 'simple-guidance',
+      age: 38,
+      sex: 'unspecified',
+      heightCm: 170,
+      weightKg: 72,
+    };
+    saveDashboardState(storage, { ...fallback, onboardingProfile });
+    expect(loadDashboardState(storage, fallback).onboardingProfile).toEqual(onboardingProfile);
+
+    storage.setItem(DASHBOARD_STORAGE_KEY, JSON.stringify({
+      version: 11,
+      updatedAt: '2026-08-21T12:00:00.000Z',
+      ...fallback,
+      onboardingProfile: { ...onboardingProfile, equipment: ['teleporter'] },
+    }));
+    expect(loadDashboardState(storage, fallback).onboardingProfile).toBeUndefined();
   });
 
   it('falls back when stored data is corrupt or outside accepted ranges', () => {
