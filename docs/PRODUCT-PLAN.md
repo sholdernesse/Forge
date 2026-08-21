@@ -2,9 +2,9 @@
 
 > **Living plan:** This is the canonical product and delivery plan for Forge. Update it whenever scope, priorities, sequencing, or release status changes. Individual sprint files remain the implementation record.
 
-**Current checkpoint:** Sprint 4.41 on PR #2  
+**Current checkpoint:** Sprint 4.42 on PR #2  
 **Product stage:** Functional responsive prototype moving toward an authenticated release candidate  
-**Last reviewed:** August 18, 2026
+**Last reviewed:** August 21, 2026
 
 ## 1. North star
 
@@ -97,6 +97,7 @@ See [Sprint 4 architecture](./architecture/sprint-4.md) for package and data-flo
 - Explicit direct action for training, nutrition, or recovery.
 - Morning check-in and evening mind/body/soul reflection.
 - Sync, offline, and conflict states.
+- User-local calendar context, time-aware greeting, and authenticated display identity.
 
 ### Training
 
@@ -147,18 +148,15 @@ PR #2 should deliver a coherent, testable Forge web candidate with:
 
 ### Remaining release blockers
 
-1. **Remove prototype identity and clock assumptions**
-   - Replace the fixed August 12 date and hard-coded greeting/profile presentation with the authenticated user and their local date.
-   - Inject the clock into deterministic tests instead of freezing production UI constants.
-2. **Separate demonstration data from production first-run behavior**
+1. **Separate demonstration data from production first-run behavior**
    - A new authenticated user must see honest onboarding or empty states rather than Shane’s demonstration history.
    - Demo fixtures may remain available for development and product review, but not masquerade as user data.
-3. **Complete physical desktop/mobile acceptance**
+2. **Complete physical desktop/mobile acceptance**
    - Run the [physical acceptance checklist](./acceptance/physical-desktop-mobile.md) against the deployed candidate.
    - Record browser/device evidence, cross-device continuity, conflict recovery, account isolation, and responsive behavior.
-4. **Close accessibility and browser interaction gaps**
+3. **Close accessibility and browser interaction gaps**
    - Add targeted keyboard, focus, screen-reader-label, and critical browser-flow coverage.
-5. **Record authorized recovery evidence**
+4. **Record authorized recovery evidence**
    - PostgreSQL restore and Render standby exercises remain operational gates when infrastructure is authorized.
 
 ## 9. Prioritized roadmap
@@ -167,7 +165,7 @@ PR #2 should deliver a coherent, testable Forge web candidate with:
 
 **Objective:** Make the current experience honest, user-specific, and physically validated.
 
-1. User-local clock and authenticated identity.
+1. ~~User-local clock and authenticated display identity.~~ Completed in Sprint 4.42.
 2. Production-safe first-run/onboarding boundary.
 3. Accessibility and critical browser interaction tests.
 4. Physical desktop/mobile acceptance.
