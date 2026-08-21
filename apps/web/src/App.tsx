@@ -34,14 +34,13 @@ import { workoutCarryForward } from './workoutFocus.js';
 import { todayCoachAction } from './todayCoachAction.js';
 import { MovementLibrary } from './MovementLibrary.js';
 import { reflectionTrend } from './reflectionHistory.js';
-
-const TODAY = '2026-08-12' as const;
-const NOW = '2026-08-12T11:30:00.000Z';
+import { greetingForHour, localDateHeading, localDateKey, userFirstName, withTodaySnapshot } from './appContext.js';
 
 const defaultCheckIn: CheckIn = { sleepScore: 77, sleepHours: 7, soreness: 4, stress: 3, weightKg: 75.8 };
 
-function initialDashboardState() {
-  return loadDashboardState(window.localStorage, { history: demoHistory, checkIn: defaultCheckIn });
+function initialDashboardState(today: string) {
+  const state = loadDashboardState(window.localStorage, { history: demoHistory, checkIn: defaultCheckIn });
+  return { ...state, history: withTodaySnapshot(state.history, today, state.checkIn) };
 }
 
 function scoreTone(score: number) {
@@ -96,7 +95,11 @@ interface SyncConflictActions {
 export function App() {
   const environment = (import.meta as ImportMeta & { env: Record<string, unknown> }).env;
   const auth = useForgeAuth(environment);
-  const [initialState] = useState(initialDashboardState);
+  const [sessionNow] = useState(() => new Date());
+  const TODAY = localDateKey(sessionNow);
+  const NOW = sessionNow.toISOString();
+  const displayName = userFirstName(auth.name, auth.username);
+  const [initialState] = useState(() => initialDashboardState(TODAY));
   const [history, setHistory] = useState(initialState.history);
   const [checkInOpen, setCheckInOpen] = useState(false);
   const [reflectionOpen, setReflectionOpen] = useState(false);
@@ -183,7 +186,8 @@ export function App() {
 
     const applyRemote = (remote: RemoteDashboard) => {
       const next = remote.state;
-      setHistory(next.history);
+      const nextHistory = withTodaySnapshot(next.history, TODAY, next.checkIn);
+      setHistory(nextHistory);
       setCheckIn(next.checkIn);
       setCheckInDraft(next.checkIn);
       setSavedAt(next.savedAt);
@@ -195,7 +199,7 @@ export function App() {
       setFavoriteFoodIds(next.favoriteFoodIds ?? ['eggs-whites', 'chicken-breast', 'protein-shake']);
       setSavedMeals(next.savedMeals ?? demoSavedMeals);
       setCoachMessages(next.coachMessages ?? []);
-      cacheDashboardState(window.localStorage, next, remote.updatedAt);
+      cacheDashboardState(window.localStorage, { ...next, history: nextHistory }, remote.updatedAt);
     };
 
     const connect = () => {
@@ -504,13 +508,13 @@ export function App() {
         </nav>
         <div className="sidebar-bottom">
           <button className="sidebar-settings" onClick={() => setSettingsOpen(true)}><Settings size={19} /><span>Settings</span></button>
-          <div className="profile-chip"><CircleUserRound size={28} /><div><strong>Shane</strong><span>120-day shred</span></div></div>
+          <div className="profile-chip"><CircleUserRound size={28} /><div><strong>{displayName}</strong><span>{auth.status === 'development' ? 'Development profile' : 'Personal plan'}</span></div></div>
         </div>
       </aside>
 
       <main>
         <header className="topbar">
-          <div><span className="eyebrow">WEDNESDAY · AUGUST 12</span><h1>Good morning, Shane.</h1><p>Your plan has adapted to how you’re recovering today.</p></div>
+          <div><span className="eyebrow">{localDateHeading(sessionNow)}</span><h1>{greetingForHour(sessionNow.getHours())}, {displayName}.</h1><p>Your plan has adapted to how you’re recovering today.</p></div>
           <div className="topbar-actions">
             <span className={`save-status sync-${syncStatus}`}>{syncStatus === 'offline' ? <CloudOff size={15} /> : syncStatus === 'conflict' ? <ShieldAlert size={15} /> : syncStatus === 'local' ? <Save size={15} /> : <Cloud size={15} />} {syncStatus === 'syncing' ? 'Syncing…' : syncStatus === 'connecting' ? 'Connecting…' : syncStatus === 'synced' ? 'Synced across devices' : syncStatus === 'conflict' ? 'Sync needs attention' : syncStatus === 'offline' ? 'Offline · saved locally' : savedAt ? 'Saved on this device' : 'Demo data'}</span>
             {auth.status === 'signed-out' ? <button className="auth-button" onClick={() => void auth.signIn()}>Sign in</button> : auth.status === 'signed-in' ? <button className="auth-button signed-in" onClick={() => void auth.signOut()} title="Sign out">{auth.name ?? auth.username ?? 'Account'}</button> : null}
