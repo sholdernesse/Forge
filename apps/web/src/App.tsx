@@ -35,11 +35,33 @@ import { todayCoachAction } from './todayCoachAction.js';
 import { MovementLibrary } from './MovementLibrary.js';
 import { reflectionTrend } from './reflectionHistory.js';
 import { greetingForHour, localDateHeading, localDateKey, userFirstName, withTodaySnapshot } from './appContext.js';
+import { experienceMode, isFirstRun } from './firstRun.js';
 
 const defaultCheckIn: CheckIn = { sleepScore: 77, sleepHours: 7, soreness: 4, stress: 3, weightKg: 75.8 };
 
-function initialDashboardState(today: DailySnapshot['date']) {
-  const state = loadDashboardState(window.localStorage, { history: demoHistory, checkIn: defaultCheckIn });
+function initialDashboardState(today: DailySnapshot['date'], demoMode: boolean) {
+  const fallback = demoMode
+    ? {
+        history: demoHistory,
+        checkIn: defaultCheckIn,
+        exerciseHistory: demoExerciseHistory,
+        sessionHistory: demoSessionHistory,
+        foodEntries: demoFoodEntries,
+        favoriteFoodIds: ['eggs-whites', 'chicken-breast', 'protein-shake'],
+        savedMeals: demoSavedMeals,
+        coachMessages: [],
+      }
+    : {
+        history: [],
+        checkIn: defaultCheckIn,
+        exerciseHistory: [],
+        sessionHistory: [],
+        foodEntries: [],
+        favoriteFoodIds: [],
+        savedMeals: [],
+        coachMessages: [],
+      };
+  const state = loadDashboardState(window.localStorage, fallback);
   return { ...state, history: withTodaySnapshot(state.history, today, state.checkIn) };
 }
 
@@ -99,7 +121,9 @@ export function App() {
   const TODAY = localDateKey(sessionNow);
   const NOW = sessionNow.toISOString();
   const displayName = userFirstName(auth.name, auth.username);
-  const [initialState] = useState(() => initialDashboardState(TODAY));
+  const mode = experienceMode(auth.status);
+  const demoMode = mode === 'demo';
+  const [initialState] = useState(() => initialDashboardState(TODAY, demoMode));
   const [history, setHistory] = useState(initialState.history);
   const [checkInOpen, setCheckInOpen] = useState(false);
   const [reflectionOpen, setReflectionOpen] = useState(false);
@@ -116,13 +140,13 @@ export function App() {
   const [savedAt, setSavedAt] = useState(initialState.savedAt);
   const [workout, setWorkout] = useState<WorkoutSession>(initialState.workoutSession ?? createTodayWorkout(TODAY));
   const [workoutOpen, setWorkoutOpen] = useState(false);
-  const [exerciseHistory, setExerciseHistory] = useState<ExercisePerformance[]>(initialState.exerciseHistory ?? demoExerciseHistory);
-  const [sessionHistory, setSessionHistory] = useState<TrainingSessionRecord[]>(initialState.sessionHistory ?? demoSessionHistory);
+  const [exerciseHistory, setExerciseHistory] = useState<ExercisePerformance[]>(initialState.exerciseHistory ?? []);
+  const [sessionHistory, setSessionHistory] = useState<TrainingSessionRecord[]>(initialState.sessionHistory ?? []);
   const [scheduleOverrides, setScheduleOverrides] = useState<ScheduleOverrides>(initialState.scheduleOverrides ?? {});
-  const [foodEntries, setFoodEntries] = useState<FoodEntry[]>(initialState.foodEntries ?? demoFoodEntries);
+  const [foodEntries, setFoodEntries] = useState<FoodEntry[]>(initialState.foodEntries ?? []);
   const [foodLoggerOpen, setFoodLoggerOpen] = useState(false);
-  const [favoriteFoodIds, setFavoriteFoodIds] = useState<string[]>(initialState.favoriteFoodIds ?? ['eggs-whites', 'chicken-breast', 'protein-shake']);
-  const [savedMeals, setSavedMeals] = useState<SavedMeal[]>(initialState.savedMeals ?? demoSavedMeals);
+  const [favoriteFoodIds, setFavoriteFoodIds] = useState<string[]>(initialState.favoriteFoodIds ?? []);
+  const [savedMeals, setSavedMeals] = useState<SavedMeal[]>(initialState.savedMeals ?? []);
   const [coachMessages, setCoachMessages] = useState<CoachMessage[]>(initialState.coachMessages ?? []);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [coachOpen, setCoachOpen] = useState(false);
@@ -171,6 +195,14 @@ export function App() {
   const trainingTrend = trainingTrendSummary(sessionHistory, TODAY);
   const maxWeeklyMinutes = Math.max(1, ...trainingTrend.weeks.map((week) => week.minutes));
   const reflections = reflectionTrend(history);
+  const firstRun = isFirstRun({
+    mode,
+    ...(savedAt ? { savedAt } : {}),
+    exerciseCount: exerciseHistory.length,
+    sessionCount: sessionHistory.length,
+    foodEntryCount: foodEntries.length,
+    coachMessageCount: coachMessages.length,
+  });
 
   useEffect(() => {
     if (auth.status === 'loading' || auth.status === 'signed-out') {
@@ -192,12 +224,12 @@ export function App() {
       setCheckInDraft(next.checkIn);
       setSavedAt(next.savedAt);
       setWorkout(next.workoutSession ?? createTodayWorkout(TODAY));
-      setExerciseHistory(next.exerciseHistory ?? demoExerciseHistory);
-      setSessionHistory(next.sessionHistory ?? demoSessionHistory);
+      setExerciseHistory(next.exerciseHistory ?? []);
+      setSessionHistory(next.sessionHistory ?? []);
       setScheduleOverrides(next.scheduleOverrides ?? {});
-      setFoodEntries(next.foodEntries ?? demoFoodEntries);
-      setFavoriteFoodIds(next.favoriteFoodIds ?? ['eggs-whites', 'chicken-breast', 'protein-shake']);
-      setSavedMeals(next.savedMeals ?? demoSavedMeals);
+      setFoodEntries(next.foodEntries ?? []);
+      setFavoriteFoodIds(next.favoriteFoodIds ?? []);
+      setSavedMeals(next.savedMeals ?? []);
       setCoachMessages(next.coachMessages ?? []);
       cacheDashboardState(window.localStorage, { ...next, history: nextHistory }, remote.updatedAt);
     };
@@ -280,7 +312,7 @@ export function App() {
       window.removeEventListener('online', retry);
       window.clearInterval(retryTimer);
     };
-  }, [auth.accessToken, auth.status, environment, initialState]);
+  }, [auth.accessToken, auth.status, demoMode, environment, initialState]);
 
   useEffect(() => {
     if (workout.status !== 'not-started') return;
@@ -508,15 +540,15 @@ export function App() {
         </nav>
         <div className="sidebar-bottom">
           <button className="sidebar-settings" onClick={() => setSettingsOpen(true)}><Settings size={19} /><span>Settings</span></button>
-          <div className="profile-chip"><CircleUserRound size={28} /><div><strong>{displayName}</strong><span>{auth.status === 'development' ? 'Development profile' : 'Personal plan'}</span></div></div>
+          <div className="profile-chip"><CircleUserRound size={28} /><div><strong>{displayName}</strong><span>{demoMode ? 'Demo experience' : firstRun ? 'Set up your plan' : 'Personal plan'}</span></div></div>
         </div>
       </aside>
 
       <main>
         <header className="topbar">
-          <div><span className="eyebrow">{localDateHeading(sessionNow)}</span><h1>{greetingForHour(sessionNow.getHours())}, {displayName}.</h1><p>Your plan has adapted to how you’re recovering today.</p></div>
+          <div><span className="eyebrow">{localDateHeading(sessionNow)}</span><h1>{greetingForHour(sessionNow.getHours())}, {displayName}.</h1><p>{firstRun ? 'Start with a quick check-in so Forge can begin learning from you.' : 'Your plan has adapted to how you’re recovering today.'}</p></div>
           <div className="topbar-actions">
-            <span className={`save-status sync-${syncStatus}`}>{syncStatus === 'offline' ? <CloudOff size={15} /> : syncStatus === 'conflict' ? <ShieldAlert size={15} /> : syncStatus === 'local' ? <Save size={15} /> : <Cloud size={15} />} {syncStatus === 'syncing' ? 'Syncing…' : syncStatus === 'connecting' ? 'Connecting…' : syncStatus === 'synced' ? 'Synced across devices' : syncStatus === 'conflict' ? 'Sync needs attention' : syncStatus === 'offline' ? 'Offline · saved locally' : savedAt ? 'Saved on this device' : 'Demo data'}</span>
+            <span className={`save-status sync-${syncStatus}`}>{syncStatus === 'offline' ? <CloudOff size={15} /> : syncStatus === 'conflict' ? <ShieldAlert size={15} /> : syncStatus === 'local' ? <Save size={15} /> : <Cloud size={15} />} {syncStatus === 'syncing' ? 'Syncing…' : syncStatus === 'connecting' ? 'Connecting…' : syncStatus === 'synced' ? 'Synced across devices' : syncStatus === 'conflict' ? 'Sync needs attention' : syncStatus === 'offline' ? 'Offline · saved locally' : savedAt ? 'Saved on this device' : demoMode ? 'Demo data' : 'Ready to set up'}</span>
             {auth.status === 'signed-out' ? <button className="auth-button" onClick={() => void auth.signIn()}>Sign in</button> : auth.status === 'signed-in' ? <button className="auth-button signed-in" onClick={() => void auth.signOut()} title="Sign out">{auth.name ?? auth.username ?? 'Account'}</button> : null}
             <button className="topbar-settings" onClick={() => setSettingsOpen(true)} aria-label="Open Forge settings"><Settings size={18} /></button>
             <button className="reflection-button" onClick={openReflection}><HeartPulse size={18} /> Evening reflection</button>
@@ -532,6 +564,12 @@ export function App() {
         </div>}
 
         {saved && <div className="toast" role="status" aria-live="polite"><Sparkles size={17} /> Digital Twin updated. Today’s guidance is refreshed.</div>}
+
+        {firstRun && <section className="first-run-card" aria-labelledby="first-run-title">
+          <div className="first-run-icon"><Target size={22} /></div>
+          <div><span className="section-label">YOUR FORGE START</span><h2 id="first-run-title">Build today from your own signals</h2><p>Your history is empty—no sample workouts, meals, or progress records have been added. Start with today’s check-in; goal and schedule setup comes next.</p></div>
+          <button onClick={openCheckIn}><Plus size={17} /> Start check-in</button>
+        </section>}
 
         <section className="hero-grid" id="today">
           <article className="hero-card readiness-card">
