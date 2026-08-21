@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import type { DailySnapshot } from '@forge/digital-twin';
 import { greetingForHour, localDateHeading, localDateKey, userFirstName, withTodaySnapshot } from './appContext.js';
 
 describe('app context', () => {
@@ -23,7 +24,7 @@ describe('app context', () => {
 
   it('creates an honest empty daily snapshot only when today is missing', () => {
     const defaults = { weightKg: 75, sleepScore: 70, sleepHours: 7, soreness: 3, stress: 4 };
-    const history = [{ date: '2026-08-20', weightKg: 75 }];
+    const history: DailySnapshot[] = [{ date: '2026-08-20', weightKg: 75 }];
     const next = withTodaySnapshot(history, '2026-08-21', defaults);
     expect(next).toEqual([
       { date: '2026-08-20', weightKg: 75 },
