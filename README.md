@@ -4,9 +4,9 @@ Forge is an AI-powered fitness coaching platform centered on a persistent Digita
 
 Review the canonical [Forge Product Plan](./docs/PRODUCT-PLAN.md) for product principles, delivered scope, release blockers, and the prioritized roadmap.
 
-## Sprint 4.43
+## Sprint 4.44
 
-Sprint 4.43 keeps demonstration fixtures in the explicit development experience and gives personal accounts an honest, empty first-run path.
+Sprint 4.44 gives new personal accounts a focused three-step setup and feeds their real goal, schedule, equipment, constraints, and baseline into Forge’s planning engines.
 
 ```bash
 corepack enable
