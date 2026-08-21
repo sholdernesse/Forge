@@ -6,6 +6,7 @@ export function experienceMode(authStatus: string): ForgeExperienceMode {
 
 export interface FirstRunEvidence {
   mode: ForgeExperienceMode;
+  onboardingComplete: boolean;
   savedAt?: string;
   exerciseCount: number;
   sessionCount: number;
@@ -15,7 +16,7 @@ export interface FirstRunEvidence {
 
 export function isFirstRun(evidence: FirstRunEvidence): boolean {
   return evidence.mode === 'personal'
-    && !evidence.savedAt
+    && !evidence.onboardingComplete
     && evidence.exerciseCount === 0
     && evidence.sessionCount === 0
     && evidence.foodEntryCount === 0
