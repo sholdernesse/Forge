@@ -13,6 +13,8 @@ A new personal user can establish the minimum honest inputs Forge needs before i
 - Captures age, sex used for estimates, height, weight, and desired nutrition support.
 - Converts answers into validated Digital Twin profile and goal inputs.
 - Passes weekly frequency, session length, equipment, and supported constraints to the training planner.
+- Generates distinct barbell/rack, dumbbell, band, or bodyweight sessions so unavailable equipment is never prescribed.
+- Fits strength-session breadth to the selected 30-, 45-, or longer session window and substitutes an outdoor/indoor walk when no treadmill is available.
 - Persists the versioned onboarding profile locally and through authenticated cross-device sync.
 - Opens the first daily check-in immediately after plan setup.
 - Preserves established pre-onboarding accounts without forcing a blocking migration.
@@ -34,5 +36,6 @@ A new personal user can establish the minimum honest inputs Forge needs before i
 - Valid onboarding data survives local and synchronized state parsing.
 - Malformed onboarding data is ignored safely.
 - Digital Twin goals/profile and training preferences reflect the saved answers.
+- Generated workouts use only the selected equipment path and respect the chosen time window.
 - Development demo mode remains unchanged.
 - Full CI passes on the documented head.
