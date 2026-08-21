@@ -689,3 +689,47 @@ h1 { font-size: clamp(28px, 3vw, 40px); letter-spacing: -.04em; margin-top: 5px;
 
 /* Sprint 4.41: do not infer movement quality from an untouched default. */
 .feedback-help.required { color: #ffb36c; }
+
+
+/* Sprint 4.43: honest personal first-run */
+.first-run-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: center;
+  margin: -0.5rem 0 1.4rem;
+  border: 1px solid rgba(131, 248, 170, 0.3);
+  border-radius: 0.9rem;
+  background: linear-gradient(120deg, rgba(18, 54, 40, 0.9), rgba(10, 31, 24, 0.9));
+  padding: 1rem 1.1rem;
+}
+.first-run-icon {
+  width: 2.7rem;
+  height: 2.7rem;
+  display: grid;
+  place-items: center;
+  border-radius: 0.75rem;
+  background: rgba(131, 248, 170, 0.12);
+  color: #83f8aa;
+}
+.first-run-card > div:nth-child(2) { display: grid; gap: 0.25rem; }
+.first-run-card h2 { margin: 0; color: #e4f7eb; font-size: 1rem; }
+.first-run-card p { margin: 0; color: #8aa99d; font-size: 0.75rem; line-height: 1.5; }
+.first-run-card > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border: 0;
+  border-radius: 0.65rem;
+  background: #76fba5;
+  color: #06120d;
+  padding: 0.75rem 0.9rem;
+  font-size: 0.72rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+@media(max-width:720px) {
+  .first-run-card { grid-template-columns: auto 1fr; }
+  .first-run-card > button { grid-column: 1 / -1; width: 100%; }
+}
