@@ -38,7 +38,7 @@ import { greetingForHour, localDateHeading, localDateKey, userFirstName, withTod
 
 const defaultCheckIn: CheckIn = { sleepScore: 77, sleepHours: 7, soreness: 4, stress: 3, weightKg: 75.8 };
 
-function initialDashboardState(today: string) {
+function initialDashboardState(today: DailySnapshot['date']) {
   const state = loadDashboardState(window.localStorage, { history: demoHistory, checkIn: defaultCheckIn });
   return { ...state, history: withTodaySnapshot(state.history, today, state.checkIn) };
 }
