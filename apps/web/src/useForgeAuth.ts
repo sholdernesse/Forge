@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ForgeAuthClient, forgeAuthConfig, type ForgeAuthSnapshot } from './forgeAuth.js';
 
-const developmentSnapshot: ForgeAuthSnapshot = { status: 'development', name: 'Shane', username: 'Local development' };
+const developmentSnapshot: ForgeAuthSnapshot = { status: 'development', name: 'Athlete', username: 'Local development' };
 
 export function useForgeAuth(environment: Record<string, unknown>) {
   const config = useMemo(() => forgeAuthConfig(environment, window.location.origin), [environment]);
