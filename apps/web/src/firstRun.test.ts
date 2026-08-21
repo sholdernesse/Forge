@@ -16,8 +16,11 @@ describe('first-run boundary', () => {
     expect(experienceMode('loading')).toBe('personal');
   });
 
-  it('keeps a personal account in first-run until onboarding is complete', () => {
+  it('keeps an empty personal account in first-run until onboarding is complete', () => {
     expect(isFirstRun({ mode: 'personal', onboardingComplete: false, ...emptyEvidence })).toBe(true);
+  });
+
+  it('does not interrupt an established legacy account that predates onboarding', () => {
     expect(isFirstRun({
       mode: 'personal',
       onboardingComplete: false,
@@ -26,7 +29,7 @@ describe('first-run boundary', () => {
       sessionCount: 1,
       foodEntryCount: 2,
       coachMessageCount: 1,
-    })).toBe(true);
+    })).toBe(false);
   });
 
   it('does not label demo or onboarded personal data as first-run', () => {
