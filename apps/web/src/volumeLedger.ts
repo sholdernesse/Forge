@@ -34,6 +34,11 @@ const exerciseMuscles: Record<string, MuscleGroup[]> = {
   'dumbbell-overhead-press': ['shoulders', 'triceps'], 'lateral-raise': ['shoulders'], 'band-face-pull': ['back', 'shoulders'],
   'box-squat': ['quads', 'glutes'], 'hip-thrust': ['glutes', 'hamstrings'], 'split-squat': ['quads', 'glutes'],
   'standing-calf-raise': ['calves'], 'dead-bugs': ['core'], 'zone-2-treadmill': ['cardio'], 'mobility-flow': ['core'],
+  'dumbbell-floor-press': ['chest', 'triceps'], 'one-arm-dumbbell-row': ['back', 'biceps'], 'prone-y-raise': ['back', 'shoulders'],
+  'band-chest-press': ['chest', 'triceps'], 'band-row': ['back', 'biceps'], 'band-overhead-press': ['shoulders', 'triceps'], 'band-lateral-raise': ['shoulders'],
+  'push-up': ['chest', 'triceps'], 'pike-push-up': ['shoulders', 'triceps'], 'reverse-snow-angel': ['back', 'shoulders'], 'shoulder-tap': ['core', 'shoulders'],
+  'goblet-squat': ['quads', 'glutes'], 'dumbbell-hip-thrust': ['glutes', 'hamstrings'], 'band-squat': ['quads', 'glutes'],
+  'band-glute-bridge': ['glutes', 'hamstrings'], 'reverse-lunge': ['quads', 'glutes'], 'bodyweight-squat': ['quads', 'glutes'], 'glute-bridge': ['glutes', 'hamstrings'],
 };
 
 export const demoSessionHistory: TrainingSessionRecord[] = [
