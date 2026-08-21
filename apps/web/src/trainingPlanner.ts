@@ -4,7 +4,7 @@ import { weeklyVolume, type TrainingSessionRecord } from './volumeLedger.js';
 import { applyDeload, assessDeload, assessTrainingFeedback, type ScheduleIntent } from './schedulePolicy.js';
 
 export interface TrainingPreferences {
-  equipment: Array<'barbell' | 'dumbbells' | 'bands' | 'rack' | 'treadmill'>;
+  equipment: Array<'bodyweight' | 'barbell' | 'dumbbells' | 'bands' | 'rack' | 'treadmill'>;
   constraints: Array<'lower-back-sensitive' | 'elbow-sensitive'>;
   preferredSessionMinutes: number;
 }
