@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Check, ChevronLeft, ChevronRight, Dumbbell, Sparkles, Target, X } from 'lucide-react';
 import { isOnboardingProfile, type ExperienceLevel, type JourneyGoal, type NutritionApproach, type OnboardingProfile, type TrainingLocation } from './onboarding.js';
 import type { TrainingPreferences } from './trainingPlanner.js';
@@ -47,6 +47,9 @@ export function OnboardingFlow({ onComplete, onClose }: OnboardingFlowProps) {
   const [heightCm, setHeightCm] = useState('');
   const [weightKg, setWeightKg] = useState('');
   const dialogRef = useAccessibleDialog(onClose);
+  const stepHeadingRef = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => { stepHeadingRef.current?.focus(); }, [step]);
 
   const baselineValid = Number(age) >= 18 && Number(age) <= 100
     && Number(heightCm) >= 120 && Number(heightCm) <= 230
@@ -84,7 +87,7 @@ export function OnboardingFlow({ onComplete, onClose }: OnboardingFlowProps) {
       {step === 0 && <section className="onboarding-step">
         <Target size={28} className="onboarding-step-icon" />
         <span className="section-label">STEP 1 OF 3 · YOUR DIRECTION</span>
-        <h2 id="onboarding-title">What would you like Forge to help you change?</h2>
+        <h2 ref={stepHeadingRef} id="onboarding-title" tabIndex={-1}>What would you like Forge to help you change?</h2>
         <p>Choose one primary goal. You can add a secondary goal later without making today’s plan confusing.</p>
         <div className="onboarding-goals">{goalOptions.map((option) => <button key={option.value} className={primaryGoal === option.value ? 'selected' : ''} aria-pressed={primaryGoal === option.value} onClick={() => setPrimaryGoal(option.value)}>
           <span><b>{option.label}</b><small>{option.detail}</small></span>{primaryGoal === option.value && <Check size={18} />}
@@ -94,7 +97,7 @@ export function OnboardingFlow({ onComplete, onClose }: OnboardingFlowProps) {
       {step === 1 && <section className="onboarding-step">
         <Dumbbell size={28} className="onboarding-step-icon" />
         <span className="section-label">STEP 2 OF 3 · YOUR TRAINING REALITY</span>
-        <h2 id="onboarding-title">Make the plan fit your life</h2>
+        <h2 ref={stepHeadingRef} id="onboarding-title" tabIndex={-1}>Make the plan fit your life</h2>
         <p>Forge will use this to set frequency, session size, and available movements.</p>
         <div className="onboarding-fields">
           <label>Training experience<select value={experience} onChange={(event) => setExperience(event.target.value as ExperienceLevel)}><option value="new">New to structured training</option><option value="some-experience">Some experience</option><option value="experienced">Experienced</option></select></label>
@@ -109,7 +112,7 @@ export function OnboardingFlow({ onComplete, onClose }: OnboardingFlowProps) {
       {step === 2 && <section className="onboarding-step">
         <Sparkles size={28} className="onboarding-step-icon" />
         <span className="section-label">STEP 3 OF 3 · YOUR STARTING POINT</span>
-        <h2 id="onboarding-title">Give Forge an honest baseline</h2>
+        <h2 ref={stepHeadingRef} id="onboarding-title" tabIndex={-1}>Give Forge an honest baseline</h2>
         <p>These values let the Digital Twin avoid using a demonstration profile. You can change them later.</p>
         <div className="onboarding-fields baseline">
           <label>Age<input type="number" min="18" max="100" inputMode="numeric" value={age} onChange={(event) => setAge(event.target.value)} placeholder="Age" /></label>
