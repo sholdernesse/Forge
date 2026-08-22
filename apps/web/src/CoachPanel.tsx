@@ -3,6 +3,7 @@ import { ArrowRight, Brain, Send, ShieldCheck, Sparkles, Trash2, X } from 'lucid
 import { CoachService, type CoachActionType } from '@forge/coach';
 import type { DigitalTwin } from '@forge/digital-twin';
 import type { CoachMessage } from './dashboardStorage.js';
+import { useAccessibleDialog } from './useAccessibleDialog.js';
 
 interface CoachPanelProps {
   twin: DigitalTwin;
@@ -22,6 +23,7 @@ const prompts = [
 export function CoachPanel({ twin, messages, onMessagesChange, onAction, onClose }: CoachPanelProps) {
   const coach = useMemo(() => new CoachService(), []);
   const [question, setQuestion] = useState('');
+  const dialogRef = useAccessibleDialog(onClose);
 
   function ask(value: string) {
     const trimmed = value.trim();
@@ -43,7 +45,7 @@ export function CoachPanel({ twin, messages, onMessagesChange, onAction, onClose
   }
 
   return <div className="drawer-backdrop coach-backdrop" onMouseDown={onClose}>
-    <aside className="coach-panel" role="dialog" aria-modal="true" aria-labelledby="coach-title" onMouseDown={(event) => event.stopPropagation()}>
+    <aside ref={dialogRef} className="coach-panel" role="dialog" aria-modal="true" aria-labelledby="coach-title" tabIndex={-1} onMouseDown={(event) => event.stopPropagation()}>
       <header>
         <div className="coach-panel-orb"><Brain size={22} /></div>
         <div><span className="section-label">FORGE COACH</span><h2 id="coach-title">Ask about today</h2></div>
