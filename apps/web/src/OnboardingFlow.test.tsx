@@ -21,7 +21,9 @@ describe('critical onboarding browser markup', () => {
   it('provides a named close control and visible progress context', () => {
     const html = renderToStaticMarkup(<OnboardingFlow onComplete={() => undefined} onClose={() => undefined} />);
     expect(html).toContain('aria-label="Close plan setup"');
-    expect(html).toContain('aria-label="Onboarding step 1 of 3"');
+    expect(html).toContain('role="progressbar"');
+    expect(html).toContain('aria-valuenow="1"');
+    expect(html).toContain('aria-valuetext="Step 1 of 3"');
     expect(html).toContain('STEP 1 OF 3');
   });
 });
