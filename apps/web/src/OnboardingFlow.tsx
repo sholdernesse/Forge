@@ -77,7 +77,7 @@ export function OnboardingFlow({ onComplete, onClose }: OnboardingFlowProps) {
     <aside ref={dialogRef} className="onboarding-flow" role="dialog" aria-modal="true" aria-labelledby="onboarding-title" tabIndex={-1} onMouseDown={(event) => event.stopPropagation()}>
       <header>
         <div className="onboarding-brand"><span>F</span><b>FORGE</b></div>
-        <div className="onboarding-progress" aria-label={'Onboarding step ' + (step + 1) + ' of 3'}><i style={{ width: String((step + 1) / 3 * 100) + '%' }} /></div>
+        <div className="onboarding-progress" role="progressbar" aria-label="Plan setup progress" aria-valuemin={1} aria-valuemax={3} aria-valuenow={step + 1} aria-valuetext={'Step ' + (step + 1) + ' of 3'}><i style={{ width: String((step + 1) / 3 * 100) + '%' }} /></div>
         <button onClick={onClose} aria-label="Close plan setup"><X size={19} /></button>
       </header>
 
