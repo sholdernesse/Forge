@@ -1,6 +1,6 @@
 import { appendDecision, recommendationToDecision, type DigitalTwin } from '@forge/digital-twin';
 import { RecommendationEngine } from '@forge/recommendation-engine';
-import type { CoachAnswer, CoachingEvaluation, TodayBrief } from './types.js';
+import type { CoachAnswer, CoachSuggestedAction, CoachingEvaluation, TodayBrief } from './types.js';
 
 export class CoachService {
   constructor(private readonly engine = new RecommendationEngine()) {}
@@ -45,9 +45,27 @@ export class CoachService {
   ask(twin: DigitalTwin, question: string): CoachAnswer {
     const recommendations = this.engine.generate(twin);
     const normalized = question.toLowerCase();
-    const relevant = normalized.includes('train') || normalized.includes('workout')
-      ? recommendations.filter((r) => r.category === 'training' || r.category === 'recovery')
-      : recommendations;
+    const symptomQuestion = /\b(pain|painful|hurt|hurts|hurting|injury|injured|sharp|discomfort|pinch|pinching)\b/.test(normalized);
+    const nutritionQuestion = normalized.includes('protein') || normalized.includes('calorie') || normalized.includes('food') || normalized.includes('nutrition');
+    const recoveryQuestion = normalized.includes('sleep') || normalized.includes('recover') || normalized.includes('sore') || normalized.includes('stress');
+    const trainingQuestion = normalized.includes('train') || normalized.includes('workout') || normalized.includes('lift');
+    if (symptomQuestion) {
+      const safetyEvidence = recommendations.filter((recommendation) => recommendation.category === 'recovery' || recommendation.category === 'sleep');
+      return {
+        answer: 'I cannot diagnose an injury or use readiness to clear a painful movement. Stop the movement if discomfort is sharp, worsening, persistent, or changes your form. Record the recovery signal, choose a comfortable alternative only if normal movement is pain-free, and seek qualified medical guidance when symptoms are significant or do not settle.',
+        basis: 'safety-boundary',
+        recommendationIds: safetyEvidence.slice(0, 3).map((recommendation) => recommendation.id),
+        suggestedAction: { type: 'open-check-in', label: 'Update recovery signals' },
+      };
+    }
+
+    const relevant = nutritionQuestion
+      ? recommendations.filter((r) => r.category === 'nutrition')
+      : recoveryQuestion
+        ? recommendations.filter((r) => r.category === 'recovery' || r.category === 'sleep')
+        : trainingQuestion
+          ? recommendations.filter((r) => r.category === 'training' || r.category === 'recovery')
+          : recommendations;
 
     const answer = relevant.length
       ? `${relevant[0]!.action} ${relevant[0]!.reason}`
@@ -55,6 +73,20 @@ export class CoachService {
         ? 'I need recent recovery data before recommending a training adjustment.'
         : `Your current readiness is ${twin.recovery.readiness}. No rule-based adjustment is required right now.`;
 
-    return { answer, recommendationIds: relevant.map((r) => r.id) };
+    const suggestedAction: CoachSuggestedAction = twin.recovery.status === 'insufficient-data'
+      ? { type: 'open-check-in', label: 'Complete today’s check-in' }
+      : nutritionQuestion || relevant[0]?.category === 'nutrition'
+        ? { type: 'open-nutrition', label: 'Open food log' }
+        : recoveryQuestion || relevant[0]?.category === 'recovery' || relevant[0]?.category === 'sleep'
+          ? { type: 'open-check-in', label: 'Update recovery signals' }
+          : { type: 'open-workout', label: 'Open today’s workout' };
+
+    const basis = relevant.length
+      ? 'recommendations'
+      : twin.recovery.status === 'insufficient-data'
+        ? 'insufficient-data'
+        : 'readiness';
+
+    return { answer, basis, recommendationIds: relevant.slice(0, 3).map((r) => r.id), suggestedAction };
   }
 }

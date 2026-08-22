@@ -24,6 +24,20 @@ describe('TwinHistory', () => {
     expect(() => normalizeSnapshots([{ date: '2026-08-10', trainingRpe: 11 }])).toThrow(RangeError);
   });
 
+  it('validates end-of-day wellbeing signals without treating them as clinical measures', () => {
+    expect(normalizeSnapshots([{
+      date: '2026-08-10',
+      mindScore: 7,
+      bodyScore: 6,
+      soulScore: 8,
+      reflectionNote: 'Training supported the day.',
+      reflectedAt: '2026-08-10T21:00:00.000Z',
+    }])).toHaveLength(1);
+    expect(() => normalizeSnapshots([{ date: '2026-08-10', mindScore: 0 }])).toThrow(RangeError);
+    expect(() => normalizeSnapshots([{ date: '2026-08-10', reflectionNote: 'x'.repeat(281) }])).toThrow(RangeError);
+    expect(() => normalizeSnapshots([{ date: '2026-08-10', reflectedAt: 'not-a-time' }])).toThrow(RangeError);
+  });
+
   it('does not infer healthy readiness from absent recovery data', () => {
     const twin = buildDigitalTwin({
       profile: { id: 'u1', sex: 'unspecified' },

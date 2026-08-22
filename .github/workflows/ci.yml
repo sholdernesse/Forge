@@ -22,3 +22,38 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm build
+      - name: Validate deployment security boundaries
+        run: scripts/deployment/validate-security.sh
+      - name: Validate recovery and release scripts
+        run: bash -n scripts/postgres/backup.sh scripts/postgres/restore.sh scripts/postgres/drill-preflight.sh scripts/release/validate-readiness.sh
+      - name: Exercise release readiness policy
+        shell: bash
+        run: |
+          evidence=(
+            CANDIDATE_COMMIT=0123456789abcdef0123456789abcdef01234567
+            DEPLOYMENT_URL=https://forge.example.test
+            PHYSICAL_RESULT=PASS
+            PHYSICAL_EVIDENCE_URL=https://evidence.example.test/physical
+            POSTGRES_RESULT=PASS
+            POSTGRES_EVIDENCE_URL=https://evidence.example.test/postgres
+            RENDER_RESULT=PASS
+            RENDER_EVIDENCE_URL=https://evidence.example.test/render
+            IDENTITY_RESULT=PASS
+            IDENTITY_EVIDENCE_URL=https://evidence.example.test/identity
+            FAILOVER_RESULT=PASS
+            FAILOVER_EVIDENCE_URL=https://evidence.example.test/failover
+            GITHUB_STEP_SUMMARY="$RUNNER_TEMP/release-summary.md"
+          )
+          env "${evidence[@]}" bash scripts/release/validate-readiness.sh
+          if env "${evidence[@]}" PHYSICAL_RESULT=BLOCKED bash scripts/release/validate-readiness.sh; then
+            echo "Release validator accepted a blocked mandatory gate" >&2
+            exit 1
+          fi
+      - name: Compile Azure infrastructure
+        run: |
+          az bicep build --file infra/main.bicep --stdout > /dev/null
+          az bicep build --file infra/apps.bicep --stdout > /dev/null
+      - name: Build API container
+        run: docker build --file apps/api/Dockerfile --tag forge-api:ci .
+      - name: Build web gateway container
+        run: docker build --file apps/web/Dockerfile --tag forge-web:ci .
