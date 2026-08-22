@@ -38,6 +38,7 @@ import { greetingForHour, localDateHeading, localDateKey, userFirstName, withTod
 import { experienceMode, isFirstRun } from './firstRun.js';
 import { OnboardingFlow } from './OnboardingFlow.js';
 import { goalsFromOnboarding, trainingPreferencesFromOnboarding, userProfileFromOnboarding, type OnboardingProfile } from './onboarding.js';
+import { useAccessibleDialog } from './useAccessibleDialog.js';
 
 const defaultCheckIn: CheckIn = { sleepScore: 77, sleepHours: 7, soreness: 4, stress: 3, weightKg: 75.8 };
 
@@ -165,6 +166,8 @@ export function App() {
   const [historyExportScope, setHistoryExportScope] = useState<TrainingHistoryExportScope>('current-view');
   const [selectedStrengthId, setSelectedStrengthId] = useState<string | null>(null);
   const [historyVisibleCount, setHistoryVisibleCount] = useState(TRAINING_HISTORY_PAGE_SIZE);
+  const reflectionDialogRef = useAccessibleDialog(() => setReflectionOpen(false), reflectionOpen);
+  const checkInDialogRef = useAccessibleDialog(() => setCheckInOpen(false), checkInOpen);
 
   function saveCurrentDashboardState(state: Parameters<typeof saveDashboardState>[1], nextOnboarding = onboardingProfile) {
     saveDashboardState(window.localStorage, {
@@ -758,7 +761,7 @@ export function App() {
       </main>
 
       {reflectionOpen && <div className="drawer-backdrop" onMouseDown={() => setReflectionOpen(false)}>
-        <aside className="drawer reflection-drawer" role="dialog" aria-modal="true" aria-labelledby="reflection-title" tabIndex={-1} autoFocus onMouseDown={(event) => event.stopPropagation()}>
+        <aside ref={reflectionDialogRef} className="drawer reflection-drawer" role="dialog" aria-modal="true" aria-labelledby="reflection-title" tabIndex={-1} onMouseDown={(event) => event.stopPropagation()}>
           <div className="drawer-heading"><div><span className="section-label">END-OF-DAY SIGNALS</span><h2 id="reflection-title">Mind, body, soul</h2><p>Capture how the day felt. Forge uses this as personal context—not a diagnosis or a readiness clearance.</p></div><button onClick={() => setReflectionOpen(false)} aria-label="Close evening reflection"><X size={20} /></button></div>
           <label>Mind <output>{reflectionDraft.mindScore}/10</output><input type="range" min="1" max="10" value={reflectionDraft.mindScore} onChange={(event) => setReflectionDraft({ ...reflectionDraft, mindScore: Number(event.target.value) })} /><small>Clarity, focus, and mental energy</small></label>
           <label>Body <output>{reflectionDraft.bodyScore}/10</output><input type="range" min="1" max="10" value={reflectionDraft.bodyScore} onChange={(event) => setReflectionDraft({ ...reflectionDraft, bodyScore: Number(event.target.value) })} /><small>Physical energy and overall comfort</small></label>
@@ -770,9 +773,9 @@ export function App() {
       </div>}
 
       {checkInOpen && <div className="drawer-backdrop" onMouseDown={() => setCheckInOpen(false)}>
-        <aside className="drawer" role="dialog" aria-modal="true" aria-labelledby="checkin-title" tabIndex={-1} autoFocus onMouseDown={(event) => event.stopPropagation()}>
+        <aside ref={checkInDialogRef} className="drawer" role="dialog" aria-modal="true" aria-labelledby="checkin-title" tabIndex={-1} onMouseDown={(event) => event.stopPropagation()}>
           <div className="drawer-heading"><div><span className="section-label">DAILY SIGNALS</span><h2 id="checkin-title">Morning check-in</h2><p>These inputs update your Digital Twin and today’s guidance.</p></div><button onClick={() => setCheckInOpen(false)} aria-label="Close check-in"><X size={20} /></button></div>
-          <label>Body weight <output>{checkInDraft.weightKg.toFixed(1)} kg</output><input type="range" min="65" max="90" step="0.1" value={checkInDraft.weightKg} onChange={(e) => setCheckInDraft({ ...checkInDraft, weightKg: Number(e.target.value) })} /></label>
+          <label>Body weight (kg) <output>{checkInDraft.weightKg.toFixed(1)} kg</output><input type="number" min="30" max="300" step="0.1" inputMode="decimal" value={checkInDraft.weightKg} onChange={(e) => setCheckInDraft({ ...checkInDraft, weightKg: Number(e.target.value) })} /></label>
           <label>Sleep quality <output>{checkInDraft.sleepScore}/100</output><input type="range" min="0" max="100" value={checkInDraft.sleepScore} onChange={(e) => setCheckInDraft({ ...checkInDraft, sleepScore: Number(e.target.value) })} /></label>
           <label>Hours slept <output>{checkInDraft.sleepHours.toFixed(1)}h</output><input type="range" min="0" max="12" step="0.1" value={checkInDraft.sleepHours} onChange={(e) => setCheckInDraft({ ...checkInDraft, sleepHours: Number(e.target.value) })} /></label>
           <label>Soreness <output>{checkInDraft.soreness}/10</output><input type="range" min="0" max="10" value={checkInDraft.soreness} onChange={(e) => setCheckInDraft({ ...checkInDraft, soreness: Number(e.target.value) })} /></label>
