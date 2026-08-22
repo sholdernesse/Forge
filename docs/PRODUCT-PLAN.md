@@ -2,7 +2,7 @@
 
 > **Living plan:** This is the canonical product and delivery plan for Forge. Update it whenever scope, priorities, sequencing, or release status changes. Individual sprint files remain the implementation record.
 
-**Current checkpoint:** Sprint 4.44 on PR #2  
+**Current checkpoint:** Sprint 4.45 on PR #2  
 **Product stage:** Functional responsive prototype moving toward an authenticated release candidate  
 **Last reviewed:** August 21, 2026
 
@@ -89,6 +89,7 @@ See [Sprint 4 architecture](./architecture/sprint-4.md) for package and data-flo
 - Conflict detection, account isolation, safe validation, and release checks.
 - Azure infrastructure definitions, production web gateway, recovery procedures, and Render standby documentation.
 - Reproducible CI covering lint, typecheck, tests, build, security boundaries, release policy, infrastructure compilation, and container builds.
+- Shared stack-aware dialog keyboard behavior with targeted focus, Escape, semantic markup, and onboarding-flow tests.
 
 ### Today and coaching
 
@@ -153,9 +154,7 @@ PR #2 should deliver a coherent, testable Forge web candidate with:
 1. **Complete physical desktop/mobile acceptance**
    - Run the [physical acceptance checklist](./acceptance/physical-desktop-mobile.md) against the deployed candidate.
    - Record browser/device evidence, cross-device continuity, conflict recovery, account isolation, and responsive behavior.
-2. **Close accessibility and browser interaction gaps**
-   - Add targeted keyboard, focus, screen-reader-label, and critical browser-flow coverage.
-3. **Record authorized recovery evidence**
+2. **Record authorized recovery evidence**
    - PostgreSQL restore and Render standby exercises remain operational gates when infrastructure is authorized.
 
 ## 9. Prioritized roadmap
@@ -166,7 +165,7 @@ PR #2 should deliver a coherent, testable Forge web candidate with:
 
 1. ~~User-local clock and authenticated display identity.~~ Completed in Sprint 4.42.
 2. ~~Production-safe first-run/demo-data boundary.~~ Completed in Sprint 4.43.
-3. Accessibility and critical browser interaction tests.
+3. ~~Targeted accessibility and critical interaction coverage.~~ Completed in Sprint 4.45; deployed browser/device validation remains in physical acceptance.
 4. Physical desktop/mobile acceptance.
 5. Resolve only defects found by those gates.
 
