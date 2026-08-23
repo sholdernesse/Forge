@@ -621,7 +621,7 @@ export function App() {
 
         {firstRun && <section className="first-run-card" aria-labelledby="first-run-title">
           <div className="first-run-icon"><Target size={22} /></div>
-          <div><span className="section-label">YOUR FORGE START</span><h2 id="first-run-title">Build a plan around you</h2><p>Your history is empty—no sample records have been added. Choose your goal, schedule, equipment, movement considerations, and starting baseline in three short steps.</p></div>
+          <div><span className="section-label">YOUR FORGE START</span><h2 id="first-run-title">Build a plan around you</h2><p>Your history is empty—no sample records have been added. Choose your goal, schedule, equipment, movement considerations, and starting baseline, then approve the plan in four simple steps.</p></div>
           <button onClick={() => setOnboardingOpen(true)}><Target size={17} /> Build my Forge plan</button>
         </section>}
 
