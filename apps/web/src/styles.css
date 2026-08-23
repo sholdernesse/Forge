@@ -858,3 +858,73 @@ h1 { font-size: clamp(28px, 3vw, 40px); letter-spacing: -.04em; margin-top: 5px;
   border-color: #76fba5;
   box-shadow: 0 0 0 2px rgba(118, 251, 165, 0.12);
 }
+
+
+/* Sprint 4.46 acceptance: give narrow phones a deliberate, breathable composition. */
+@media(max-width:720px) {
+  .topbar {
+    display: grid;
+    gap: 1rem;
+    align-items: initial;
+  }
+  .topbar > div:first-child { min-width: 0; }
+  .topbar-actions {
+    width: 100%;
+    display: flex;
+    flex-flow: row wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .topbar-actions .save-status {
+    order: 3;
+    flex-basis: 100%;
+  }
+  .topbar-actions .auth-button { max-width: min(11rem, 100%); }
+  .topbar-actions .reflection-button {
+    width: auto;
+    min-width: 0;
+    flex: 1;
+    justify-content: center;
+  }
+  .topbar .checkin-button { flex: 0 0 2.625rem; }
+}
+
+@media(max-width:420px) {
+  main { padding-inline: 0.875rem; }
+  .topbar { margin-bottom: 1.25rem; }
+  .topbar h1 { font-size: 1.75rem; line-height: 1.08; }
+  .topbar p { max-width: none; }
+  .topbar-actions .auth-button {
+    width: 100%;
+    max-width: none;
+    flex-basis: 100%;
+  }
+
+  .onboarding-flow > header {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 0.65rem;
+    padding: 0.8rem 0.9rem;
+  }
+  .onboarding-brand b { display: none; }
+  .onboarding-step {
+    gap: 0.75rem;
+    padding: 1.1rem 0.9rem 1.25rem;
+  }
+  .onboarding-review-item {
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    align-items: start;
+    gap: 0.65rem;
+  }
+  .onboarding-review-item b { text-align: right; }
+  .onboarding-flow > footer {
+    display: grid;
+    grid-template-columns: 1fr;
+    padding: 0.75rem 0.9rem calc(0.75rem + env(safe-area-inset-bottom));
+  }
+  .onboarding-flow > footer button {
+    width: 100%;
+    min-height: 3rem;
+  }
+  .onboarding-next { grid-row: 1; }
+  .onboarding-back { grid-row: 2; }
+}
