@@ -16,6 +16,7 @@ A new user now sees a concise, plain-language Forge plan before setup is saved o
 - Added focused tests for summary language, supported weekly structures, empty considerations, control boundaries, and four-step progress semantics.
 - Added responsive review styling that reuses the existing onboarding visual system.
 - Corrected narrow-phone compression by reflowing the dashboard header, condensing review rows, and stacking final approval actions below 420 px.
+- Added a physical-phone grid guard that forces dashboard stories to one column and removes intrinsic card widths below 820 px.
 
 ## Boundaries
 
