@@ -18,12 +18,13 @@ describe('critical onboarding browser markup', () => {
     expect(html).toMatch(/<button[^>]*disabled=""[^>]*>Continue/);
   });
 
-  it('provides a named close control and visible progress context', () => {
+  it('provides a named close control and visible four-step progress context', () => {
     const html = renderToStaticMarkup(<OnboardingFlow onComplete={() => undefined} onClose={() => undefined} />);
     expect(html).toContain('aria-label="Close plan setup"');
     expect(html).toContain('role="progressbar"');
     expect(html).toContain('aria-valuenow="1"');
-    expect(html).toContain('aria-valuetext="Step 1 of 3"');
-    expect(html).toContain('STEP 1 OF 3');
+    expect(html).toContain('aria-valuemax="4"');
+    expect(html).toContain('aria-valuetext="Step 1 of 4"');
+    expect(html).toContain('STEP 1 OF 4');
   });
 });
