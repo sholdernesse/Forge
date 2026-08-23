@@ -2,9 +2,9 @@
 
 > **Living plan:** This is the canonical product and delivery plan for Forge. Update it whenever scope, priorities, sequencing, or release status changes. Individual sprint files remain the implementation record.
 
-**Current checkpoint:** Sprint 4.45 on PR #2  
+**Current checkpoint:** Sprint 4.46 on PR #2  
 **Product stage:** Functional responsive prototype moving toward an authenticated release candidate  
-**Last reviewed:** August 21, 2026
+**Last reviewed:** August 23, 2026
 
 ## 1. North star
 
@@ -100,7 +100,7 @@ See [Sprint 4 architecture](./architecture/sprint-4.md) for package and data-flo
 - Sync, offline, and conflict states.
 - User-local calendar context, time-aware greeting, and authenticated display identity.
 - Explicit demo-versus-personal first-run boundary with empty user-owned activity collections.
-- Three-step personal plan setup that supplies validated profile, goal, schedule, equipment, constraint, and nutrition-support inputs.
+- Four-step personal plan setup that supplies validated inputs, previews the starting direction, explains adaptation boundaries, and requires explicit approval before activation.
 
 ### Training
 
@@ -180,7 +180,7 @@ PR #2 should deliver a coherent, testable Forge web candidate with:
 - ~~Training schedule, available time, equipment, and location.~~ Delivered in Sprint 4.44.
 - ~~Supported movement considerations and conservative substitutions.~~ Initial lower-back and elbow boundaries delivered in Sprint 4.44; broader preferences remain.
 - ~~Nutrition support preference.~~ Delivered in Sprint 4.44; dietary preferences and logging expectations remain.
-- Clear review of what Forge will use and what requires user approval.
+- ~~Clear review of what Forge will use and what requires user approval.~~ Delivered in Sprint 4.46 with an explicit plan-preview and activation boundary.
 
 **Exit:** Forge can generate the first honest plan without seeded profile assumptions.
 
