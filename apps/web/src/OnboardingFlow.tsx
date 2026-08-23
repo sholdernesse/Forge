@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { Check, ChevronLeft, ChevronRight, Dumbbell, Sparkles, Target, X } from 'lucide-react';
+import { Check, ChevronLeft, ChevronRight, ClipboardCheck, Dumbbell, Sparkles, Target, X } from 'lucide-react';
 import { isOnboardingProfile, type ExperienceLevel, type JourneyGoal, type NutritionApproach, type OnboardingProfile, type TrainingLocation } from './onboarding.js';
+import { buildOnboardingReview, type OnboardingAnswers } from './onboardingReview.js';
 import type { TrainingPreferences } from './trainingPlanner.js';
 import { useAccessibleDialog } from './useAccessibleDialog.js';
 
@@ -55,11 +56,10 @@ export function OnboardingFlow({ onComplete, onClose }: OnboardingFlowProps) {
     && Number(heightCm) >= 120 && Number(heightCm) <= 230
     && Number(weightKg) >= 30 && Number(weightKg) <= 300;
 
-  function finish() {
-    if (!primaryGoal) return;
-    const profile: OnboardingProfile = {
+  function currentAnswers(): OnboardingAnswers | null {
+    if (!primaryGoal || !baselineValid || equipment.length === 0) return null;
+    return {
       version: 1,
-      completedAt: new Date().toISOString(),
       primaryGoal,
       experience,
       weeklyTrainingDays,
@@ -73,6 +73,18 @@ export function OnboardingFlow({ onComplete, onClose }: OnboardingFlowProps) {
       heightCm: Number(heightCm),
       weightKg: Number(weightKg),
     };
+  }
+
+  const answers = currentAnswers();
+  const review = answers ? buildOnboardingReview(answers) : null;
+
+  function finish() {
+    const approvedAnswers = currentAnswers();
+    if (!approvedAnswers) return;
+    const profile: OnboardingProfile = {
+      ...approvedAnswers,
+      completedAt: new Date().toISOString(),
+    };
     if (isOnboardingProfile(profile)) onComplete(profile);
   }
 
@@ -80,13 +92,13 @@ export function OnboardingFlow({ onComplete, onClose }: OnboardingFlowProps) {
     <aside ref={dialogRef} className="onboarding-flow" role="dialog" aria-modal="true" aria-labelledby="onboarding-title" tabIndex={-1} onMouseDown={(event) => event.stopPropagation()}>
       <header>
         <div className="onboarding-brand"><span>F</span><b>FORGE</b></div>
-        <div className="onboarding-progress" role="progressbar" aria-label="Plan setup progress" aria-valuemin={1} aria-valuemax={3} aria-valuenow={step + 1} aria-valuetext={'Step ' + (step + 1) + ' of 3'}><i style={{ width: String((step + 1) / 3 * 100) + '%' }} /></div>
+        <div className="onboarding-progress" role="progressbar" aria-label="Plan setup progress" aria-valuemin={1} aria-valuemax={4} aria-valuenow={step + 1} aria-valuetext={'Step ' + (step + 1) + ' of 4'}><i style={{ width: String((step + 1) / 4 * 100) + '%' }} /></div>
         <button onClick={onClose} aria-label="Close plan setup"><X size={19} /></button>
       </header>
 
       {step === 0 && <section className="onboarding-step">
         <Target size={28} className="onboarding-step-icon" />
-        <span className="section-label">STEP 1 OF 3 · YOUR DIRECTION</span>
+        <span className="section-label">STEP 1 OF 4 · YOUR DIRECTION</span>
         <h2 ref={stepHeadingRef} id="onboarding-title" tabIndex={-1}>What would you like Forge to help you change?</h2>
         <p>Choose one primary goal. You can add a secondary goal later without making today’s plan confusing.</p>
         <div className="onboarding-goals">{goalOptions.map((option) => <button key={option.value} className={primaryGoal === option.value ? 'selected' : ''} aria-pressed={primaryGoal === option.value} onClick={() => setPrimaryGoal(option.value)}>
@@ -96,7 +108,7 @@ export function OnboardingFlow({ onComplete, onClose }: OnboardingFlowProps) {
 
       {step === 1 && <section className="onboarding-step">
         <Dumbbell size={28} className="onboarding-step-icon" />
-        <span className="section-label">STEP 2 OF 3 · YOUR TRAINING REALITY</span>
+        <span className="section-label">STEP 2 OF 4 · YOUR TRAINING REALITY</span>
         <h2 ref={stepHeadingRef} id="onboarding-title" tabIndex={-1}>Make the plan fit your life</h2>
         <p>Forge will use this to set frequency, session size, and available movements.</p>
         <div className="onboarding-fields">
@@ -111,7 +123,7 @@ export function OnboardingFlow({ onComplete, onClose }: OnboardingFlowProps) {
 
       {step === 2 && <section className="onboarding-step">
         <Sparkles size={28} className="onboarding-step-icon" />
-        <span className="section-label">STEP 3 OF 3 · YOUR STARTING POINT</span>
+        <span className="section-label">STEP 3 OF 4 · YOUR STARTING POINT</span>
         <h2 ref={stepHeadingRef} id="onboarding-title" tabIndex={-1}>Give Forge an honest baseline</h2>
         <p>These values let the Digital Twin avoid using a demonstration profile. You can change them later.</p>
         <div className="onboarding-fields baseline">
@@ -124,10 +136,24 @@ export function OnboardingFlow({ onComplete, onClose }: OnboardingFlowProps) {
         <div className="onboarding-boundary"><b>What happens next</b><span>Forge creates a starting plan from these answers, then asks for today’s sleep, soreness, and stress before adapting it.</span></div>
       </section>}
 
+      {step === 3 && review && <section className="onboarding-step">
+        <ClipboardCheck size={28} className="onboarding-step-icon" />
+        <span className="section-label">STEP 4 OF 4 · YOUR PLAN</span>
+        <h2 ref={stepHeadingRef} id="onboarding-title" tabIndex={-1}>Review your Forge plan</h2>
+        <p>Nothing is activated until you approve it. Check that this starting direction feels realistic.</p>
+        <div className="onboarding-review-grid">{review.summary.map((item) => <div className="onboarding-review-item" key={item.label}><small>{item.label}</small><b>{item.value}</b></div>)}</div>
+        <div className="onboarding-plan-card"><span className="section-label">EXAMPLE WEEKLY STRUCTURE</span><b>{review.weeklyStructure}</b><small>Your daily check-in can make a session easier or recovery-focused without changing your weekly commitment.</small></div>
+        <div className="onboarding-approval">
+          <div><Check size={17} /><span><b>Forge can adapt</b><small>{review.forgeCanAdapt}</small></span></div>
+          <div><Target size={17} /><span><b>You stay in control</b><small>{review.userApprovalRequired}</small></span></div>
+        </div>
+      </section>}
+
       <footer>
-        <button className="onboarding-back" disabled={step === 0} onClick={() => setStep(step - 1)}><ChevronLeft size={17} /> Back</button>
-        {step < 2 ? <button className="onboarding-next" disabled={(step === 0 && !primaryGoal) || (step === 1 && equipment.length === 0)} onClick={() => setStep(step + 1)}>Continue <ChevronRight size={17} /></button>
-          : <button className="onboarding-next" disabled={!baselineValid} onClick={finish}><Sparkles size={17} /> Build my Forge plan</button>}
+        <button className="onboarding-back" disabled={step === 0} onClick={() => setStep(step === 3 ? 0 : step - 1)}><ChevronLeft size={17} /> {step === 3 ? 'Change my answers' : 'Back'}</button>
+        {step < 2 && <button className="onboarding-next" disabled={(step === 0 && !primaryGoal) || (step === 1 && equipment.length === 0)} onClick={() => setStep(step + 1)}>Continue <ChevronRight size={17} /></button>}
+        {step === 2 && <button className="onboarding-next" disabled={!baselineValid} onClick={() => setStep(3)}>Review my plan <ChevronRight size={17} /></button>}
+        {step === 3 && <button className="onboarding-next" disabled={!review} onClick={finish}><Check size={17} /> Use this plan</button>}
       </footer>
     </aside>
   </div>;
