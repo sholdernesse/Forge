@@ -40,6 +40,7 @@ import { OnboardingFlow } from './OnboardingFlow.js';
 import { goalsFromOnboarding, trainingPreferencesFromOnboarding, userProfileFromOnboarding, type OnboardingProfile } from './onboarding.js';
 import { useAccessibleDialog } from './useAccessibleDialog.js';
 import { startingBlockFor, startingBlockReview } from './startingBlock.js';
+import { performanceTimeline, weightProgressStory } from './performanceTimeline.js';
 
 const defaultCheckIn: CheckIn = { sleepScore: 77, sleepHours: 7, soreness: 4, stress: 3, weightKg: 75.8 };
 
@@ -204,7 +205,8 @@ export function App() {
   const nutritionTargets = useMemo(() => calculateNutritionTargets(twin, workout), [twin, workout]);
   const targetProtein = nutritionTargets.proteinG;
   const calorieTarget = nutritionTargets.caloriesKcal;
-  const weights = history.map((day) => day.weightKg ?? checkIn.weightKg);
+  const weightStory = weightProgressStory(history, athleteGoals.primary, TODAY);
+  const timeline = performanceTimeline(history, sessionHistory, TODAY);
   const strengthLeaders = strongestMovements(exerciseHistory).slice(0, 3);
   const selectedStrengthTimeline = selectedStrengthId ? exerciseProgressTimeline(exerciseHistory, selectedStrengthId) : undefined;
   const plannedMinutes = workout.exercises.reduce((total, exercise) => total + exercise.sets.reduce((sum, set) => sum + (set.durationMinutes ?? 3), 0), 0);
@@ -679,11 +681,11 @@ export function App() {
           </article>
 
           <article className="panel trend-panel" id="progress">
-            <div className="panel-heading"><div><span className="section-label">7-DAY TREND</span><h3>Weight is moving steadily</h3></div><TrendingDown size={22} className="trend-icon" /></div>
-            <div className="trend-summary"><strong>{checkIn.weightKg.toFixed(1)} kg</strong><span>−{(weights[0]! - weights.at(-1)!).toFixed(1)} kg this week</span></div>
-            <Sparkline values={weights} />
-            <div className="trend-labels"><span>Aug 6</span><span>Today</span></div>
-            <div className="goal-row"><Target size={18} /><span><b>Goal trajectory</b><small>On pace for gradual recomposition</small></span><strong>On track</strong></div>
+            <div className="panel-heading"><div><span className="section-label">RECENT PROGRESS</span><h3>{weightStory.headline}</h3></div><TrendingDown size={22} className="trend-icon" /></div>
+            <div className="trend-summary"><strong>{weightStory.latest === undefined ? 'No weight yet' : `${weightStory.latest.toFixed(1)} kg`}</strong><span>{weightStory.summary}</span></div>
+            {weightStory.measurements.length > 1 && <Sparkline values={weightStory.measurements} />}
+            <div className="goal-row"><Target size={18} /><span><b>Goal context</b><small>{weightStory.trajectory}</small></span><strong>{weightStory.measurements.length > 1 ? 'Review' : 'Collect'}</strong></div>
+            <details className="performance-timeline"><summary><span><Activity size={16} /><b>View performance timeline</b></span><small>{timeline.length ? `${timeline.length} recent events` : 'No events yet'}</small></summary>{timeline.length ? <div>{timeline.map((entry) => <article className={entry.tone} key={`${entry.date}-${entry.title}`}><time dateTime={entry.date}>{new Date(`${entry.date}T12:00:00Z`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })}</time><section><b>{entry.title}</b><p>{entry.detail}</p><div>{entry.signals.map((signal) => <span key={signal}>{signal}</span>)}</div></section></article>)}</div> : <p className="timeline-empty">Complete a workout, reflection, or nutrition log to begin the timeline.</p>}<footer>Events share a sequence in time. Forge does not assume that one event caused another.</footer></details>
           </article>
 
           <article className="panel reflection-history-panel">
