@@ -191,7 +191,7 @@ PR #2 should deliver a coherent, testable Forge web candidate with:
 - ~~Visible four-week starting block with goal, duration, exercise intent, and quality-first progression.~~ Delivered in Sprint 4.47; later-block generation remains.
 - ~~Evidence-based end-of-block review using adherence, movement quality, and discomfort signals.~~ Delivered in Sprint 4.48; later-block activation remains user-controlled future work.
 - Plan-level progression and deload timing across mesocycles.
-- Schedule templates and simple session movement without drag-and-drop complexity unless testing proves it necessary.
+- ~~Bounded weekly calendar browsing and persistent Adaptive, Train, or Rest selections.~~ Delivered in Sprint 4.49; richer templates remain evidence-gated.
 - A signature Performance Timeline connecting decisions, workouts, nutrition, recovery, and outcomes.
 - Plateau and adherence explanations grounded in sufficient history.
 
@@ -231,6 +231,8 @@ Initial delivery order:
 
 - Verified external food data provider.
 - Camera barcode capture with manual fallback.
+- Low-friction hydration logging with quick-add amounts and context-aware targets.
+- Optional weekly micronutrient coverage after verified food data is available; avoid deficiency diagnosis or high-dose supplement advice.
 - Longer-history expenditure calibration.
 - Adaptive body-composition targets and clear adjustment explanations.
 - Meal planning only where it reduces logging burden.

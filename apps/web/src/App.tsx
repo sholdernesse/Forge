@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { CoachService, type CoachActionType } from '@forge/coach';
 import { buildDigitalTwin, type DailySnapshot, type Recommendation } from '@forge/digital-twin';
 import {
-  Activity, Apple, ArrowRight, Award, BookOpen, Brain, CalendarDays, Check, ChevronRight, CircleUserRound, Cloud, CloudOff, Dumbbell,
+  Activity, Apple, ArrowRight, Award, BookOpen, Brain, CalendarDays, Check, ChevronLeft, ChevronRight, CircleUserRound, Cloud, CloudOff, Dumbbell,
   Download, Flame, Footprints, Gauge, HeartPulse, Home, Moon, Plus, Settings, ShieldAlert, Sparkles,
   Repeat2, Save, Target, TrendingDown, Utensils, X,
 } from 'lucide-react';
@@ -13,7 +13,7 @@ import { WorkoutPlayer } from './WorkoutPlayer.js';
 import { clearWorkoutRest, completedSetCount, isWorkingSet, createTodayWorkout, totalSetCount, workoutElapsedMinutes, type WorkoutFeedback, type WorkoutSession } from './workoutSession.js';
 import { demoExerciseHistory, exerciseProgressTimeline, recordPerformances, strongestMovements, type ExercisePerformance } from './progression.js';
 import { demoTrainingPreferences, generateTrainingPlan } from './trainingPlanner.js';
-import { demoSessionHistory, summarizeWorkout, trainingWeek, weeklyVolume, type TrainingSessionRecord } from './volumeLedger.js';
+import { calendarDateOffset, demoSessionHistory, summarizeWorkout, trainingWeek, weeklyVolume, type TrainingSessionRecord } from './volumeLedger.js';
 import { assessDeload, nextScheduleIntent, type ScheduleOverrides } from './schedulePolicy.js';
 import { calculateNutritionTargets } from './nutritionPlanner.js';
 import { FoodLogger } from './FoodLogger.js';
@@ -147,6 +147,7 @@ export function App() {
   const [exerciseHistory, setExerciseHistory] = useState<ExercisePerformance[]>(initialState.exerciseHistory ?? []);
   const [sessionHistory, setSessionHistory] = useState<TrainingSessionRecord[]>(initialState.sessionHistory ?? []);
   const [scheduleOverrides, setScheduleOverrides] = useState<ScheduleOverrides>(initialState.scheduleOverrides ?? {});
+  const [scheduleWeekOffset, setScheduleWeekOffset] = useState(0);
   const [foodEntries, setFoodEntries] = useState<FoodEntry[]>(initialState.foodEntries ?? []);
   const [foodLoggerOpen, setFoodLoggerOpen] = useState(false);
   const [favoriteFoodIds, setFavoriteFoodIds] = useState<string[]>(initialState.favoriteFoodIds ?? []);
@@ -208,7 +209,9 @@ export function App() {
   const selectedStrengthTimeline = selectedStrengthId ? exerciseProgressTimeline(exerciseHistory, selectedStrengthId) : undefined;
   const plannedMinutes = workout.exercises.reduce((total, exercise) => total + exercise.sets.reduce((sum, set) => sum + (set.durationMinutes ?? 3), 0), 0);
   const volume = weeklyVolume(sessionHistory, TODAY).filter((item) => ['chest', 'back', 'shoulders', 'quads', 'hamstrings', 'glutes'].includes(item.muscle));
-  const week = trainingWeek(sessionHistory, TODAY, workout.title, scheduleOverrides);
+  const scheduleAnchor = calendarDateOffset(TODAY, scheduleWeekOffset * 7);
+  const week = trainingWeek(sessionHistory, scheduleAnchor, workout.title, scheduleOverrides, TODAY);
+  const scheduleWeekLabel = `${new Date(`${week[0]!.date}T12:00:00Z`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })}–${new Date(`${week[6]!.date}T12:00:00Z`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })}`;
   const loggedNutrition = foodTotals(foodEntries, TODAY);
   const filteredTrainingRecords = filterTrainingHistory(sessionHistory, historyFilter, historyQuery, historyRange, TODAY);
   const visibleHistoryCount = visibleTrainingHistoryCount(filteredTrainingRecords.length, historyVisibleCount);
@@ -734,6 +737,7 @@ export function App() {
               <div className="starting-block-weeks">{startingBlock.weeks.map((phase) => <div className={phase.status} key={phase.week} aria-current={phase.status === 'current' ? 'step' : undefined}><span>{phase.status === 'complete' ? <Check size={14} /> : phase.week}</span><div><b>{phase.title}</b><small>{phase.focus}</small></div></div>)}</div>
               {blockReview && <div className={`starting-block-review ${blockReview.tone}`}><div><span><small>Sessions</small><b>{blockReview.sessions} / {blockReview.plannedSessions}</b></span><span><small>Movement ratings</small><b>{blockReview.qualityCoveragePct}%</b></span><span><small>Controlled</small><b>{blockReview.controlledPct === undefined ? 'Not enough data' : `${blockReview.controlledPct}%`}</b></span></div><section><b>{blockReview.headline}</b><p>{blockReview.nextStep}</p></section></div>}
             </section>}
+            <nav className="week-browser" aria-label="Browse training weeks"><button aria-label="Previous training week" disabled={scheduleWeekOffset <= -4} onClick={() => setScheduleWeekOffset((offset) => offset - 1)}><ChevronLeft size={16} /></button><button className="week-browser-current" onClick={() => setScheduleWeekOffset(0)} disabled={scheduleWeekOffset === 0}><b>{scheduleWeekOffset === 0 ? 'This week' : scheduleWeekLabel}</b><small>{scheduleWeekOffset === 0 ? scheduleWeekLabel : 'Return to this week'}</small></button><button aria-label="Next training week" disabled={scheduleWeekOffset >= 8} onClick={() => setScheduleWeekOffset((offset) => offset + 1)}><ChevronRight size={16} /></button></nav>
             <p className="schedule-hint">Select today or an upcoming day to cycle: adaptive → train → rest.</p>
             <div className="week-strip">{week.map((day) => <button className={`${day.status} intent-${day.intent}`} key={day.date} disabled={day.status === 'completed' || day.date < TODAY || (day.date === TODAY && workout.status !== 'not-started')} onClick={() => cycleSchedule(day.date)} title={day.title}><span>{day.day}</span><b>{Number(day.date.slice(-2))}</b><small>{day.status === 'completed' ? 'Done' : day.intent === 'train' ? 'Train' : day.intent === 'rest' ? 'Rest' : day.status === 'today' ? 'Today' : 'Adaptive'}</small></button>)}</div>
             <div className="volume-ledger">{volume.map((item) => <div key={item.muscle}><span><b>{item.muscle}</b><small>{item.completed} / {item.target} hard sets</small></span><div className="volume-bar"><i style={{ width: `${Math.min(100, item.completed / item.target * 100)}%` }} /></div><strong>{Math.round(item.completed / item.target * 100)}%</strong></div>)}</div>

@@ -111,7 +111,13 @@ export function weeklyVolume(records: TrainingSessionRecord[], asOfDate: string)
   return (Object.entries(targets) as Array<[MuscleGroup, number]>).map(([muscle, target]) => ({ muscle, completed: totals.get(muscle) ?? 0, target }));
 }
 
-export function trainingWeek(records: TrainingSessionRecord[], asOfDate: string, currentTitle: string, overrides: ScheduleOverrides = {}) {
+export function calendarDateOffset(date: string, days: number): string {
+  const value = new Date(`${date}T12:00:00Z`);
+  value.setUTCDate(value.getUTCDate() + days);
+  return value.toISOString().slice(0, 10);
+}
+
+export function trainingWeek(records: TrainingSessionRecord[], asOfDate: string, currentTitle: string, overrides: ScheduleOverrides = {}, todayDate = asOfDate) {
   const anchor = new Date(`${asOfDate}T12:00:00Z`);
   const monday = new Date(anchor);
   monday.setUTCDate(anchor.getUTCDate() - ((anchor.getUTCDay() + 6) % 7));
@@ -120,7 +126,7 @@ export function trainingWeek(records: TrainingSessionRecord[], asOfDate: string,
     const iso = date.toISOString().slice(0, 10);
     const record = records.find((item) => item.date === iso);
     const intent = overrides[iso] ?? 'adaptive';
-    const status = record ? 'completed' as const : iso === asOfDate ? 'today' as const : iso < asOfDate || intent === 'rest' ? 'rest' as const : 'planned' as const;
-    return { date: iso, day: date.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' }), title: record?.title ?? (iso === asOfDate ? currentTitle : intent === 'train' ? 'Training' : intent === 'rest' ? 'Rest' : 'Adaptive'), status, intent };
+    const status = record ? 'completed' as const : iso === todayDate ? 'today' as const : iso < todayDate || intent === 'rest' ? 'rest' as const : 'planned' as const;
+    return { date: iso, day: date.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' }), title: record?.title ?? (iso === todayDate ? currentTitle : intent === 'train' ? 'Training' : intent === 'rest' ? 'Rest' : 'Adaptive'), status, intent };
   });
 }

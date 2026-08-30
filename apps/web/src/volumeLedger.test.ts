@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createTodayWorkout } from './workoutSession.js';
-import { summarizeWorkout, trainingWeek, weeklyVolume } from './volumeLedger.js';
+import { calendarDateOffset, summarizeWorkout, trainingWeek, weeklyVolume } from './volumeLedger.js';
 
 describe('weekly volume ledger', () => {
   it('counts completed sets against their muscle groups', () => {
@@ -25,5 +25,13 @@ describe('weekly volume ledger', () => {
     const week = trainingWeek([], '2026-08-12', 'Adaptive upper');
     expect(week).toHaveLength(7);
     expect(week.find((day) => day.status === 'today')).toMatchObject({ day: 'Wed', title: 'Adaptive upper' });
+  });
+
+  it('browses another week without falsely marking its anchor as today', () => {
+    const futureAnchor = calendarDateOffset('2026-08-12', 7);
+    const week = trainingWeek([], futureAnchor, 'Adaptive upper', {}, '2026-08-12');
+    expect(week).toHaveLength(7);
+    expect(week.every((day) => day.status !== 'today')).toBe(true);
+    expect(week[0]?.date).toBe('2026-08-17');
   });
 });

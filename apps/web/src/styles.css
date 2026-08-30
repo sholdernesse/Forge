@@ -851,6 +851,12 @@ h1 { font-size: clamp(28px, 3vw, 40px); letter-spacing: -.04em; margin-top: 5px;
 .starting-block-review.ready > section { border-color: #76fba5; }
 .starting-block-review.needs-evidence > section { border-color: #7696fb; }
 .starting-block-review p { margin: 0; color: #86a499; font-size: 0.64rem; line-height: 1.45; }
+.week-browser { display: grid; grid-template-columns: 2.5rem minmax(0, 1fr) 2.5rem; gap: 0.45rem; align-items: stretch; margin-bottom: 0.65rem; }
+.week-browser > button { display: grid; place-items: center; border: 1px solid #29483d; border-radius: 0.65rem; background: #10251e; color: #9db7ad; }
+.week-browser > button:disabled { cursor: default; opacity: 0.38; }
+.week-browser .week-browser-current { display: flex; flex-direction: column; min-height: 2.5rem; gap: 0.1rem; padding: 0.4rem 0.65rem; }
+.week-browser-current b { color: #d8eee1; font-size: 0.7rem; }
+.week-browser-current small { color: #729084; font-size: 0.59rem; }
 @media(max-width:620px) {
   .onboarding-backdrop { padding: 0; place-items: stretch; }
   .onboarding-flow { width: 100%; height: 100dvh; max-height: none; border: 0; border-radius: 0; }
