@@ -188,7 +188,7 @@ PR #2 should deliver a coherent, testable Forge web candidate with:
 
 **Objective:** Extend daily adaptation into understandable multi-week direction.
 
-- Training blocks with goal, duration, exercise intent, and progression rules.
+- ~~Visible four-week starting block with goal, duration, exercise intent, and quality-first progression.~~ Delivered in Sprint 4.47; later-block generation remains.
 - Plan-level progression and deload timing across mesocycles.
 - Schedule templates and simple session movement without drag-and-drop complexity unless testing proves it necessary.
 - A signature Performance Timeline connecting decisions, workouts, nutrition, recovery, and outcomes.

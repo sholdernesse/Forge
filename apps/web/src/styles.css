@@ -829,6 +829,19 @@ h1 { font-size: clamp(28px, 3vw, 40px); letter-spacing: -.04em; margin-top: 5px;
 .onboarding-back { border: 1px solid #29483d; background: #10251e; color: #9db7ad; }
 .onboarding-next { border: 0; background: #76fba5; color: #06120d; }
 .onboarding-flow > footer button:disabled { cursor: not-allowed; opacity: 0.35; }
+.starting-block { display: grid; gap: 0.75rem; margin-bottom: 1rem; border: 1px solid #315c4b; border-radius: 0.9rem; background: linear-gradient(135deg, rgba(18, 51, 38, 0.86), rgba(10, 29, 23, 0.96)); padding: 0.9rem; }
+.starting-block > header { display: grid; grid-template-columns: minmax(0, 1fr) minmax(12rem, 0.9fr); gap: 1rem; align-items: end; }
+.starting-block > header h4 { margin: 0.2rem 0 0; color: #e4f7eb; font-size: 0.94rem; }
+.starting-block > header > small { color: #87a99b; font-size: 0.69rem; line-height: 1.45; }
+.starting-block-weeks { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.45rem; }
+.starting-block-weeks > div { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0.45rem; align-items: start; border: 1px solid #29483d; border-radius: 0.65rem; background: rgba(8, 25, 19, 0.72); padding: 0.6rem; opacity: 0.62; }
+.starting-block-weeks > div.current { border-color: #76fba5; background: #163b2b; opacity: 1; }
+.starting-block-weeks > div.complete { opacity: 0.82; }
+.starting-block-weeks > div > span { width: 1.35rem; height: 1.35rem; display: grid; place-items: center; border-radius: 999px; background: #203f34; color: #87a99b; font-size: 0.65rem; font-weight: 900; }
+.starting-block-weeks > div.current > span, .starting-block-weeks > div.complete > span { background: #76fba5; color: #07140e; }
+.starting-block-weeks > div > div { display: grid; gap: 0.18rem; }
+.starting-block-weeks b { color: #d8eee1; font-size: 0.7rem; }
+.starting-block-weeks small { color: #77958a; font-size: 0.62rem; line-height: 1.4; }
 @media(max-width:620px) {
   .onboarding-backdrop { padding: 0; place-items: stretch; }
   .onboarding-flow { width: 100%; height: 100dvh; max-height: none; border: 0; border-radius: 0; }
@@ -836,6 +849,8 @@ h1 { font-size: clamp(28px, 3vw, 40px); letter-spacing: -.04em; margin-top: 5px;
   .onboarding-goals,
   .onboarding-fields,
   .onboarding-review-grid { grid-template-columns: 1fr; }
+  .starting-block > header { grid-template-columns: 1fr; gap: 0.35rem; }
+  .starting-block-weeks { grid-template-columns: 1fr 1fr; }
   .onboarding-fields .nutrition-choice { grid-column: auto; }
 }
 
