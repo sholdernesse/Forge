@@ -842,6 +842,15 @@ h1 { font-size: clamp(28px, 3vw, 40px); letter-spacing: -.04em; margin-top: 5px;
 .starting-block-weeks > div > div { display: grid; gap: 0.18rem; }
 .starting-block-weeks b { color: #d8eee1; font-size: 0.7rem; }
 .starting-block-weeks small { color: #77958a; font-size: 0.62rem; line-height: 1.4; }
+.starting-block-review { display: grid; grid-template-columns: minmax(0, 1fr) minmax(14rem, 1.1fr); gap: 0.75rem; border-top: 1px solid #29483d; padding-top: 0.75rem; }
+.starting-block-review > div { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.35rem; }
+.starting-block-review > div span, .starting-block-review > section { display: grid; gap: 0.2rem; }
+.starting-block-review small { color: #729084; font-size: 0.59rem; }
+.starting-block-review b { color: #d8eee1; font-size: 0.7rem; }
+.starting-block-review > section { border-left: 3px solid #d8b968; padding-left: 0.65rem; }
+.starting-block-review.ready > section { border-color: #76fba5; }
+.starting-block-review.needs-evidence > section { border-color: #7696fb; }
+.starting-block-review p { margin: 0; color: #86a499; font-size: 0.64rem; line-height: 1.45; }
 @media(max-width:620px) {
   .onboarding-backdrop { padding: 0; place-items: stretch; }
   .onboarding-flow { width: 100%; height: 100dvh; max-height: none; border: 0; border-radius: 0; }
@@ -851,6 +860,7 @@ h1 { font-size: clamp(28px, 3vw, 40px); letter-spacing: -.04em; margin-top: 5px;
   .onboarding-review-grid { grid-template-columns: 1fr; }
   .starting-block > header { grid-template-columns: 1fr; gap: 0.35rem; }
   .starting-block-weeks { grid-template-columns: 1fr 1fr; }
+  .starting-block-review { grid-template-columns: 1fr; }
   .onboarding-fields .nutrition-choice { grid-column: auto; }
 }
 

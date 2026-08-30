@@ -39,7 +39,7 @@ import { experienceMode, isFirstRun } from './firstRun.js';
 import { OnboardingFlow } from './OnboardingFlow.js';
 import { goalsFromOnboarding, trainingPreferencesFromOnboarding, userProfileFromOnboarding, type OnboardingProfile } from './onboarding.js';
 import { useAccessibleDialog } from './useAccessibleDialog.js';
-import { startingBlockFor } from './startingBlock.js';
+import { startingBlockFor, startingBlockReview } from './startingBlock.js';
 
 const defaultCheckIn: CheckIn = { sleepScore: 77, sleepHours: 7, soreness: 4, stress: 3, weightKg: 75.8 };
 
@@ -223,6 +223,7 @@ export function App() {
   const coachPrimaryAction = todayCoachAction(coachPriority, workout.status);
   const trainingTrend = trainingTrendSummary(sessionHistory, TODAY);
   const startingBlock = useMemo(() => onboardingProfile ? startingBlockFor(onboardingProfile, TODAY) : undefined, [onboardingProfile, TODAY]);
+  const blockReview = useMemo(() => onboardingProfile ? startingBlockReview(onboardingProfile, TODAY, sessionHistory) : undefined, [onboardingProfile, sessionHistory, TODAY]);
   const maxWeeklyMinutes = Math.max(1, ...trainingTrend.weeks.map((week) => week.minutes));
   const reflections = reflectionTrend(history);
   const firstRun = isFirstRun({
@@ -729,8 +730,9 @@ export function App() {
           <article className="panel schedule-panel">
             <div className="panel-heading"><div><span className="section-label">TRAINING WEEK</span><h3>Schedule + muscle volume</h3></div><CalendarDays size={22} className="trend-icon" /></div>
             {startingBlock && <section className="starting-block" aria-labelledby="starting-block-title">
-              <header><div><span className="section-label">WEEK {startingBlock.currentWeek} OF 4</span><h4 id="starting-block-title">{startingBlock.title}</h4></div><small>{startingBlock.purpose}</small></header>
+              <header><div><span className="section-label">{startingBlock.reviewReady ? 'BLOCK REVIEW' : `WEEK ${startingBlock.currentWeek} OF 4`}</span><h4 id="starting-block-title">{startingBlock.title}</h4></div><small>{startingBlock.purpose}</small></header>
               <div className="starting-block-weeks">{startingBlock.weeks.map((phase) => <div className={phase.status} key={phase.week} aria-current={phase.status === 'current' ? 'step' : undefined}><span>{phase.status === 'complete' ? <Check size={14} /> : phase.week}</span><div><b>{phase.title}</b><small>{phase.focus}</small></div></div>)}</div>
+              {blockReview && <div className={`starting-block-review ${blockReview.tone}`}><div><span><small>Sessions</small><b>{blockReview.sessions} / {blockReview.plannedSessions}</b></span><span><small>Movement ratings</small><b>{blockReview.qualityCoveragePct}%</b></span><span><small>Controlled</small><b>{blockReview.controlledPct === undefined ? 'Not enough data' : `${blockReview.controlledPct}%`}</b></span></div><section><b>{blockReview.headline}</b><p>{blockReview.nextStep}</p></section></div>}
             </section>}
             <p className="schedule-hint">Select today or an upcoming day to cycle: adaptive → train → rest.</p>
             <div className="week-strip">{week.map((day) => <button className={`${day.status} intent-${day.intent}`} key={day.date} disabled={day.status === 'completed' || day.date < TODAY || (day.date === TODAY && workout.status !== 'not-started')} onClick={() => cycleSchedule(day.date)} title={day.title}><span>{day.day}</span><b>{Number(day.date.slice(-2))}</b><small>{day.status === 'completed' ? 'Done' : day.intent === 'train' ? 'Train' : day.intent === 'rest' ? 'Rest' : day.status === 'today' ? 'Today' : 'Adaptive'}</small></button>)}</div>
