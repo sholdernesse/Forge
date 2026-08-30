@@ -193,7 +193,7 @@ PR #2 should deliver a coherent, testable Forge web candidate with:
 - Plan-level progression and deload timing across mesocycles.
 - ~~Bounded weekly calendar browsing and persistent Adaptive, Train, or Rest selections.~~ Delivered in Sprint 4.49; richer templates remain evidence-gated.
 - ~~A compact Performance Timeline connecting workouts, nutrition, recovery, reflection, and outcomes without causal overclaiming.~~ Delivered in Sprint 4.50; deeper decision-event history remains evidence-gated.
-- Plateau and adherence explanations grounded in sufficient history.
+- ~~Plateau and adherence explanations grounded in sufficient repeated exposure, elapsed time, schedule coverage, and movement quality.~~ Delivered in Sprint 4.51.
 
 **Exit:** Users understand both today’s action and how it advances the larger goal.
 

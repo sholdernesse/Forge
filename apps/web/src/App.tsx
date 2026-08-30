@@ -41,6 +41,7 @@ import { goalsFromOnboarding, trainingPreferencesFromOnboarding, userProfileFrom
 import { useAccessibleDialog } from './useAccessibleDialog.js';
 import { startingBlockFor, startingBlockReview } from './startingBlock.js';
 import { performanceTimeline, weightProgressStory } from './performanceTimeline.js';
+import { strengthProgressInsight } from './strengthInsight.js';
 
 const defaultCheckIn: CheckIn = { sleepScore: 77, sleepHours: 7, soreness: 4, stress: 3, weightKg: 75.8 };
 
@@ -208,6 +209,7 @@ export function App() {
   const weightStory = weightProgressStory(history, athleteGoals.primary, TODAY);
   const timeline = performanceTimeline(history, sessionHistory, TODAY);
   const strengthLeaders = strongestMovements(exerciseHistory).slice(0, 3);
+  const strengthInsight = strengthProgressInsight(exerciseHistory, sessionHistory, athleteGoals.weeklyTrainingTarget ?? 4, TODAY);
   const selectedStrengthTimeline = selectedStrengthId ? exerciseProgressTimeline(exerciseHistory, selectedStrengthId) : undefined;
   const plannedMinutes = workout.exercises.reduce((total, exercise) => total + exercise.sets.reduce((sum, set) => sum + (set.durationMinutes ?? 3), 0), 0);
   const volume = weeklyVolume(sessionHistory, TODAY).filter((item) => ['chest', 'back', 'shoulders', 'quads', 'hamstrings', 'glutes'].includes(item.muscle));
@@ -726,9 +728,10 @@ export function App() {
           </article>
 
           <article className="panel strength-panel">
-            <div className="panel-heading"><div><span className="section-label">STRENGTH PROGRESS</span><h3>Your estimated strength is climbing</h3></div><Award size={22} className="trend-icon" /></div>
-            <p className="panel-copy">Forge compares quality reps and load—not just the heaviest number you entered.</p>
-            <div className="strength-list">{strengthLeaders.map((movement) => <button key={movement.exerciseId} aria-expanded={selectedStrengthId === movement.exerciseId} onClick={() => setSelectedStrengthId(selectedStrengthId === movement.exerciseId ? null : movement.exerciseId)}><span><b>{movement.exerciseName}</b><small>{movement.loadKg} kg × {movement.reps} · est. max {movement.estimatedOneRepMax} kg</small></span><strong className={movement.gainPct > 0 ? 'positive' : ''}>{movement.gainPct > 0 ? '+' : ''}{movement.gainPct}%</strong></button>)}</div>
+            <div className="panel-heading"><div><span className="section-label">STRENGTH PROGRESS</span><h3>{strengthInsight.headline}</h3></div><Award size={22} className="trend-icon" /></div>
+            <p className="panel-copy">{strengthInsight.explanation}</p>
+            <div className={`strength-insight ${strengthInsight.status}`}><span><b>Next best action</b><small>{strengthInsight.nextStep}</small></span><strong>{strengthInsight.evidence}</strong></div>
+            <div className="strength-list">{strengthLeaders.length ? strengthLeaders.map((movement) => <button key={movement.exerciseId} aria-expanded={selectedStrengthId === movement.exerciseId} onClick={() => setSelectedStrengthId(selectedStrengthId === movement.exerciseId ? null : movement.exerciseId)}><span><b>{movement.exerciseName}</b><small>{movement.loadKg} kg × {movement.reps} · est. max {movement.estimatedOneRepMax} kg</small></span><strong className={movement.gainPct > 0 ? 'positive' : ''}>{movement.gainPct > 0 ? '+' : ''}{movement.gainPct}%</strong></button>) : <div className="empty-state">Complete loaded working sets to begin your strength history.</div>}</div>
             {selectedStrengthTimeline && <section className="strength-detail" aria-labelledby="strength-detail-title"><header><div><span className="section-label">MOVEMENT HISTORY</span><h4 id="strength-detail-title">{selectedStrengthTimeline.exerciseName}</h4></div><button onClick={() => setSelectedStrengthId(null)} aria-label="Close movement history"><X size={16} /></button></header><div className="strength-detail-summary"><span><small>Recorded sets</small><b>{selectedStrengthTimeline.entries.length}</b></span><span><small>Estimated max change</small><b className={selectedStrengthTimeline.gainPct > 0 ? 'positive' : ''}>{selectedStrengthTimeline.gainPct > 0 ? '+' : ''}{selectedStrengthTimeline.gainPct}%</b></span><span><small>Best estimated max</small><b>{selectedStrengthTimeline.bestEstimatedOneRepMax} kg</b></span></div>{selectedStrengthTimeline.entries.length > 1 ? <><Sparkline values={selectedStrengthTimeline.entries.map((entry) => entry.estimatedOneRepMax)} /><div className="strength-timeline">{selectedStrengthTimeline.entries.map((entry) => <span key={`${entry.date}-${entry.loadKg}-${entry.reps}`}><time dateTime={entry.date}>{new Date(`${entry.date}T12:00:00Z`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })}</time><b>{entry.loadKg} kg × {entry.reps}</b><small>Est. max {entry.estimatedOneRepMax} kg{entry.isPersonalRecord ? ' · PR' : ''}</small></span>)}</div></> : <p className="strength-detail-empty">Complete this movement again to unlock a strength trend.</p>}</section>}
           </article>
 

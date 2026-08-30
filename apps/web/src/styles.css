@@ -874,6 +874,14 @@ h1 { font-size: clamp(28px, 3vw, 40px); letter-spacing: -.04em; margin-top: 5px;
 .performance-timeline article section > div { display: flex; flex-wrap: wrap; gap: 0.3rem; }
 .performance-timeline article span { border-radius: 999px; background: #173027; color: #91ad9f; padding: 0.2rem 0.4rem; font-size: 0.55rem; }
 .performance-timeline > footer { margin-top: 0.65rem; color: #607d72; font-size: 0.56rem; line-height: 1.4; }
+.strength-insight { display: flex; justify-content: space-between; gap: 0.75rem; align-items: center; margin: 0.75rem 0; border-left: 3px solid #7696fb; border-radius: 0.4rem; background: #10241d; padding: 0.65rem 0.7rem; }
+.strength-insight.progressing { border-color: #76fba5; }
+.strength-insight.plateau, .strength-insight.quality { border-color: #d8b968; }
+.strength-insight > span { display: grid; gap: 0.2rem; }
+.strength-insight b { color: #cce5d6; font-size: 0.67rem; }
+.strength-insight small { color: #779489; font-size: 0.61rem; line-height: 1.4; }
+.strength-insight > strong { flex: 0 0 auto; max-width: 9rem; color: #92b2a4; font-size: 0.6rem; text-align: right; }
+@media(max-width:520px) { .strength-insight { align-items: flex-start; flex-direction: column; } .strength-insight > strong { max-width: none; text-align: left; } }
 @media(max-width:620px) {
   .onboarding-backdrop { padding: 0; place-items: stretch; }
   .onboarding-flow { width: 100%; height: 100dvh; max-height: none; border: 0; border-radius: 0; }
