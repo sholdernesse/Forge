@@ -3,6 +3,7 @@ import { Readable } from 'node:stream';
 import { authVerifierFromEnvironment } from './auth.js';
 import { createApiHandler } from './handler.js';
 import { PostgresDashboardRepository } from './postgresRepository.js';
+import { HybridFoodProvider } from './foodProvider.js';
 
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) throw new Error('DATABASE_URL is required');
@@ -15,6 +16,7 @@ const dashboards = new PostgresDashboardRepository({
 const handle = createApiHandler({
   auth: authVerifierFromEnvironment(process.env),
   dashboards,
+  foodProvider: new HybridFoodProvider(process.env.USDA_FOODDATA_API_KEY),
   ...(process.env.FORGE_WEB_ORIGIN ? { allowedOrigin: process.env.FORGE_WEB_ORIGIN } : {}),
 });
 const port = Number(process.env.PORT ?? 8787);

@@ -43,6 +43,7 @@ import { nextBlockProposal, startingBlockFor, startingBlockReview } from './star
 import { performanceTimeline, weightProgressStory } from './performanceTimeline.js';
 import { strengthProgressInsight } from './strengthInsight.js';
 import { addHydration, hydrationTotal, undoLatestHydration, type HydrationEntry } from './hydration.js';
+import { FoodDataClient, foodDataConfig } from './foodDataClient.js';
 
 const defaultCheckIn: CheckIn = { sleepScore: 77, sleepHours: 7, soreness: 4, stress: 3, weightKg: 75.8 };
 
@@ -132,6 +133,10 @@ export function App() {
   const displayName = userFirstName(auth.name, auth.username);
   const mode = experienceMode(auth.status);
   const demoMode = mode === 'demo';
+  const foodDataClient = useMemo(() => {
+    const config = foodDataConfig(environment, auth.accessToken);
+    return config ? new FoodDataClient(config) : undefined;
+  }, [auth.accessToken, environment]);
   const [initialState] = useState(() => initialDashboardState(TODAY, demoMode));
   const [history, setHistory] = useState(initialState.history);
   const [checkInOpen, setCheckInOpen] = useState(false);
@@ -840,7 +845,7 @@ export function App() {
 
       {onboardingOpen && <OnboardingFlow onComplete={completeOnboarding} onClose={() => setOnboardingOpen(false)} />}
       {workoutOpen && <WorkoutPlayer session={workout} exerciseHistory={exerciseHistory} {...(currentWorkoutFocus ? { carryForward: currentWorkoutFocus } : {})} onChange={persistWorkout} onClose={() => setWorkoutOpen(false)} onFinish={finishWorkout} />}
-      {foodLoggerOpen && <FoodLogger date={TODAY} entries={foodEntries} favoriteFoodIds={favoriteFoodIds} savedMeals={savedMeals} onChange={updateFoodEntries} onPreferencesChange={updateFoodPreferences} onClose={() => setFoodLoggerOpen(false)} />}
+      {foodLoggerOpen && <FoodLogger date={TODAY} entries={foodEntries} favoriteFoodIds={favoriteFoodIds} savedMeals={savedMeals} {...(foodDataClient ? { foodDataClient } : {})} onChange={updateFoodEntries} onPreferencesChange={updateFoodPreferences} onClose={() => setFoodLoggerOpen(false)} />}
       {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} onGeneratePlan={generateNewPlan} onReset={resetPrototype} />}
       {coachOpen && <CoachPanel twin={twin} messages={coachMessages} onMessagesChange={updateCoachMessages} onAction={handleCoachAction} onClose={() => setCoachOpen(false)} />}
       {movementLibraryOpen && <MovementLibrary onClose={() => setMovementLibraryOpen(false)} />}

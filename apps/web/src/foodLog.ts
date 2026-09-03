@@ -23,7 +23,12 @@ export interface FoodDefinition {
   carbsG: number;
   fatG: number;
   barcode?: string;
-  category: 'protein' | 'carb' | 'produce' | 'meal' | 'supplement';
+  category: 'protein' | 'carb' | 'produce' | 'meal' | 'supplement' | 'other';
+  brand?: string;
+  dataSource?: 'usda' | 'open-food-facts';
+  verification?: 'government' | 'community';
+  fiberG?: number;
+  sodiumMg?: number;
 }
 
 export interface SavedMeal {

@@ -1,4 +1,5 @@
 import { RevisionConflictError, type AuthVerifier, type DashboardRepository } from './types.js';
+import type { FoodProvider } from './foodProvider.js';
 
 const MAX_DASHBOARD_BYTES = 1_000_000;
 
@@ -6,6 +7,7 @@ export interface ApiDependencies {
   auth: AuthVerifier;
   dashboards: DashboardRepository;
   allowedOrigin?: string;
+  foodProvider?: FoodProvider;
 }
 
 function response(body: unknown, status: number, origin?: string): Response {
@@ -58,10 +60,32 @@ export function createApiHandler(dependencies: ApiDependencies) {
     }
 
     if (url.pathname === '/health' && request.method === 'GET') return response({ status: 'ok' }, 200, corsOrigin);
-    if (url.pathname !== '/v1/dashboard') return response({ error: 'not_found' }, 404, corsOrigin);
-
     const user = await dependencies.auth.verify(request.headers.get('authorization'));
     if (!user) return response({ error: 'unauthorized' }, 401, corsOrigin);
+
+    if (url.pathname === '/v1/foods/search' && request.method === 'GET') {
+      const query = (url.searchParams.get('q') ?? '').trim();
+      if (query.length < 2 || query.length > 100) return response({ error: 'invalid_query' }, 400, corsOrigin);
+      if (!dependencies.foodProvider) return response({ foods: [], provider: 'local-only' }, 200, corsOrigin);
+      try {
+        return response({ foods: await dependencies.foodProvider.search(query), provider: 'usda' }, 200, corsOrigin);
+      } catch {
+        return response({ error: 'food_provider_unavailable' }, 503, corsOrigin);
+      }
+    }
+
+    const barcodeMatch = url.pathname.match(/^\/v1\/foods\/barcode\/(\d{8,14})$/);
+    if (barcodeMatch && request.method === 'GET') {
+      if (!dependencies.foodProvider) return response({ error: 'not_found' }, 404, corsOrigin);
+      try {
+        const food = await dependencies.foodProvider.barcode(barcodeMatch[1]!);
+        return food ? response({ food }, 200, corsOrigin) : response({ error: 'not_found' }, 404, corsOrigin);
+      } catch {
+        return response({ error: 'food_provider_unavailable' }, 503, corsOrigin);
+      }
+    }
+
+    if (url.pathname !== '/v1/dashboard') return response({ error: 'not_found' }, 404, corsOrigin);
 
     if (request.method === 'GET') {
       const dashboard = await dependencies.dashboards.get(user.id);

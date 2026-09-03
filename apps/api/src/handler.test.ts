@@ -2,18 +2,20 @@ import { describe, expect, it } from 'vitest';
 import { DevelopmentTokenVerifier } from './auth.js';
 import { createApiHandler } from './handler.js';
 import { MemoryDashboardRepository } from './memoryRepository.js';
+import type { FoodProvider } from './foodProvider.js';
 
 const validState = {
   history: [],
   checkIn: { weightKg: 75, sleepScore: 80, sleepHours: 7, soreness: 3, stress: 2 },
 };
 
-function setup() {
+function setup(foodProvider?: FoodProvider) {
   const dashboards = new MemoryDashboardRepository();
   const handle = createApiHandler({
     auth: new DevelopmentTokenVerifier('test-token', 'user-a'),
     dashboards,
     allowedOrigin: 'http://localhost:4173',
+    ...(foodProvider ? { foodProvider } : {}),
   });
   return { dashboards, handle };
 }
@@ -65,5 +67,29 @@ describe('dashboard API', () => {
     const response = await handle(new Request('http://api.test/health', { headers: { origin: 'http://localhost:4173' } }));
     expect(response.status).toBe(200);
     expect(response.headers.get('access-control-allow-origin')).toBe('http://localhost:4173');
+  });
+
+  it('provides authenticated normalized food search and barcode routes', async () => {
+    const food = { id: 'usda-1', source: 'usda' as const, verification: 'government' as const, name: 'Oats', serving: '100 g', caloriesKcal: 389, proteinG: 16.9, carbsG: 66.3, fatG: 6.9 };
+    const provider: FoodProvider = { search: async () => [food], barcode: async () => ({ ...food, id: 'off-1', source: 'open-food-facts', verification: 'community', barcode: '0123456789012' }) };
+    const { handle } = setup(provider);
+    const headers = { authorization: 'Bearer test-token' };
+
+    const search = await handle(new Request('http://api.test/v1/foods/search?q=oats', { headers }));
+    expect(search.status).toBe(200);
+    await expect(search.json()).resolves.toMatchObject({ foods: [{ name: 'Oats' }], provider: 'usda' });
+
+    const barcode = await handle(new Request('http://api.test/v1/foods/barcode/0123456789012', { headers }));
+    expect(barcode.status).toBe(200);
+    await expect(barcode.json()).resolves.toMatchObject({ food: { verification: 'community' } });
+  });
+
+  it('bounds food queries and fails closed when a provider is unavailable', async () => {
+    const provider: FoodProvider = { search: async () => { throw new Error('offline'); }, barcode: async () => undefined };
+    const { handle } = setup(provider);
+    const headers = { authorization: 'Bearer test-token' };
+    expect((await handle(new Request('http://api.test/v1/foods/search?q=x', { headers }))).status).toBe(400);
+    expect((await handle(new Request('http://api.test/v1/foods/search?q=oats', { headers }))).status).toBe(503);
+    expect((await handle(new Request('http://api.test/v1/foods/barcode/12345678', { headers }))).status).toBe(404);
   });
 });
