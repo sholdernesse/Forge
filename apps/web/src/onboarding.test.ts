@@ -24,6 +24,9 @@ describe('Forge onboarding profile', () => {
     expect(isOnboardingProfile({ ...profile, equipment: [] })).toBe(false);
     expect(isOnboardingProfile({ ...profile, age: 12 })).toBe(false);
     expect(isOnboardingProfile({ ...profile, primaryGoal: 'diagnose-me' })).toBe(false);
+    expect(isOnboardingProfile({ ...profile, trainingBlock: { number: 2, startedAt: '2026-09-01T12:00:00.000Z', approach: 'progress' } })).toBe(true);
+    expect(isOnboardingProfile({ ...profile, trainingBlock: { number: 2, startedAt: 'never', approach: 'progress' } })).toBe(false);
+    expect(isOnboardingProfile({ ...profile, trainingBlock: { number: 2, startedAt: '2026-09-01T12:00:00.000Z', approach: 'automatic-load-increase' } })).toBe(false);
   });
 
   it('turns onboarding answers into engine inputs', () => {

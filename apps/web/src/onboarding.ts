@@ -12,6 +12,13 @@ export type JourneyGoal =
 export type ExperienceLevel = 'new' | 'some-experience' | 'experienced';
 export type TrainingLocation = 'home' | 'gym' | 'both';
 export type NutritionApproach = 'simple-guidance' | 'track-macros' | 'not-now';
+export type TrainingBlockApproach = 'foundation' | 'progress' | 'repeat';
+
+export interface TrainingBlockState {
+  number: number;
+  startedAt: string;
+  approach: TrainingBlockApproach;
+}
 
 export interface OnboardingProfile {
   version: 1;
@@ -28,6 +35,7 @@ export interface OnboardingProfile {
   sex: Sex;
   heightCm: number;
   weightKg: number;
+  trainingBlock?: TrainingBlockState;
 }
 
 const goals: JourneyGoal[] = ['build-muscle-strength', 'lose-fat-body-composition', 'endurance-conditioning', 'healthier-more-energy', 'return-to-consistency', 'maintain-performance', 'help-me-choose'];
@@ -36,6 +44,7 @@ const locations: TrainingLocation[] = ['home', 'gym', 'both'];
 const nutritionApproaches: NutritionApproach[] = ['simple-guidance', 'track-macros', 'not-now'];
 const equipment: TrainingPreferences['equipment'] = ['bodyweight', 'barbell', 'dumbbells', 'bands', 'rack', 'treadmill'];
 const constraints: TrainingPreferences['constraints'] = ['lower-back-sensitive', 'elbow-sensitive'];
+const trainingBlockApproaches: TrainingBlockApproach[] = ['foundation', 'progress', 'repeat'];
 
 function oneOf<T extends string>(value: unknown, accepted: readonly T[]): value is T {
   return typeof value === 'string' && accepted.includes(value as T);
@@ -43,6 +52,15 @@ function oneOf<T extends string>(value: unknown, accepted: readonly T[]): value 
 
 function bounded(value: unknown, minimum: number, maximum: number): value is number {
   return typeof value === 'number' && Number.isFinite(value) && value >= minimum && value <= maximum;
+}
+
+function isTrainingBlockState(value: unknown): value is TrainingBlockState {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as Partial<TrainingBlockState>;
+  return Number.isInteger(candidate.number) && bounded(candidate.number, 1, 100)
+    && typeof candidate.startedAt === 'string'
+    && !Number.isNaN(Date.parse(candidate.startedAt))
+    && oneOf(candidate.approach, trainingBlockApproaches);
 }
 
 export function isOnboardingProfile(value: unknown): value is OnboardingProfile {
@@ -65,7 +83,8 @@ export function isOnboardingProfile(value: unknown): value is OnboardingProfile 
     && bounded(candidate.age, 18, 100)
     && oneOf(candidate.sex, ['female', 'male', 'intersex', 'unspecified'])
     && bounded(candidate.heightCm, 120, 230)
-    && bounded(candidate.weightKg, 30, 300);
+    && bounded(candidate.weightKg, 30, 300)
+    && (candidate.trainingBlock === undefined || isTrainingBlockState(candidate.trainingBlock));
 }
 
 export function primaryGoalFor(goal: JourneyGoal): PrimaryGoal {

@@ -851,6 +851,10 @@ h1 { font-size: clamp(28px, 3vw, 40px); letter-spacing: -.04em; margin-top: 5px;
 .starting-block-review.ready > section { border-color: #76fba5; }
 .starting-block-review.needs-evidence > section { border-color: #7696fb; }
 .starting-block-review p { margin: 0; color: #86a499; font-size: 0.64rem; line-height: 1.45; }
+.next-block-proposal { display: grid; gap: 0.55rem; margin-top: 0.55rem; }
+.next-block-proposal > span { display: grid; gap: 0.2rem; }
+.next-block-proposal small { color: #86a499; line-height: 1.45; }
+.next-block-proposal button { width: max-content; display: inline-flex; align-items: center; gap: 0.35rem; border: 1px solid #76fba5; border-radius: 999px; background: #76fba5; color: #07140e; padding: 0.45rem 0.7rem; font-size: 0.65rem; font-weight: 900; cursor: pointer; }
 .week-browser { display: grid; grid-template-columns: 2.5rem minmax(0, 1fr) 2.5rem; gap: 0.45rem; align-items: stretch; margin-bottom: 0.65rem; }
 .week-browser > button { display: grid; place-items: center; border: 1px solid #29483d; border-radius: 0.65rem; background: #10251e; color: #9db7ad; }
 .week-browser > button:disabled { cursor: default; opacity: 0.38; }

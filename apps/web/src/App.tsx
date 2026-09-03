@@ -39,7 +39,7 @@ import { experienceMode, isFirstRun } from './firstRun.js';
 import { OnboardingFlow } from './OnboardingFlow.js';
 import { goalsFromOnboarding, trainingPreferencesFromOnboarding, userProfileFromOnboarding, type OnboardingProfile } from './onboarding.js';
 import { useAccessibleDialog } from './useAccessibleDialog.js';
-import { startingBlockFor, startingBlockReview } from './startingBlock.js';
+import { nextBlockProposal, startingBlockFor, startingBlockReview } from './startingBlock.js';
 import { performanceTimeline, weightProgressStory } from './performanceTimeline.js';
 import { strengthProgressInsight } from './strengthInsight.js';
 
@@ -231,6 +231,7 @@ export function App() {
   const trainingTrend = trainingTrendSummary(sessionHistory, TODAY);
   const startingBlock = useMemo(() => onboardingProfile ? startingBlockFor(onboardingProfile, TODAY) : undefined, [onboardingProfile, TODAY]);
   const blockReview = useMemo(() => onboardingProfile ? startingBlockReview(onboardingProfile, TODAY, sessionHistory) : undefined, [onboardingProfile, sessionHistory, TODAY]);
+  const nextBlock = useMemo(() => onboardingProfile && blockReview ? nextBlockProposal(onboardingProfile, blockReview) : undefined, [blockReview, onboardingProfile]);
   const maxWeeklyMinutes = Math.max(1, ...trainingTrend.weeks.map((week) => week.minutes));
   const reflections = reflectionTrend(history);
   const firstRun = isFirstRun({
@@ -556,6 +557,21 @@ export function App() {
     setCheckInOpen(true);
   }
 
+  function approveNextBlock() {
+    if (!onboardingProfile || !nextBlock) return;
+    const nextProfile: OnboardingProfile = {
+      ...onboardingProfile,
+      trainingBlock: { number: nextBlock.number, startedAt: NOW, approach: nextBlock.approach },
+    };
+    setOnboardingProfile(nextProfile);
+    saveCurrentDashboardState({
+      history, checkIn, workoutSession: workout, exerciseHistory, sessionHistory, scheduleOverrides,
+      foodEntries, favoriteFoodIds, savedMeals, coachMessages, ...(savedAt ? { savedAt } : {}),
+    }, nextProfile);
+    setSaved(true);
+    window.setTimeout(() => setSaved(false), 2600);
+  }
+
   function resetPrototype() {
     clearDashboardState(window.localStorage);
     window.location.reload();
@@ -740,7 +756,7 @@ export function App() {
             {startingBlock && <section className="starting-block" aria-labelledby="starting-block-title">
               <header><div><span className="section-label">{startingBlock.reviewReady ? 'BLOCK REVIEW' : `WEEK ${startingBlock.currentWeek} OF 4`}</span><h4 id="starting-block-title">{startingBlock.title}</h4></div><small>{startingBlock.purpose}</small></header>
               <div className="starting-block-weeks">{startingBlock.weeks.map((phase) => <div className={phase.status} key={phase.week} aria-current={phase.status === 'current' ? 'step' : undefined}><span>{phase.status === 'complete' ? <Check size={14} /> : phase.week}</span><div><b>{phase.title}</b><small>{phase.focus}</small></div></div>)}</div>
-              {blockReview && <div className={`starting-block-review ${blockReview.tone}`}><div><span><small>Sessions</small><b>{blockReview.sessions} / {blockReview.plannedSessions}</b></span><span><small>Movement ratings</small><b>{blockReview.qualityCoveragePct}%</b></span><span><small>Controlled</small><b>{blockReview.controlledPct === undefined ? 'Not enough data' : `${blockReview.controlledPct}%`}</b></span></div><section><b>{blockReview.headline}</b><p>{blockReview.nextStep}</p></section></div>}
+              {blockReview && <div className={`starting-block-review ${blockReview.tone}`}><div><span><small>Sessions</small><b>{blockReview.sessions} / {blockReview.plannedSessions}</b></span><span><small>Movement ratings</small><b>{blockReview.qualityCoveragePct}%</b></span><span><small>Controlled</small><b>{blockReview.controlledPct === undefined ? 'Not enough data' : `${blockReview.controlledPct}%`}</b></span></div><section><b>{blockReview.headline}</b><p>{blockReview.nextStep}</p>{nextBlock && <div className="next-block-proposal"><span><b>{nextBlock.title}</b><small>{nextBlock.explanation}</small></span><button onClick={approveNextBlock}>{nextBlock.actionLabel} <ArrowRight size={14} /></button></div>}</section></div>}
             </section>}
             <nav className="week-browser" aria-label="Browse training weeks"><button aria-label="Previous training week" disabled={scheduleWeekOffset <= -4} onClick={() => setScheduleWeekOffset((offset) => offset - 1)}><ChevronLeft size={16} /></button><button className="week-browser-current" onClick={() => setScheduleWeekOffset(0)} disabled={scheduleWeekOffset === 0}><b>{scheduleWeekOffset === 0 ? 'This week' : scheduleWeekLabel}</b><small>{scheduleWeekOffset === 0 ? scheduleWeekLabel : 'Return to this week'}</small></button><button aria-label="Next training week" disabled={scheduleWeekOffset >= 8} onClick={() => setScheduleWeekOffset((offset) => offset + 1)}><ChevronRight size={16} /></button></nav>
             <p className="schedule-hint">Select today or an upcoming day to cycle: adaptive → train → rest.</p>

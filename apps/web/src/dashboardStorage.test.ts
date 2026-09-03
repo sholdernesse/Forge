@@ -50,6 +50,7 @@ describe('dashboard storage', () => {
       sex: 'unspecified',
       heightCm: 170,
       weightKg: 72,
+      trainingBlock: { number: 2, startedAt: '2026-09-01T12:00:00.000Z', approach: 'repeat' },
     };
     saveDashboardState(storage, { ...fallback, onboardingProfile });
     expect(loadDashboardState(storage, fallback).onboardingProfile).toEqual(onboardingProfile);

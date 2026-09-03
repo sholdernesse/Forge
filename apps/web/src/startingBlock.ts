@@ -28,6 +28,14 @@ export interface StartingBlockReview {
   nextStep: string;
 }
 
+export interface NextBlockProposal {
+  number: number;
+  approach: 'progress' | 'repeat';
+  title: string;
+  explanation: string;
+  actionLabel: string;
+}
+
 const goalPurpose: Record<JourneyGoal, string> = {
   'build-muscle-strength': 'Build a repeatable strength base before adding load.',
   'lose-fat-body-composition': 'Protect strength while building a sustainable training rhythm.',
@@ -46,7 +54,8 @@ function calendarDaysBetween(start: string, end: string): number {
 }
 
 export function startingBlockFor(profile: OnboardingProfile, today: string): StartingBlock {
-  const elapsedDays = calendarDaysBetween(profile.completedAt, today);
+  const activeBlock = profile.trainingBlock ?? { number: 1, startedAt: profile.completedAt, approach: 'foundation' as const };
+  const elapsedDays = calendarDaysBetween(activeBlock.startedAt, today);
   const currentWeek = Math.min(4, Math.floor(elapsedDays / 7) + 1);
   const focuses = profile.experience === 'experienced'
     ? [
@@ -63,7 +72,7 @@ export function startingBlockFor(profile: OnboardingProfile, today: string): Sta
       ];
 
   return {
-    title: 'Your 4-week starting block',
+    title: activeBlock.number === 1 ? 'Your 4-week starting block' : `Training block ${activeBlock.number}`,
     purpose: goalPurpose[profile.primaryGoal],
     currentWeek,
     reviewReady: elapsedDays >= 28,
@@ -75,8 +84,9 @@ export function startingBlockFor(profile: OnboardingProfile, today: string): Sta
 }
 
 export function startingBlockReview(profile: OnboardingProfile, today: string, records: TrainingSessionRecord[]): StartingBlockReview | undefined {
-  if (calendarDaysBetween(profile.completedAt, today) < 28) return undefined;
-  const startDate = profile.completedAt.slice(0, 10);
+  const startedAt = profile.trainingBlock?.startedAt ?? profile.completedAt;
+  if (calendarDaysBetween(startedAt, today) < 28) return undefined;
+  const startDate = startedAt.slice(0, 10);
   const sessions = records.filter((record) => record.date >= startDate && record.date <= today);
   const plannedSessions = profile.weeklyTrainingDays * 4;
   const adherencePct = Math.min(100, Math.round(sessions.length / plannedSessions * 100));
@@ -116,5 +126,23 @@ export function startingBlockReview(profile: OnboardingProfile, today: string, r
     tone: 'repeat',
     headline: 'Consolidate before progressing',
     nextStep: 'Repeat the current rhythm until controlled sessions are consistent enough to progress confidently.',
+  };
+}
+
+export function nextBlockProposal(profile: OnboardingProfile, review: StartingBlockReview): NextBlockProposal {
+  const number = (profile.trainingBlock?.number ?? 1) + 1;
+  if (review.tone === 'ready') return {
+    number,
+    approach: 'progress',
+    title: 'Progress the same training direction',
+    explanation: 'Keep the goal and weekly structure. Forge may progress individual movements only when their completed reps and movement quality support it.',
+    actionLabel: `Approve block ${number}`,
+  };
+  return {
+    number,
+    approach: 'repeat',
+    title: review.tone === 'needs-evidence' ? 'Repeat to collect clearer evidence' : 'Repeat before progressing',
+    explanation: 'Keep the current structure for another four weeks. Daily readiness and feedback can still make conservative session adjustments.',
+    actionLabel: `Repeat as block ${number}`,
   };
 }
