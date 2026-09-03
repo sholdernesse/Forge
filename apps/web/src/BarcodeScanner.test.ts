@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cameraBarcodeSupported, normalizedBarcode } from './BarcodeScanner.js';
+import { cameraBarcodeCapability, cameraBarcodeSupported, normalizedBarcode } from './BarcodeScanner.js';
 
 describe('barcode scanner capability', () => {
   it('normalizes supported package barcode lengths', () => {
@@ -10,7 +10,9 @@ describe('barcode scanner capability', () => {
 
   it('requires both native detection and camera access', () => {
     const detector = class { detect() { return Promise.resolve([]); } };
-    expect(cameraBarcodeSupported({ BarcodeDetector: detector, navigator: { mediaDevices: { getUserMedia: async () => ({}) } } as unknown as Navigator })).toBe(true);
-    expect(cameraBarcodeSupported({ navigator: {} as Navigator })).toBe(false);
+    expect(cameraBarcodeSupported({ isSecureContext: true, BarcodeDetector: detector, navigator: { mediaDevices: { getUserMedia: async () => ({}) } } as unknown as Navigator })).toBe(true);
+    expect(cameraBarcodeCapability({ isSecureContext: false, BarcodeDetector: detector, navigator: { mediaDevices: { getUserMedia: async () => ({}) } } as unknown as Navigator })).toBe('https-required');
+    expect(cameraBarcodeCapability({ isSecureContext: true, navigator: {} as Navigator })).toBe('camera-unavailable');
+    expect(cameraBarcodeCapability({ isSecureContext: true, navigator: { mediaDevices: { getUserMedia: async () => ({}) } } as unknown as Navigator })).toBe('detector-unavailable');
   });
 });

@@ -15,8 +15,17 @@ export function normalizedBarcode(value: string): string | undefined {
   return code.length >= 8 && code.length <= 14 ? code : undefined;
 }
 
-export function cameraBarcodeSupported(target: Pick<Window, 'BarcodeDetector' | 'navigator'> = window): boolean {
-  return typeof target.BarcodeDetector === 'function' && typeof target.navigator.mediaDevices?.getUserMedia === 'function';
+export type CameraBarcodeCapability = 'ready' | 'https-required' | 'camera-unavailable' | 'detector-unavailable';
+
+export function cameraBarcodeCapability(target: Pick<Window, 'BarcodeDetector' | 'navigator' | 'isSecureContext'> = window): CameraBarcodeCapability {
+  if (!target.isSecureContext) return 'https-required';
+  if (typeof target.navigator.mediaDevices?.getUserMedia !== 'function') return 'camera-unavailable';
+  if (typeof target.BarcodeDetector !== 'function') return 'detector-unavailable';
+  return 'ready';
+}
+
+export function cameraBarcodeSupported(target: Pick<Window, 'BarcodeDetector' | 'navigator' | 'isSecureContext'> = window): boolean {
+  return cameraBarcodeCapability(target) === 'ready';
 }
 
 interface Props { onDetected(code: string): void; onClose(): void; }
@@ -31,7 +40,10 @@ export function BarcodeScanner({ onDetected, onClose }: Props) {
     let stream: MediaStream | undefined;
     let timer: number | undefined;
     const start = async () => {
-      if (!cameraBarcodeSupported()) { setMessage('Camera barcode scanning is not supported in this browser. Enter the code manually.'); return; }
+      const capability = cameraBarcodeCapability();
+      if (capability === 'https-required') { setMessage('Camera access requires HTTPS. Open the deployed secure Forge site or enter the barcode manually.'); return; }
+      if (capability === 'camera-unavailable') { setMessage('This browser cannot provide camera access. Enter the barcode manually.'); return; }
+      if (capability === 'detector-unavailable') { setMessage('This browser does not support barcode detection. Enter the barcode manually.'); return; }
       try {
         stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
         if (!active || !videoRef.current) { stream.getTracks().forEach((track) => track.stop()); return; }
@@ -61,7 +73,7 @@ export function BarcodeScanner({ onDetected, onClose }: Props) {
 
   return <div className="barcode-scanner-backdrop" onMouseDown={onClose}><section ref={dialogRef} className="barcode-scanner" role="dialog" aria-modal="true" aria-labelledby="barcode-scanner-title" tabIndex={-1} onMouseDown={(event) => event.stopPropagation()}>
     <header><div><span className="section-label">PACKAGE CAMERA</span><h3 id="barcode-scanner-title">Scan barcode</h3></div><button onClick={onClose} aria-label="Close barcode scanner"><X size={18} /></button></header>
-    <div className="barcode-camera"><video ref={videoRef} playsInline muted aria-label="Live rear-camera barcode view" /><span><Camera size={22} /></span></div>
+    <div className={`barcode-camera ${cameraBarcodeSupported() ? '' : 'unavailable'}`}><video ref={videoRef} playsInline muted aria-label="Live rear-camera barcode view" /><span><Camera size={22} /></span></div>
     <p aria-live="polite">{message}</p>
     <button className="barcode-manual" onClick={onClose}>Enter barcode manually</button>
     <small>Video stays on this device and is not uploaded.</small>

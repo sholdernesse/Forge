@@ -4,7 +4,7 @@ import { foodCatalog } from './foodCatalog.js';
 import { createFoodEntry, lookupBarcode, mealEntries, scaleFood, searchFoods, type FoodDefinition, type FoodEntry, type MealType, type SavedMeal } from './foodLog.js';
 import { useAccessibleDialog } from './useAccessibleDialog.js';
 import type { FoodDataClient } from './foodDataClient.js';
-import { BarcodeScanner, cameraBarcodeSupported } from './BarcodeScanner.js';
+import { BarcodeScanner } from './BarcodeScanner.js';
 import { foodAlternative, type FoodChoicePriority } from './foodAlternatives.js';
 
 interface Props { date: string; entries: FoodEntry[]; favoriteFoodIds: string[]; savedMeals: SavedMeal[]; foodDataClient?: FoodDataClient; choicePriority: FoodChoicePriority; onChange(entries: FoodEntry[]): void; onPreferencesChange(favorites: string[], meals: SavedMeal[]): void; onClose(): void; }
@@ -54,7 +54,6 @@ export function FoodLogger({ date, entries, favoriteFoodIds, savedMeals, foodDat
   }
 
   function openScanner() {
-    if (!cameraBarcodeSupported()) { setBarcodeMessage('Camera scanning is not supported in this browser. Enter the printed barcode below.'); return; }
     setScannerOpen(true);
   }
 

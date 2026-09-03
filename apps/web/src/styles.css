@@ -220,6 +220,8 @@ main { margin-left: 228px; padding: 38px clamp(28px, 4vw, 64px) 64px; max-width:
 .barcode-camera { position: relative; overflow: hidden; aspect-ratio: 4 / 3; border: 1px solid #29483d; border-radius: 12px; background: #06100d; }
 .barcode-camera video { width: 100%; height: 100%; object-fit: cover; }
 .barcode-camera > span { position: absolute; inset: 27% 12%; display: grid; place-items: center; border: 2px solid #76fba5; border-radius: 10px; color: #76fba5; pointer-events: none; }
+.barcode-camera.unavailable video { display: none; }
+.barcode-camera.unavailable > span { border-style: dashed; color: #78968a; border-color: #315044; }
 .barcode-scanner p { margin: 0; color: #9ab7a9; font-size: 11px; line-height: 1.5; }
 .barcode-scanner button.barcode-manual { min-height: 40px; border: 1px solid #35624f; border-radius: 9px; background: #153529; color: #78fba5; font-weight: 900; }
 .barcode-scanner > small { color: #678378; font-size: 9px; text-align: center; }
