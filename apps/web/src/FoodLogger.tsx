@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Apple, Barcode, Heart, Minus, Plus, Search, Trash2, X } from 'lucide-react';
+import { Apple, Barcode, Camera, Heart, Minus, Plus, Search, Trash2, X } from 'lucide-react';
 import { foodCatalog } from './foodCatalog.js';
 import { createFoodEntry, lookupBarcode, mealEntries, scaleFood, searchFoods, type FoodDefinition, type FoodEntry, type MealType, type SavedMeal } from './foodLog.js';
 import { useAccessibleDialog } from './useAccessibleDialog.js';
 import type { FoodDataClient } from './foodDataClient.js';
+import { BarcodeScanner, cameraBarcodeSupported } from './BarcodeScanner.js';
 
 interface Props { date: string; entries: FoodEntry[]; favoriteFoodIds: string[]; savedMeals: SavedMeal[]; foodDataClient?: FoodDataClient; onChange(entries: FoodEntry[]): void; onPreferencesChange(favorites: string[], meals: SavedMeal[]): void; onClose(): void; }
 const meals: MealType[] = ['breakfast', 'lunch', 'dinner', 'snack'];
@@ -15,6 +16,7 @@ export function FoodLogger({ date, entries, favoriteFoodIds, savedMeals, foodDat
   const [quantity, setQuantity] = useState(1);
   const [barcode, setBarcode] = useState('');
   const [barcodeMessage, setBarcodeMessage] = useState('');
+  const [scannerOpen, setScannerOpen] = useState(false);
   const [remoteFoods, setRemoteFoods] = useState<FoodDefinition[]>([]);
   const [searchState, setSearchState] = useState<'idle' | 'searching' | 'unavailable'>('idle');
   const [custom, setCustom] = useState({ name: '', caloriesKcal: 0, proteinG: 0, carbsG: 0, fatG: 0 });
@@ -43,12 +45,28 @@ export function FoodLogger({ date, entries, favoriteFoodIds, savedMeals, foodDat
   }
   async function findBarcode() {
     const normalized = barcode.replace(/\D/g, '');
-    const local = lookupBarcode(foodCatalog, normalized);
+    if (normalized.length < 8 || normalized.length > 14) { setBarcodeMessage('Enter the 8–14 digit barcode printed on the package.'); return; }
+    await lookupExternalBarcode(normalized);
+  }
+
+  function openScanner() {
+    if (!cameraBarcodeSupported()) { setBarcodeMessage('Camera scanning is not supported in this browser. Enter the printed barcode below.'); return; }
+    setScannerOpen(true);
+  }
+
+  function acceptScannedBarcode(code: string) {
+    setScannerOpen(false);
+    setBarcode(code);
+    window.setTimeout(() => { void lookupExternalBarcode(code); }, 0);
+  }
+
+  async function lookupExternalBarcode(code: string) {
+    const local = lookupBarcode(foodCatalog, code);
     if (local) { setQuery(local.name); setBarcodeMessage(`${local.name} found locally. Choose a serving and add it.`); return; }
-    if (!foodDataClient || normalized.length < 8 || normalized.length > 14) { setBarcodeMessage('Enter the 8–14 digit barcode printed on the package.'); return; }
+    if (!foodDataClient) { setBarcodeMessage('Online lookup is unavailable. Enter the nutrition label manually.'); return; }
     setBarcodeMessage('Checking the product database…');
     try {
-      const food = await foodDataClient.barcode(normalized);
+      const food = await foodDataClient.barcode(code);
       if (!food) { setBarcodeMessage('Barcode not found. You can still add the nutrition label manually.'); return; }
       setRemoteFoods([food]); setQuery(food.name); setBarcodeMessage(`${food.name} found in Open Food Facts. Check the serving and label before adding.`);
     } catch { setBarcodeMessage('The product database is unavailable. Local foods and manual entry still work.'); }
@@ -60,8 +78,9 @@ export function FoodLogger({ date, entries, favoriteFoodIds, savedMeals, foodDat
     <section className="food-search"><div className="search-box"><Search size={17} /><input placeholder="Search foods" value={query} onChange={(event) => setQuery(event.target.value)} /></div><div className="serving-stepper"><button onClick={() => setQuantity(Math.max(.25, quantity - .25))}><Minus size={14} /></button><span>{quantity}× serving</span><button onClick={() => setQuantity(quantity + .25)}><Plus size={14} /></button></div></section>
     {savedMeals.length > 0 && <section className="saved-meals"><h3>Saved meals</h3><div>{savedMeals.map((savedMeal) => <button onClick={() => addSavedMeal(savedMeal)} key={savedMeal.id}><span><b>{savedMeal.name}</b><small>{savedMeal.items.length} foods</small></span><Plus size={16} /></button>)}</div></section>}
     <section className="quick-foods"><h3>{query ? 'Search results' : `Foods for ${meal}`}</h3>{searchState === 'searching' && <small className="food-provider-state">Searching USDA FoodData Central…</small>}{searchState === 'unavailable' && <small className="food-provider-state warning">Online search is unavailable. Showing local matches.</small>}<div>{results.map((food) => { const scaled = scaleFood(food, quantity); return <div className="food-result" key={food.id}><button className={`favorite ${favoriteFoodIds.includes(food.id) ? 'active' : ''}`} onClick={() => toggleFavorite(food.id)} aria-label={`Favorite ${food.name}`}><Heart size={15} /></button><button className="food-add" onClick={() => addCatalogFood(food.id)}><span><b>{food.name}</b><small>{food.brand ? `${food.brand} · ` : ''}{scaled.serving} · {scaled.proteinG}g protein{food.verification ? ` · ${food.verification === 'government' ? 'USDA' : 'Community data'}` : ''}</small></span><strong>{scaled.caloriesKcal}</strong><Plus size={16} /></button></div>; })}</div></section>
-    <section className="barcode-entry"><h3><Barcode size={17} /> Barcode lookup</h3><div><input inputMode="numeric" placeholder="Enter package barcode" value={barcode} onChange={(event) => setBarcode(event.target.value)} /><button onClick={() => void findBarcode()}>Lookup</button></div>{barcodeMessage && <small>{barcodeMessage}</small>}</section>
+    <section className="barcode-entry"><h3><Barcode size={17} /> Barcode lookup</h3><button className="scan-barcode" onClick={openScanner}><Camera size={16} /> Scan with camera</button><div><input inputMode="numeric" placeholder="Enter package barcode" value={barcode} onChange={(event) => setBarcode(event.target.value)} /><button onClick={() => void findBarcode()}>Lookup</button></div>{barcodeMessage && <small aria-live="polite">{barcodeMessage}</small>}</section>
     <section className="custom-food"><h3>Custom food</h3><input placeholder="Food name" value={custom.name} onChange={(event) => setCustom({ ...custom, name: event.target.value })} /><div>{(['caloriesKcal', 'proteinG', 'carbsG', 'fatG'] as const).map((field) => <label key={field}><span>{field === 'caloriesKcal' ? 'Calories' : field.replace('G', '')}</span><input type="number" min="0" value={custom[field]} onChange={(event) => setCustom({ ...custom, [field]: Number(event.target.value) })} /></label>)}</div><button onClick={addCustom}><Plus size={17} /> Add custom food</button></section>
     <section className="meal-log"><div className="meal-log-heading"><h3>Logged today</h3><button onClick={saveCurrentMeal}>Save current {meal}</button></div>{meals.map((mealName) => { const mealEntriesToday = today.filter((entry) => entry.meal === mealName); return mealEntriesToday.length ? <div className="logged-meal" key={mealName}><span className="meal-name">{mealName}</span>{mealEntriesToday.map((entry) => <div key={entry.id}><span><b>{entry.name}</b><small>{entry.serving} · P {entry.proteinG} · C {entry.carbsG} · F {entry.fatG}</small></span><strong>{entry.caloriesKcal}</strong><button onClick={() => onChange(entries.filter((item) => item.id !== entry.id))}><Trash2 size={15} /></button></div>)}</div> : null; })}</section>
+    {scannerOpen && <BarcodeScanner onDetected={acceptScannedBarcode} onClose={() => setScannerOpen(false)} />}
   </section></div>;
 }
