@@ -29,6 +29,8 @@ export interface FoodDefinition {
   verification?: 'government' | 'community';
   fiberG?: number;
   sodiumMg?: number;
+  nutritionBasis?: 'per-100g' | 'per-serving';
+  servingGrams?: number;
 }
 
 export interface SavedMeal {

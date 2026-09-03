@@ -845,7 +845,7 @@ export function App() {
 
       {onboardingOpen && <OnboardingFlow onComplete={completeOnboarding} onClose={() => setOnboardingOpen(false)} />}
       {workoutOpen && <WorkoutPlayer session={workout} exerciseHistory={exerciseHistory} {...(currentWorkoutFocus ? { carryForward: currentWorkoutFocus } : {})} onChange={persistWorkout} onClose={() => setWorkoutOpen(false)} onFinish={finishWorkout} />}
-      {foodLoggerOpen && <FoodLogger date={TODAY} entries={foodEntries} favoriteFoodIds={favoriteFoodIds} savedMeals={savedMeals} {...(foodDataClient ? { foodDataClient } : {})} onChange={updateFoodEntries} onPreferencesChange={updateFoodPreferences} onClose={() => setFoodLoggerOpen(false)} />}
+      {foodLoggerOpen && <FoodLogger date={TODAY} entries={foodEntries} favoriteFoodIds={favoriteFoodIds} savedMeals={savedMeals} choicePriority={athleteGoals.primary === 'muscle-gain' || athleteGoals.primary === 'performance' ? 'protein' : athleteGoals.primary === 'fat-loss' ? 'calorie-efficiency' : 'balanced'} {...(foodDataClient ? { foodDataClient } : {})} onChange={updateFoodEntries} onPreferencesChange={updateFoodPreferences} onClose={() => setFoodLoggerOpen(false)} />}
       {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} onGeneratePlan={generateNewPlan} onReset={resetPrototype} />}
       {coachOpen && <CoachPanel twin={twin} messages={coachMessages} onMessagesChange={updateCoachMessages} onAction={handleCoachAction} onClose={() => setCoachOpen(false)} />}
       {movementLibraryOpen && <MovementLibrary onClose={() => setMovementLibraryOpen(false)} />}

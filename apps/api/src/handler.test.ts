@@ -70,7 +70,7 @@ describe('dashboard API', () => {
   });
 
   it('provides authenticated normalized food search and barcode routes', async () => {
-    const food = { id: 'usda-1', source: 'usda' as const, verification: 'government' as const, name: 'Oats', serving: '100 g', caloriesKcal: 389, proteinG: 16.9, carbsG: 66.3, fatG: 6.9 };
+    const food = { id: 'usda-1', source: 'usda' as const, verification: 'government' as const, name: 'Oats', serving: '100 g', nutritionBasis: 'per-100g' as const, caloriesKcal: 389, proteinG: 16.9, carbsG: 66.3, fatG: 6.9 };
     const provider: FoodProvider = { search: async () => [food], barcode: async () => ({ ...food, id: 'off-1', source: 'open-food-facts', verification: 'community', barcode: '0123456789012' }) };
     const { handle } = setup(provider);
     const headers = { authorization: 'Bearer test-token' };

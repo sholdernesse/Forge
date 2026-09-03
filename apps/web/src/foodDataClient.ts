@@ -19,11 +19,13 @@ interface ProviderFood {
   fiberG?: unknown;
   sodiumMg?: unknown;
   barcode?: unknown;
+  nutritionBasis?: unknown;
+  servingGrams?: unknown;
 }
 
 function normalizeFood(value: ProviderFood): FoodDefinition | undefined {
   if (typeof value.id !== 'string' || typeof value.name !== 'string' || typeof value.serving !== 'string') return undefined;
-  if (!['usda', 'open-food-facts'].includes(String(value.source)) || !['government', 'community'].includes(String(value.verification))) return undefined;
+  if (!['usda', 'open-food-facts'].includes(String(value.source)) || !['government', 'community'].includes(String(value.verification)) || !['per-100g', 'per-serving'].includes(String(value.nutritionBasis))) return undefined;
   const required = [value.caloriesKcal, value.proteinG, value.carbsG, value.fatG];
   if (!required.every((item) => typeof item === 'number' && Number.isFinite(item) && item >= 0)) return undefined;
   return {
@@ -37,10 +39,12 @@ function normalizeFood(value: ProviderFood): FoodDefinition | undefined {
     category: 'other',
     dataSource: value.source as 'usda' | 'open-food-facts',
     verification: value.verification as 'government' | 'community',
+    nutritionBasis: value.nutritionBasis as 'per-100g' | 'per-serving',
     ...(typeof value.brand === 'string' ? { brand: value.brand } : {}),
     ...(typeof value.fiberG === 'number' ? { fiberG: value.fiberG } : {}),
     ...(typeof value.sodiumMg === 'number' ? { sodiumMg: value.sodiumMg } : {}),
     ...(typeof value.barcode === 'string' ? { barcode: value.barcode } : {}),
+    ...(typeof value.servingGrams === 'number' && Number.isFinite(value.servingGrams) && value.servingGrams > 0 ? { servingGrams: value.servingGrams } : {}),
   };
 }
 

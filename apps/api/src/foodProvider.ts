@@ -12,6 +12,8 @@ export interface FoodSearchResult {
   fiberG?: number;
   sodiumMg?: number;
   barcode?: string;
+  nutritionBasis: 'per-100g' | 'per-serving';
+  servingGrams?: number;
 }
 
 export interface FoodProvider {
@@ -48,15 +50,15 @@ function usdaFood(value: unknown): FoodSearchResult | undefined {
   const name = typeof item.description === 'string' ? item.description.trim() : '';
   if (!id || !name) return undefined;
   const nutrients = item.foodNutrients;
-  const servingSize = finite(item.servingSize);
-  const servingUnit = typeof item.servingSizeUnit === 'string' ? item.servingSizeUnit : 'g';
   return {
     id: `usda-${id}`,
     source: 'usda',
     verification: 'government',
     name,
     ...(typeof item.brandName === 'string' || typeof item.brandOwner === 'string' ? { brand: String(item.brandName ?? item.brandOwner) } : {}),
-    serving: servingSize ? `${servingSize} ${servingUnit}` : '100 g reference',
+    serving: '100 g reference',
+    nutritionBasis: 'per-100g',
+    servingGrams: 100,
     caloriesKcal: Math.round(nutrient(nutrients, ['energy']) ?? 0),
     proteinG: rounded(nutrient(nutrients, ['protein'])),
     carbsG: rounded(nutrient(nutrients, ['carbohydrate, by difference', 'carbohydrate'])) ,
@@ -75,14 +77,19 @@ function offFood(code: string, value: unknown): FoodSearchResult | undefined {
   const name = typeof product.product_name === 'string' ? product.product_name.trim() : '';
   const values = product.nutriments && typeof product.nutriments === 'object' ? product.nutriments as Record<string, unknown> : {};
   if (!name) return undefined;
-  const pick = (serving: string, per100: string) => finite(values[serving]) ?? finite(values[per100]);
+  const servingLabel = typeof product.serving_size === 'string' && product.serving_size.trim() ? product.serving_size.trim() : undefined;
+  const servingGrams = servingLabel ? finite(servingLabel.match(/([\d.]+)\s*g/i)?.[1]) : undefined;
+  const hasServing = finite(values['energy-kcal_serving']) !== undefined;
+  const pick = (serving: string, per100: string) => hasServing ? finite(values[serving]) : finite(values[per100]);
   return {
     id: `off-${code}`,
     source: 'open-food-facts',
     verification: 'community',
     name,
     ...(typeof product.brands === 'string' && product.brands.trim() ? { brand: product.brands.trim() } : {}),
-    serving: typeof product.serving_size === 'string' && product.serving_size.trim() ? product.serving_size.trim() : '100 g reference',
+    serving: hasServing && servingLabel ? servingLabel : '100 g reference',
+    nutritionBasis: hasServing ? 'per-serving' : 'per-100g',
+    ...(hasServing && servingGrams ? { servingGrams } : !hasServing ? { servingGrams: 100 } : {}),
     caloriesKcal: Math.round(pick('energy-kcal_serving', 'energy-kcal_100g') ?? 0),
     proteinG: rounded(pick('proteins_serving', 'proteins_100g')),
     carbsG: rounded(pick('carbohydrates_serving', 'carbohydrates_100g')),
