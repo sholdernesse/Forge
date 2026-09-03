@@ -6,6 +6,7 @@ import type { ScheduleOverrides } from './schedulePolicy.js';
 import type { FoodEntry, SavedMeal } from './foodLog.js';
 import type { CoachAnswerBasis, CoachSuggestedAction } from '@forge/coach';
 import { isOnboardingProfile, type OnboardingProfile } from './onboarding.js';
+import { isHydrationEntry, type HydrationEntry } from './hydration.js';
 
 export type CheckIn = Required<
   Pick<DailySnapshot, 'sleepScore' | 'sleepHours' | 'soreness' | 'stress' | 'weightKg'>
@@ -34,10 +35,11 @@ export interface DashboardState {
   savedMeals?: SavedMeal[];
   coachMessages?: CoachMessage[];
   onboardingProfile?: OnboardingProfile;
+  hydrationEntries?: HydrationEntry[];
 }
 
 interface StoredDashboardState extends DashboardState {
-  version: 11;
+  version: 12;
   updatedAt: string;
 }
 
@@ -105,6 +107,7 @@ export function parseDashboardState(value: unknown): DashboardState | null {
     ...(Array.isArray(stored.savedMeals) ? { savedMeals: stored.savedMeals } : {}),
     ...(Array.isArray(stored.coachMessages) ? { coachMessages: stored.coachMessages.filter(isCoachMessage).slice(-40) } : {}),
     ...(isOnboardingProfile(stored.onboardingProfile) ? { onboardingProfile: stored.onboardingProfile } : {}),
+    ...(Array.isArray(stored.hydrationEntries) ? { hydrationEntries: stored.hydrationEntries.filter(isHydrationEntry).slice(-200) } : {}),
   };
 }
 
@@ -113,7 +116,7 @@ export function loadDashboardState(storage: DashboardStorage, fallback: Dashboar
     const raw = storage.getItem(DASHBOARD_STORAGE_KEY);
     if (!raw) return fallback;
     const stored = JSON.parse(raw) as Partial<Omit<StoredDashboardState, 'version'>> & { version?: number };
-    if (![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].includes(stored.version ?? 0) || !Array.isArray(stored.history) || !isCheckIn(stored.checkIn)) {
+    if (![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].includes(stored.version ?? 0) || !Array.isArray(stored.history) || !isCheckIn(stored.checkIn)) {
       return fallback;
     }
     return parseDashboardState(stored) ?? fallback;
@@ -131,7 +134,7 @@ export function saveDashboardState(storage: DashboardStorage, state: DashboardSt
 }
 
 export function cacheDashboardState(storage: DashboardStorage, state: DashboardState, updatedAt: string): void {
-  const stored: StoredDashboardState = { version: 11, updatedAt, ...state };
+  const stored: StoredDashboardState = { version: 12, updatedAt, ...state };
   storage.setItem(DASHBOARD_STORAGE_KEY, JSON.stringify(stored));
 }
 

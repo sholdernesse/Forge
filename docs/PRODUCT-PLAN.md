@@ -2,7 +2,7 @@
 
 > **Living plan:** This is the canonical product and delivery plan for Forge. Update it whenever scope, priorities, sequencing, or release status changes. Individual sprint files remain the implementation record.
 
-**Current checkpoint:** Sprint 4.52 on PR #2
+**Current checkpoint:** Sprint 4.53 on PR #2
 **Product stage:** Functional responsive prototype moving toward an authenticated release candidate  
 **Last reviewed:** September 3, 2026
 
@@ -121,6 +121,7 @@ See [Sprint 4 architecture](./architecture/sprint-4.md) for package and data-flo
 - Food search, quick foods, favorites, quantities, custom foods, saved meals, meal periods, and removal.
 - Provider-neutral barcode boundary with safe unknown-food behavior.
 - Immediate daily totals and Digital Twin updates.
+- Low-friction daily water logging with bounded quick-add entries and cross-device persistence.
 
 ### History and progress
 
@@ -232,7 +233,7 @@ Initial delivery order:
 
 - Verified external food data provider.
 - Camera barcode capture with manual fallback.
-- Low-friction hydration logging with quick-add amounts and context-aware targets.
+- ~~Low-friction hydration logging with quick-add amounts.~~ Delivered in Sprint 4.53; evidence-based target context remains future work.
 - Optional weekly micronutrient coverage after verified food data is available; avoid deficiency diagnosis or high-dose supplement advice.
 - Longer-history expenditure calibration.
 - Adaptive body-composition targets and clear adjustment explanations.

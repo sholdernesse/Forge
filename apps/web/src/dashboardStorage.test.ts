@@ -33,6 +33,21 @@ describe('dashboard storage', () => {
     expect(loadDashboardState(storage, fallback)).toEqual(state);
   });
 
+  it('round trips valid hydration and filters malformed entries', () => {
+    const storage = new MemoryStorage();
+    const hydrationEntries = [{ id: 'water-1', date: '2026-09-03', amountMl: 473, createdAt: '2026-09-03T12:00:00.000Z' }];
+    saveDashboardState(storage, { ...fallback, hydrationEntries });
+    expect(loadDashboardState(storage, fallback).hydrationEntries).toEqual(hydrationEntries);
+
+    storage.setItem(DASHBOARD_STORAGE_KEY, JSON.stringify({
+      version: 12,
+      updatedAt: '2026-09-03T12:00:00.000Z',
+      ...fallback,
+      hydrationEntries: [...hydrationEntries, { id: 'bad', date: 'today', amountMl: 9_000, createdAt: 'never' }],
+    }));
+    expect(loadDashboardState(storage, fallback).hydrationEntries).toEqual(hydrationEntries);
+  });
+
   it('round trips a valid onboarding profile and ignores malformed setup data', () => {
     const storage = new MemoryStorage();
     const onboardingProfile: OnboardingProfile = {

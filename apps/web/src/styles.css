@@ -171,6 +171,14 @@ main { margin-left: 228px; padding: 38px clamp(28px, 4vw, 64px) 64px; max-width:
 .nutrition-adjustment span { display: flex; align-items: center; gap: 8px; color: #ffae61; }
 .nutrition-adjustment b { color: #bda78f; font-size: 10px; }
 .nutrition-adjustment strong { color: #ffb36c; font-size: 13px; }
+.hydration-quick-log { display: grid; gap: 9px; margin-top: 10px; padding: 11px 13px; border: 1px solid #294c61; border-radius: 9px; background: #112633; }
+.hydration-quick-log > span { display: flex; align-items: center; gap: 8px; color: #76d6fb; }
+.hydration-quick-log > span > span { display: grid; gap: 2px; }
+.hydration-quick-log b { color: #caeaf5; font-size: 10px; }
+.hydration-quick-log small { color: #7ea6b5; font-size: 9px; }
+.hydration-quick-log > div { display: flex; flex-wrap: wrap; gap: 6px; }
+.hydration-quick-log button { border: 1px solid #37677c; border-radius: 999px; background: #17384a; color: #a9e7ff; padding: 6px 9px; font-size: 9px; font-weight: 900; cursor: pointer; }
+.hydration-quick-log button.hydration-undo { border-color: transparent; background: transparent; color: #7ea6b5; }
 .nutrition-safeguard { display: flex; gap: 8px; align-items: center; margin-top: 9px; color: #9a8b60; font-size: 9px; }
 .log-food-button { width: 100%; margin-top: 12px; display: flex; align-items: center; gap: 8px; padding: 11px 13px; border: 1px solid #35624f; border-radius: 9px; background: #153529; color: #78fba5; font-weight: 900; }
 .log-food-button span { margin-left: auto; color: #7b9a8e; font-size: 9px; font-weight: 600; }

@@ -3,7 +3,7 @@ import { CoachService, type CoachActionType } from '@forge/coach';
 import { buildDigitalTwin, type DailySnapshot, type Recommendation } from '@forge/digital-twin';
 import {
   Activity, Apple, ArrowRight, Award, BookOpen, Brain, CalendarDays, Check, ChevronLeft, ChevronRight, CircleUserRound, Cloud, CloudOff, Dumbbell,
-  Download, Flame, Footprints, Gauge, HeartPulse, Home, Moon, Plus, Settings, ShieldAlert, Sparkles,
+  Download, Droplets, Flame, Footprints, Gauge, HeartPulse, Home, Moon, Plus, Settings, ShieldAlert, Sparkles,
   Repeat2, Save, Target, TrendingDown, Utensils, X,
 } from 'lucide-react';
 import { demoGoals, demoHistory, demoProfile } from './demoData.js';
@@ -42,6 +42,7 @@ import { useAccessibleDialog } from './useAccessibleDialog.js';
 import { nextBlockProposal, startingBlockFor, startingBlockReview } from './startingBlock.js';
 import { performanceTimeline, weightProgressStory } from './performanceTimeline.js';
 import { strengthProgressInsight } from './strengthInsight.js';
+import { addHydration, hydrationTotal, undoLatestHydration, type HydrationEntry } from './hydration.js';
 
 const defaultCheckIn: CheckIn = { sleepScore: 77, sleepHours: 7, soreness: 4, stress: 3, weightKg: 75.8 };
 
@@ -56,6 +57,7 @@ function initialDashboardState(today: DailySnapshot['date'], demoMode: boolean) 
         favoriteFoodIds: ['eggs-whites', 'chicken-breast', 'protein-shake'],
         savedMeals: demoSavedMeals,
         coachMessages: [],
+        hydrationEntries: [],
       }
     : {
         history: [],
@@ -66,6 +68,7 @@ function initialDashboardState(today: DailySnapshot['date'], demoMode: boolean) 
         favoriteFoodIds: [],
         savedMeals: [],
         coachMessages: [],
+        hydrationEntries: [],
       };
   const state = loadDashboardState(window.localStorage, fallback);
   return { ...state, history: withTodaySnapshot(state.history, today, state.checkIn) };
@@ -155,6 +158,7 @@ export function App() {
   const [favoriteFoodIds, setFavoriteFoodIds] = useState<string[]>(initialState.favoriteFoodIds ?? []);
   const [savedMeals, setSavedMeals] = useState<SavedMeal[]>(initialState.savedMeals ?? []);
   const [coachMessages, setCoachMessages] = useState<CoachMessage[]>(initialState.coachMessages ?? []);
+  const [hydrationEntries, setHydrationEntries] = useState<HydrationEntry[]>(initialState.hydrationEntries ?? []);
   const [onboardingProfile, setOnboardingProfile] = useState<OnboardingProfile | undefined>(initialState.onboardingProfile);
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -175,6 +179,7 @@ export function App() {
 
   function saveCurrentDashboardState(state: Parameters<typeof saveDashboardState>[1], nextOnboarding = onboardingProfile) {
     saveDashboardState(window.localStorage, {
+      hydrationEntries,
       ...state,
       ...(nextOnboarding ? { onboardingProfile: nextOnboarding } : {}),
     });
@@ -217,6 +222,7 @@ export function App() {
   const week = trainingWeek(sessionHistory, scheduleAnchor, workout.title, scheduleOverrides, TODAY);
   const scheduleWeekLabel = `${new Date(`${week[0]!.date}T12:00:00Z`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })}–${new Date(`${week[6]!.date}T12:00:00Z`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })}`;
   const loggedNutrition = foodTotals(foodEntries, TODAY);
+  const waterMl = hydrationTotal(hydrationEntries, TODAY);
   const filteredTrainingRecords = filterTrainingHistory(sessionHistory, historyFilter, historyQuery, historyRange, TODAY);
   const visibleHistoryCount = visibleTrainingHistoryCount(filteredTrainingRecords.length, historyVisibleCount);
   const recentTraining = trainingHistoryEntries(filteredTrainingRecords, visibleHistoryCount, historySort);
@@ -271,6 +277,7 @@ export function App() {
       setFavoriteFoodIds(next.favoriteFoodIds ?? []);
       setSavedMeals(next.savedMeals ?? []);
       setCoachMessages(next.coachMessages ?? []);
+      setHydrationEntries(next.hydrationEntries ?? []);
       setOnboardingProfile(next.onboardingProfile);
       cacheDashboardState(window.localStorage, { ...next, history: nextHistory }, remote.updatedAt);
     };
@@ -525,6 +532,18 @@ export function App() {
     saveCurrentDashboardState( { history, checkIn, workoutSession: workout, exerciseHistory, sessionHistory, scheduleOverrides, foodEntries, favoriteFoodIds: nextFavorites, savedMeals: nextMeals, coachMessages, ...(savedAt ? { savedAt } : {}) });
   }
 
+  function logWater(amountMl: number) {
+    const nextEntries = addHydration(hydrationEntries, TODAY, amountMl, new Date().toISOString());
+    setHydrationEntries(nextEntries);
+    saveCurrentDashboardState({ history, checkIn, workoutSession: workout, exerciseHistory, sessionHistory, scheduleOverrides, foodEntries, favoriteFoodIds, savedMeals, coachMessages, hydrationEntries: nextEntries, ...(savedAt ? { savedAt } : {}) });
+  }
+
+  function undoWater() {
+    const nextEntries = undoLatestHydration(hydrationEntries, TODAY);
+    setHydrationEntries(nextEntries);
+    saveCurrentDashboardState({ history, checkIn, workoutSession: workout, exerciseHistory, sessionHistory, scheduleOverrides, foodEntries, favoriteFoodIds, savedMeals, coachMessages, hydrationEntries: nextEntries, ...(savedAt ? { savedAt } : {}) });
+  }
+
   function generateNewPlan() {
     const nextWorkout = freshWorkoutPlan(generatedPlan);
     setWorkout(nextWorkout);
@@ -739,6 +758,7 @@ export function App() {
             <p className="panel-copy">{nutritionTargets.reason}</p>
             <div className="macro-targets"><div><span>Protein</span><strong>{nutritionTargets.proteinG}g</strong><small>Preserve and build lean mass</small></div><div><span>Carbs</span><strong>{nutritionTargets.carbsG}g</strong><small>Fuel training and recovery</small></div><div><span>Fat</span><strong>{nutritionTargets.fatG}g</strong><small>Hormones and satiety</small></div></div>
             <div className="nutrition-adjustment"><span><Flame size={17} /><b>Today’s adjustment</b></span><strong>{nutritionTargets.adjustmentKcal > 0 ? '+' : ''}{nutritionTargets.adjustmentKcal} kcal</strong></div>
+            <div className="hydration-quick-log"><span><Droplets size={17} /><span><b>Water logged today</b><small>{(waterMl / 1_000).toFixed(waterMl % 1_000 === 0 ? 1 : 2)} L · {Math.round(waterMl / 29.5735)} fl oz</small></span></span><div><button onClick={() => logWater(237)}>+ 8 fl oz</button><button onClick={() => logWater(473)}>+ 16 fl oz</button>{waterMl > 0 && <button className="hydration-undo" onClick={undoWater}>Undo last</button>}</div></div>
             <button className="log-food-button" onClick={() => setFoodLoggerOpen(true)}><Plus size={17} /> Log food <span>{loggedNutrition.caloriesKcal} kcal logged</span></button>
             {nutritionTargets.safeguards.map((guard) => <div className="nutrition-safeguard" key={guard}><ShieldAlert size={15} /><span>{guard}</span></div>)}
           </article>
