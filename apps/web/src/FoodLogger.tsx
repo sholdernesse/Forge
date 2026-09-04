@@ -3,12 +3,18 @@ import { Apple, Barcode, Camera, Heart, Minus, Plus, Search, Trash2, X } from 'l
 import { foodCatalog } from './foodCatalog.js';
 import { createFoodEntry, lookupBarcode, mealEntries, scaleFood, searchFoods, type FoodDefinition, type FoodEntry, type MealType, type SavedMeal } from './foodLog.js';
 import { useAccessibleDialog } from './useAccessibleDialog.js';
-import type { FoodDataClient } from './foodDataClient.js';
+import { FoodDataError, type FoodDataClient } from './foodDataClient.js';
 import { BarcodeScanner } from './BarcodeScanner.js';
 import { foodAlternative, type FoodChoicePriority } from './foodAlternatives.js';
 
 interface Props { date: string; entries: FoodEntry[]; favoriteFoodIds: string[]; savedMeals: SavedMeal[]; foodDataClient?: FoodDataClient; choicePriority: FoodChoicePriority; onChange(entries: FoodEntry[]): void; onPreferencesChange(favorites: string[], meals: SavedMeal[]): void; onClose(): void; }
 const meals: MealType[] = ['breakfast', 'lunch', 'dinner', 'snack'];
+
+export function barcodeLookupFailureMessage(error: unknown): string {
+  if (error instanceof FoodDataError && error.status === 503) return 'Open Food Facts could not be reached. Try again shortly or enter the nutrition label manually.';
+  if (error instanceof FoodDataError && error.status === 401) return 'The local food service rejected the development session. Restart Forge and try again.';
+  return 'The local Forge food service is not responding. Start Forge with corepack pnpm dev:https, then try again.';
+}
 
 export function FoodLogger({ date, entries, favoriteFoodIds, savedMeals, foodDataClient, choicePriority, onChange, onPreferencesChange, onClose }: Props) {
   const dialogRef = useAccessibleDialog(onClose);
@@ -72,7 +78,7 @@ export function FoodLogger({ date, entries, favoriteFoodIds, savedMeals, foodDat
       const food = await foodDataClient.barcode(code);
       if (!food) { setBarcodeMessage('Barcode not found. You can still add the nutrition label manually.'); return; }
       setScannedFood(food); setQuery(food.name); setBarcodeMessage(`${food.name} found in Open Food Facts. Check the serving and label before adding.`);
-    } catch { setBarcodeMessage('The product database is unavailable. Local foods and manual entry still work.'); }
+    } catch (error) { setBarcodeMessage(barcodeLookupFailureMessage(error)); }
   }
 
   return <div className="workout-backdrop" onMouseDown={onClose}><section ref={dialogRef} className="food-logger" role="dialog" aria-modal="true" aria-labelledby="food-logger-title" tabIndex={-1} onMouseDown={(event) => event.stopPropagation()}>

@@ -114,7 +114,21 @@ export class HybridFoodProvider implements FoodProvider {
   async barcode(code: string): Promise<FoodSearchResult | undefined> {
     const fields = 'product_name,brands,serving_size,nutriments';
     const response = await this.request(`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(code)}?fields=${fields}`, { headers: { 'user-agent': 'Forge/0.1 (food lookup)' } });
-    if (!response.ok) throw new Error(`Open Food Facts lookup failed with ${response.status}`);
-    return offFood(code, await response.json());
+    if (response.ok) {
+      const food = offFood(code, await response.json());
+      if (food) return food;
+    } else if (response.status !== 404 && !this.usdaApiKey) {
+      throw new Error(`Open Food Facts lookup failed with ${response.status}`);
+    }
+
+    if (!this.usdaApiKey) return undefined;
+    const usdaResponse = await this.request(`https://api.nal.usda.gov/fdc/v1/foods/search?api_key=${encodeURIComponent(this.usdaApiKey)}&query=${encodeURIComponent(code)}&pageSize=20&dataType=Branded`);
+    if (!usdaResponse.ok) throw new Error(`USDA barcode lookup failed with ${usdaResponse.status}`);
+    const payload = await usdaResponse.json() as { foods?: unknown[] };
+    const exact = (payload.foods ?? []).find((item) => {
+      if (!item || typeof item !== 'object') return false;
+      return String((item as Record<string, unknown>).gtinUpc ?? '').replace(/\D/g, '') === code;
+    });
+    return exact ? usdaFood(exact) : undefined;
   }
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { FoodDataClient, foodDataConfig } from './foodDataClient.js';
+import { FoodDataClient, FoodDataError, foodDataConfig } from './foodDataClient.js';
 
 describe('food data client', () => {
   it('authenticates search and rejects malformed provider records', async () => {
@@ -15,6 +15,11 @@ describe('food data client', () => {
   it('treats a missing barcode as an ordinary empty result', async () => {
     const client = new FoodDataClient({ baseUrl: 'https://api.forge.test', accessToken: async () => 'token' }, async () => new Response(null, { status: 404 }));
     await expect(client.barcode('0123456789012')).resolves.toBeUndefined();
+  });
+
+  it('preserves provider status for an actionable interface message', async () => {
+    const client = new FoodDataClient({ baseUrl: '/api', accessToken: async () => 'token' }, async () => new Response(null, { status: 503 }));
+    await expect(client.barcode('884912359155')).rejects.toEqual(new FoodDataError(503));
   });
 
   it('uses the configured API origin and the local proxy only in development', () => {

@@ -16,6 +16,22 @@ describe('hybrid food provider', () => {
     await expect(provider.barcode('0123456789012')).resolves.toEqual(expect.objectContaining({ id: 'off-0123456789012', nutritionBasis: 'per-serving', servingGrams: 40, sodiumMg: 200, verification: 'community' }));
   });
 
+  it('treats an Open Food Facts 404 as an ordinary missing product', async () => {
+    const provider = new HybridFoodProvider(undefined, async () => new Response(null, { status: 404 }));
+    await expect(provider.barcode('884912359155')).resolves.toBeUndefined();
+  });
+
+  it('falls back to an exact USDA branded-food barcode match', async () => {
+    const request = vi.fn()
+      .mockResolvedValueOnce(new Response(null, { status: 404 }))
+      .mockResolvedValueOnce(Response.json({ foods: [
+        { fdcId: 456, gtinUpc: '884912359155', description: 'Honey Bunches of Oats', brandOwner: 'Post', foodNutrients: [{ nutrientName: 'Energy', value: 390 }, { nutrientName: 'Protein', value: 7.3 }] },
+      ] }));
+    const provider = new HybridFoodProvider('DEMO_KEY', request as typeof fetch);
+    await expect(provider.barcode('884912359155')).resolves.toEqual(expect.objectContaining({ id: 'usda-456', name: 'Honey Bunches of Oats', barcode: '884912359155' }));
+    expect(String(request.mock.calls[1]?.[0])).toContain('query=884912359155');
+  });
+
   it('returns no remote search results when USDA is not configured', async () => {
     const request = vi.fn();
     await expect(new HybridFoodProvider(undefined, request).search('oats')).resolves.toEqual([]);

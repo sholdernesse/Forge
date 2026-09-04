@@ -8,6 +8,8 @@ import { HybridFoodProvider } from './foodProvider.js';
 const connectionString = process.env.DATABASE_URL
   ?? (process.env.NODE_ENV !== 'production' ? 'postgresql://forge:forge@localhost:5432/forge' : undefined);
 if (!connectionString) throw new Error('DATABASE_URL is required');
+const usdaApiKey = process.env.USDA_FOODDATA_API_KEY
+  ?? (process.env.NODE_ENV !== 'production' ? 'DEMO_KEY' : undefined);
 
 const dashboards = new PostgresDashboardRepository({
   connectionString,
@@ -17,7 +19,7 @@ const dashboards = new PostgresDashboardRepository({
 const handle = createApiHandler({
   auth: authVerifierFromEnvironment(process.env),
   dashboards,
-  foodProvider: new HybridFoodProvider(process.env.USDA_FOODDATA_API_KEY),
+  foodProvider: new HybridFoodProvider(usdaApiKey),
   ...(process.env.FORGE_WEB_ORIGIN ? { allowedOrigin: process.env.FORGE_WEB_ORIGIN } : {}),
 });
 const port = Number(process.env.PORT ?? 8787);

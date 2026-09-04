@@ -5,6 +5,13 @@ interface FoodDataConfig {
   accessToken(): Promise<string>;
 }
 
+export class FoodDataError extends Error {
+  constructor(readonly status: number) {
+    super(`Food lookup failed (${status})`);
+    this.name = 'FoodDataError';
+  }
+}
+
 interface ProviderFood {
   id?: unknown;
   source?: unknown;
@@ -65,7 +72,7 @@ export class FoodDataClient {
     const token = await this.config.accessToken();
     const response = await this.request(`${this.config.baseUrl}${path}`, { headers: { authorization: `Bearer ${token}` } });
     if (allowMissing && response.status === 404) return undefined;
-    if (!response.ok) throw new Error(`Food lookup failed (${response.status})`);
+    if (!response.ok) throw new FoodDataError(response.status);
     return response.json();
   }
 }
