@@ -11,6 +11,7 @@ The documented HTTPS command started only the web package. Camera capture and de
 ## Delivered
 
 - Adds a root `dev:https` command that builds and starts the API and HTTPS web app together.
+- Keeps nested workspace commands under Corepack so a different globally installed pnpm cannot override Forge's pinned version.
 - Proxies `/api` from Vite to the local API so browser requests stay on the trusted HTTPS origin.
 - Enables the food-data client against that proxy in Vite development.
 - Supplies a development-only client/server token when no local environment file exists.
