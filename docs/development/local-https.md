@@ -39,8 +39,10 @@ Do not transfer `rootCA-key.pem`.
 ## 4. Start Forge over HTTPS
 
 ```powershell
-corepack pnpm --filter @forge/web dev:https
+corepack pnpm dev:https
 ```
+
+This starts both the HTTPS web app and the local Forge API. The web server proxies `/api` internally so the phone never makes an insecure HTTP request.
 
 On the iPhone, open:
 
@@ -53,3 +55,5 @@ The computer and phone must be on the same local network. Allow Node.js through 
 ## Camera behavior
 
 Safari will offer camera access only after the page is a trusted secure context. The first scan should produce an iOS camera-permission prompt. If permission was previously denied, enable it for the site in Safari settings.
+
+The local API uses a development-only token automatically. Production continues to require configured identity, database, and managed HTTPS settings.

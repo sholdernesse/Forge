@@ -52,8 +52,8 @@ export class DevelopmentTokenVerifier implements AuthVerifier {
 }
 
 export function authVerifierFromEnvironment(environment: NodeJS.ProcessEnv): AuthVerifier {
-  if (environment.NODE_ENV !== 'production' && environment.FORGE_DEV_TOKEN) {
-    return new DevelopmentTokenVerifier(environment.FORGE_DEV_TOKEN, environment.FORGE_DEV_USER_ID);
+  if (environment.NODE_ENV !== 'production') {
+    return new DevelopmentTokenVerifier(environment.FORGE_DEV_TOKEN ?? 'forge-local-development', environment.FORGE_DEV_USER_ID);
   }
   const issuer = environment.OIDC_ISSUER;
   const audience = environment.OIDC_AUDIENCE;

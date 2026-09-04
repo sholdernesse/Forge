@@ -17,8 +17,9 @@ describe('food data client', () => {
     await expect(client.barcode('0123456789012')).resolves.toBeUndefined();
   });
 
-  it('uses the existing authenticated API origin only when configured', () => {
+  it('uses the configured API origin and the local proxy only in development', () => {
     expect(foodDataConfig({ VITE_FORGE_SYNC_URL: 'https://api.forge.test/' }, async () => 'token')?.baseUrl).toBe('https://api.forge.test');
+    expect(foodDataConfig({ DEV: true }, async () => 'token')?.baseUrl).toBe('/api');
     expect(foodDataConfig({})).toBeNull();
   });
 });

@@ -23,6 +23,7 @@ export function useForgeAuth(environment: Record<string, unknown>) {
   const accessToken = useCallback(async () => {
     if (!client) {
       const token = environment.VITE_FORGE_SYNC_TOKEN;
+      if ((typeof token !== 'string' || !token) && environment.DEV === true) return 'forge-local-development';
       if (typeof token !== 'string' || !token) throw new Error('Local sync token is not configured');
       return token;
     }
