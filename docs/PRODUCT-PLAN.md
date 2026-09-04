@@ -2,7 +2,7 @@
 
 > **Living plan:** This is the canonical product and delivery plan for Forge. Update it whenever scope, priorities, sequencing, or release status changes. Individual sprint files remain the implementation record.
 
-**Current checkpoint:** Sprint 4.58 on PR #2
+**Current checkpoint:** Sprint 4.59 on PR #2
 **Product stage:** Functional responsive prototype moving toward an authenticated release candidate  
 **Last reviewed:** September 3, 2026
 
@@ -232,7 +232,7 @@ Initial delivery order:
 **Objective:** Improve nutrition accuracy without turning Forge into a food-entry spreadsheet.
 
 - ~~Provider-neutral authenticated food search and barcode gateway.~~ Delivered in Sprint 4.54 using USDA FoodData Central with Open Food Facts barcode fallback; production USDA credentials remain an operational configuration step.
-- ~~Camera barcode capture with manual fallback.~~ Native secure-camera scanning delivered in Sprint 4.55; Sprint 4.57 makes HTTPS and browser capability failures explicit instead of allowing a silent no-op, and Sprint 4.58 provides an isolated trusted-HTTPS development mode for physical phone testing. Broader decoder fallback remains dependent on an approved client library or native app shell.
+- ~~Camera barcode capture with manual fallback.~~ Native secure-camera scanning delivered in Sprint 4.55; Sprint 4.57 makes HTTPS and camera capability failures explicit, Sprint 4.58 provides trusted local HTTPS for physical phone testing, and Sprint 4.59 adds an on-demand decoder for iPhone browsers without the native Barcode Detection API.
 - ~~Goal-aware alternate-food suggestions with explicit nutritional tradeoffs.~~ Delivered in Sprint 4.56 for comparable provider results; category, allergy, and dietary-preference depth remains future work.
 - ~~Low-friction hydration logging with quick-add amounts.~~ Delivered in Sprint 4.53; evidence-based target context remains future work.
 - Optional weekly micronutrient coverage after verified food data is available; avoid deficiency diagnosis or high-dose supplement advice.

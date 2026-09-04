@@ -16,6 +16,7 @@
     "@forge/coach": "workspace:*",
     "@forge/digital-twin": "workspace:*",
     "@forge/shared": "workspace:*",
+    "@zxing/browser": "^0.1.5",
     "lucide-react": "^0.468.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"

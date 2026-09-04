@@ -8,11 +8,11 @@ describe('barcode scanner capability', () => {
     expect(normalizedBarcode('123456789012345')).toBeUndefined();
   });
 
-  it('requires both native detection and camera access', () => {
+  it('requires a secure camera context and allows the compatibility decoder', () => {
     const detector = class { detect() { return Promise.resolve([]); } };
     expect(cameraBarcodeSupported({ isSecureContext: true, BarcodeDetector: detector, navigator: { mediaDevices: { getUserMedia: async () => ({}) } } as unknown as Navigator })).toBe(true);
     expect(cameraBarcodeCapability({ isSecureContext: false, BarcodeDetector: detector, navigator: { mediaDevices: { getUserMedia: async () => ({}) } } as unknown as Navigator })).toBe('https-required');
     expect(cameraBarcodeCapability({ isSecureContext: true, navigator: {} as Navigator })).toBe('camera-unavailable');
-    expect(cameraBarcodeCapability({ isSecureContext: true, navigator: { mediaDevices: { getUserMedia: async () => ({}) } } as unknown as Navigator })).toBe('detector-unavailable');
+    expect(cameraBarcodeCapability({ isSecureContext: true, navigator: { mediaDevices: { getUserMedia: async () => ({}) } } as unknown as Navigator })).toBe('ready');
   });
 });

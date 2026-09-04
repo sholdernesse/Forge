@@ -15,12 +15,11 @@ export function normalizedBarcode(value: string): string | undefined {
   return code.length >= 8 && code.length <= 14 ? code : undefined;
 }
 
-export type CameraBarcodeCapability = 'ready' | 'https-required' | 'camera-unavailable' | 'detector-unavailable';
+export type CameraBarcodeCapability = 'ready' | 'https-required' | 'camera-unavailable';
 
 export function cameraBarcodeCapability(target: Pick<Window, 'BarcodeDetector' | 'navigator' | 'isSecureContext'> = window): CameraBarcodeCapability {
   if (!target.isSecureContext) return 'https-required';
   if (typeof target.navigator.mediaDevices?.getUserMedia !== 'function') return 'camera-unavailable';
-  if (typeof target.BarcodeDetector !== 'function') return 'detector-unavailable';
   return 'ready';
 }
 
@@ -39,13 +38,33 @@ export function BarcodeScanner({ onDetected, onClose }: Props) {
     let active = true;
     let stream: MediaStream | undefined;
     let timer: number | undefined;
+    let fallbackControls: { stop(): void } | undefined;
     const start = async () => {
       const capability = cameraBarcodeCapability();
       if (capability === 'https-required') { setMessage('Camera access requires HTTPS. Open the deployed secure Forge site or enter the barcode manually.'); return; }
       if (capability === 'camera-unavailable') { setMessage('This browser cannot provide camera access. Enter the barcode manually.'); return; }
-      if (capability === 'detector-unavailable') { setMessage('This browser does not support barcode detection. Enter the barcode manually.'); return; }
       try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
+        const constraints: MediaStreamConstraints = { video: { facingMode: { ideal: 'environment' } }, audio: false };
+        if (typeof window.BarcodeDetector !== 'function') {
+          setMessage('Starting the compatible barcode scanner…');
+          const { BrowserMultiFormatReader } = await import('@zxing/browser');
+          if (!active || !videoRef.current) return;
+          const reader = new BrowserMultiFormatReader(undefined, { delayBetweenScanAttempts: 250 });
+          fallbackControls = await reader.decodeFromConstraints(
+            constraints,
+            videoRef.current,
+            (result, _error, controls) => {
+              const code = normalizedBarcode(result?.getText() ?? '');
+              if (!active || !code) return;
+              active = false;
+              controls.stop();
+              onDetected(code);
+            },
+          );
+          if (active) setMessage('Point the rear camera at the package barcode.');
+          return;
+        }
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
         if (!active || !videoRef.current) { stream.getTracks().forEach((track) => track.stop()); return; }
         videoRef.current.srcObject = stream;
         await videoRef.current.play();
@@ -68,7 +87,7 @@ export function BarcodeScanner({ onDetected, onClose }: Props) {
       }
     };
     void start();
-    return () => { active = false; if (timer !== undefined) window.clearInterval(timer); stream?.getTracks().forEach((track) => track.stop()); };
+    return () => { active = false; if (timer !== undefined) window.clearInterval(timer); fallbackControls?.stop(); stream?.getTracks().forEach((track) => track.stop()); };
   }, [onDetected]);
 
   return <div className="barcode-scanner-backdrop" onMouseDown={onClose}><section ref={dialogRef} className="barcode-scanner" role="dialog" aria-modal="true" aria-labelledby="barcode-scanner-title" tabIndex={-1} onMouseDown={(event) => event.stopPropagation()}>
