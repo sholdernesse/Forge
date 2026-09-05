@@ -5,6 +5,7 @@
   "scripts": {
     "build": "turbo build",
     "dev": "turbo dev --parallel",
+    "dev:https": "corepack pnpm --filter @forge/api build && corepack pnpm --parallel --filter @forge/api --filter @forge/web dev:https",
     "lint": "turbo lint",
     "test": "turbo test",
     "typecheck": "turbo typecheck"

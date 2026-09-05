@@ -1,0 +1,156 @@
+name: Deploy Forge to Azure
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Deployment environment
+        required: true
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+      location:
+        description: Azure region
+        required: true
+        default: eastus2
+        type: string
+      confirm:
+        description: Create/update billable Azure resources
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: forge-azure-${{ inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: ${{ inputs.confirm }}
+    runs-on: ubuntu-latest
+    environment: forge-${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate deployment configuration
+        shell: bash
+        env:
+          AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+          POSTGRES_PASSWORD: ${{ secrets.FORGE_POSTGRES_ADMIN_PASSWORD }}
+          ENTRA_CLIENT_ID: ${{ vars.VITE_ENTRA_CLIENT_ID }}
+          ENTRA_AUTHORITY: ${{ vars.VITE_ENTRA_AUTHORITY }}
+          ENTRA_API_SCOPE: ${{ vars.VITE_ENTRA_API_SCOPE }}
+          OIDC_ISSUER: ${{ vars.OIDC_ISSUER }}
+          OIDC_AUDIENCE: ${{ vars.OIDC_AUDIENCE }}
+          OIDC_JWKS_URL: ${{ vars.OIDC_JWKS_URL }}
+        run: |
+          required=(AZURE_RESOURCE_GROUP POSTGRES_PASSWORD ENTRA_CLIENT_ID ENTRA_AUTHORITY ENTRA_API_SCOPE OIDC_ISSUER OIDC_AUDIENCE OIDC_JWKS_URL)
+          for name in "${required[@]}"; do
+            if [ -z "${!name}" ]; then
+              echo "Missing required GitHub environment variable or secret: $name" >&2
+              exit 1
+            fi
+          done
+
+      - name: Sign in to Azure using GitHub OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy foundation
+        id: foundation
+        shell: bash
+        env:
+          RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+          POSTGRES_PASSWORD: ${{ secrets.FORGE_POSTGRES_ADMIN_PASSWORD }}
+        run: |
+          deployment="forge-${{ inputs.environment }}-foundation"
+          az deployment group create \
+            --name "$deployment" \
+            --resource-group "$RESOURCE_GROUP" \
+            --template-file infra/main.bicep \
+            --parameters \
+              environmentName="${{ inputs.environment }}" \
+              location="${{ inputs.location }}" \
+              postgresAdministratorPassword="$POSTGRES_PASSWORD" \
+            --only-show-errors
+
+          for output in registryName registryLoginServer workloadIdentityName keyVaultName containerEnvironmentName apiAppName webAppName webOrigin; do
+            value=$(az deployment group show --name "$deployment" --resource-group "$RESOURCE_GROUP" --query "properties.outputs.${output}.value" --output tsv)
+            echo "${output}=${value}" >> "$GITHUB_OUTPUT"
+          done
+
+      - name: Build and push immutable images
+        shell: bash
+        env:
+          REGISTRY_NAME: ${{ steps.foundation.outputs.registryName }}
+          REGISTRY_SERVER: ${{ steps.foundation.outputs.registryLoginServer }}
+          WEB_ORIGIN: ${{ steps.foundation.outputs.webOrigin }}
+        run: |
+          az acr login --name "$REGISTRY_NAME"
+          api_image="$REGISTRY_SERVER/forge-api:${GITHUB_SHA}"
+          web_image="$REGISTRY_SERVER/forge-web:${GITHUB_SHA}"
+
+          docker build --file apps/api/Dockerfile --tag "$api_image" .
+          docker build \
+            --file apps/web/Dockerfile \
+            --build-arg VITE_FORGE_SYNC_URL=/ \
+            --build-arg VITE_ENTRA_CLIENT_ID="${{ vars.VITE_ENTRA_CLIENT_ID }}" \
+            --build-arg VITE_ENTRA_AUTHORITY="${{ vars.VITE_ENTRA_AUTHORITY }}" \
+            --build-arg VITE_ENTRA_API_SCOPE="${{ vars.VITE_ENTRA_API_SCOPE }}" \
+            --build-arg VITE_ENTRA_REDIRECT_URI="$WEB_ORIGIN" \
+            --tag "$web_image" .
+
+          docker push "$api_image"
+          docker push "$web_image"
+          echo "API_IMAGE=$api_image" >> "$GITHUB_ENV"
+          echo "WEB_IMAGE=$web_image" >> "$GITHUB_ENV"
+
+      - name: Deploy private API and public web gateway
+        id: apps
+        shell: bash
+        env:
+          RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+        run: |
+          deployment="forge-${{ inputs.environment }}-apps-${GITHUB_RUN_NUMBER}"
+          az deployment group create \
+            --name "$deployment" \
+            --resource-group "$RESOURCE_GROUP" \
+            --template-file infra/apps.bicep \
+            --parameters \
+              location="${{ inputs.location }}" \
+              containerEnvironmentName="${{ steps.foundation.outputs.containerEnvironmentName }}" \
+              registryName="${{ steps.foundation.outputs.registryName }}" \
+              workloadIdentityName="${{ steps.foundation.outputs.workloadIdentityName }}" \
+              keyVaultName="${{ steps.foundation.outputs.keyVaultName }}" \
+              apiAppName="${{ steps.foundation.outputs.apiAppName }}" \
+              webAppName="${{ steps.foundation.outputs.webAppName }}" \
+              apiImage="$API_IMAGE" \
+              webImage="$WEB_IMAGE" \
+              webOrigin="${{ steps.foundation.outputs.webOrigin }}" \
+              oidcIssuer="${{ vars.OIDC_ISSUER }}" \
+              oidcAudience="${{ vars.OIDC_AUDIENCE }}" \
+              oidcJwksUrl="${{ vars.OIDC_JWKS_URL }}" \
+            --only-show-errors
+
+          web_url=$(az deployment group show --name "$deployment" --resource-group "$RESOURCE_GROUP" --query 'properties.outputs.webUrl.value' --output tsv)
+          echo "web_url=$web_url" >> "$GITHUB_OUTPUT"
+
+      - name: Verify deployed health endpoint
+        shell: bash
+        run: curl --fail --retry 8 --retry-delay 10 --retry-all-errors "${{ steps.apps.outputs.web_url }}/health"
+
+      - name: Write deployment summary
+        run: |
+          echo "## Forge ${{ inputs.environment }} deployment" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Web: ${{ steps.apps.outputs.web_url }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Image revision: \`${GITHUB_SHA}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- API ingress: internal only" >> "$GITHUB_STEP_SUMMARY"
