@@ -3,6 +3,12 @@ import { ForgeAuthClient, forgeAuthConfig, type ForgeAuthSnapshot } from './forg
 
 const developmentSnapshot: ForgeAuthSnapshot = { status: 'development', name: 'Athlete', username: 'Local development' };
 
+export function localAccessToken(environment: Record<string, unknown>): string | undefined {
+  if (environment.DEV === true) return 'forge-local-development';
+  const token = environment.VITE_FORGE_SYNC_TOKEN;
+  return typeof token === 'string' && token ? token : undefined;
+}
+
 export function useForgeAuth(environment: Record<string, unknown>) {
   const config = useMemo(() => forgeAuthConfig(environment, window.location.origin), [environment]);
   const client = useMemo(() => config ? new ForgeAuthClient(config) : null, [config]);
@@ -22,9 +28,8 @@ export function useForgeAuth(environment: Record<string, unknown>) {
 
   const accessToken = useCallback(async () => {
     if (!client) {
-      const token = environment.VITE_FORGE_SYNC_TOKEN;
-      if ((typeof token !== 'string' || !token) && environment.DEV === true) return 'forge-local-development';
-      if (typeof token !== 'string' || !token) throw new Error('Local sync token is not configured');
+      const token = localAccessToken(environment);
+      if (!token) throw new Error('Local sync token is not configured');
       return token;
     }
     return client.accessToken();

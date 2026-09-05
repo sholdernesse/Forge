@@ -56,4 +56,4 @@ The computer and phone must be on the same local network. Allow Node.js through 
 
 Safari will offer camera access only after the page is a trusted secure context. The first scan should produce an iOS camera-permission prompt. If permission was previously denied, enable it for the site in Safari settings.
 
-The local API uses a development-only token automatically. Production continues to require configured identity, database, and managed HTTPS settings.
+The local API and Vite web app use the same development-only token automatically. Vite development deliberately ignores an old `VITE_FORGE_SYNC_TOKEN` value so a stale `.env.local` cannot break phone barcode lookup. Production continues to require configured identity, database, and managed HTTPS settings.

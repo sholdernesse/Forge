@@ -2,7 +2,7 @@
 
 > **Living plan:** This is the canonical product and delivery plan for Forge. Update it whenever scope, priorities, sequencing, or release status changes. Individual sprint files remain the implementation record.
 
-**Current checkpoint:** Sprint 4.61 on PR #2
+**Current checkpoint:** Sprint 4.62 on PR #2
 **Product stage:** Functional responsive prototype moving toward an authenticated release candidate  
 **Last reviewed:** September 3, 2026
 
@@ -232,7 +232,7 @@ Initial delivery order:
 **Objective:** Improve nutrition accuracy without turning Forge into a food-entry spreadsheet.
 
 - ~~Provider-neutral authenticated food search and barcode gateway.~~ Delivered in Sprint 4.54 using USDA FoodData Central with Open Food Facts barcode fallback; production USDA credentials remain an operational configuration step.
-- ~~Camera barcode capture with manual fallback.~~ Native secure-camera scanning delivered in Sprint 4.55; Sprints 4.57–4.60 complete secure iPhone capture and local API lookup, and Sprint 4.61 distinguishes missing products from outages while adding an exact-barcode USDA fallback.
+- ~~Camera barcode capture with manual fallback.~~ Native secure-camera scanning delivered in Sprint 4.55; Sprints 4.57–4.60 complete secure iPhone capture and local API lookup, Sprint 4.61 distinguishes missing products from outages while adding an exact-barcode USDA fallback, and Sprint 4.62 makes local web/API authorization deterministic.
 - ~~Goal-aware alternate-food suggestions with explicit nutritional tradeoffs.~~ Delivered in Sprint 4.56 for comparable provider results; category, allergy, and dietary-preference depth remains future work.
 - ~~Low-friction hydration logging with quick-add amounts.~~ Delivered in Sprint 4.53; evidence-based target context remains future work.
 - Optional weekly micronutrient coverage after verified food data is available; avoid deficiency diagnosis or high-dose supplement advice.
