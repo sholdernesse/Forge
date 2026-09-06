@@ -78,10 +78,8 @@ export class FoodDataClient {
 }
 
 export function foodDataConfig(environment: Record<string, unknown>, accessToken?: () => Promise<string>): FoodDataConfig | null {
+  if (environment.DEV === true && accessToken) return { baseUrl: '/api', accessToken };
   const baseUrl = environment.VITE_FORGE_SYNC_URL;
-  if ((!baseUrl || typeof baseUrl !== 'string') && environment.DEV === true && accessToken) {
-    return { baseUrl: '/api', accessToken };
-  }
   if (typeof baseUrl !== 'string' || !baseUrl.trim() || !accessToken) return null;
   return { baseUrl: baseUrl.replace(/\/$/, ''), accessToken };
 }

@@ -25,6 +25,7 @@ describe('food data client', () => {
   it('uses the configured API origin and the local proxy only in development', () => {
     expect(foodDataConfig({ VITE_FORGE_SYNC_URL: 'https://api.forge.test/' }, async () => 'token')?.baseUrl).toBe('https://api.forge.test');
     expect(foodDataConfig({ DEV: true }, async () => 'token')?.baseUrl).toBe('/api');
+    expect(foodDataConfig({ DEV: true, VITE_FORGE_SYNC_URL: 'http://localhost:8787' }, async () => 'token')?.baseUrl).toBe('/api');
     expect(foodDataConfig({})).toBeNull();
   });
 });

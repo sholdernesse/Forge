@@ -108,6 +108,7 @@ export class DashboardSyncClient {
 }
 
 export function dashboardSyncConfig(environment: Record<string, unknown>, accessToken?: () => Promise<string>): DashboardSyncConfig | null {
+  if (environment.DEV === true && accessToken) return { baseUrl: '/api', accessToken };
   const baseUrl = environment.VITE_FORGE_SYNC_URL;
   if (typeof baseUrl !== 'string' || !baseUrl.trim() || !accessToken) return null;
   return { baseUrl: baseUrl.replace(/\/$/, ''), accessToken };

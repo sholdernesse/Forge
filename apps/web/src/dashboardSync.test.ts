@@ -62,6 +62,7 @@ describe('dashboard sync', () => {
 
   it('stays local without complete configuration and compares update times', () => {
     expect(dashboardSyncConfig({ VITE_FORGE_SYNC_URL: 'https://sync.forge.test' })).toBeNull();
+    expect(dashboardSyncConfig({ DEV: true, VITE_FORGE_SYNC_URL: 'http://localhost:8787' }, async () => 'token')?.baseUrl).toBe('/api');
     expect(newerThanLocal('2026-08-12T12:01:00.000Z', '2026-08-12T12:00:00.000Z')).toBe(true);
     expect(newerThanLocal('2026-08-12T11:59:00.000Z', '2026-08-12T12:00:00.000Z')).toBe(false);
   });
