@@ -12,6 +12,7 @@ describe('exercise guides', () => {
       'hip-thrust',
       'barbell-rdl',
       'lateral-raise',
+      'band-face-pull',
     ]));
     for (const id of exerciseGuideIds()) {
       expect(exerciseGuide(id)?.imageSrc).toMatch(/\.(webp|svg)$/);
@@ -53,6 +54,14 @@ describe('exercise guides', () => {
     expect(guide.primaryMuscles).toEqual(['Middle deltoids']);
     expect([...guide.movement, ...guide.mistakes].join(' ')).toMatch(/shoulder height|comfortable|swing|shrug/i);
     expect(guide.tempo).toMatch(/3 seconds/i);
+  });
+
+  it('pairs the face pull with an anchored movement and rear anatomy view', () => {
+    const guide = exerciseGuide('band-face-pull')!;
+    expect(guide.imageSrc).toBe('/exercises/band-face-pull-guide.webp');
+    expect(guide.muscleImageSrc).toBe('/exercises/band-face-pull-muscles.webp');
+    expect(guide.primaryMuscles).toEqual(expect.arrayContaining(['Rear deltoids', 'rhomboids', 'middle trapezius']));
+    expect([...guide.setup, ...guide.movement, ...guide.mistakes].join(' ')).toMatch(/anchor|external|shrug|lean/i);
   });
 
   it('returns a non-mutating catalog for library exploration', () => {
