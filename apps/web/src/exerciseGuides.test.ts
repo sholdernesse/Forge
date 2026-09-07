@@ -11,6 +11,7 @@ describe('exercise guides', () => {
       'chest-supported-row',
       'hip-thrust',
       'barbell-rdl',
+      'lateral-raise',
     ]));
     for (const id of exerciseGuideIds()) {
       expect(exerciseGuide(id)?.imageSrc).toMatch(/\.(webp|svg)$/);
@@ -40,6 +41,14 @@ describe('exercise guides', () => {
     expect(guide.secondaryMuscles).toEqual(expect.arrayContaining(['Spinal erectors', 'lats', 'forearms', 'core']));
     expect([...guide.movement, ...guide.mistakes, ...guide.selfChecks].join(' ')).toMatch(/hips backward|deep squat|mid-shin|controlled depth/i);
     expect(guide.selfChecks.join(' ')).toContain('not a required depth');
+  });
+
+  it('teaches a controlled lateral raise without prescribing forced height', () => {
+    const guide = exerciseGuide('lateral-raise')!;
+    expect(guide.imageSrc).toBe('/exercises/dumbbell-lateral-raise-guide.webp');
+    expect(guide.primaryMuscles).toEqual(['Middle deltoids']);
+    expect([...guide.movement, ...guide.mistakes].join(' ')).toMatch(/shoulder height|comfortable|swing|shrug/i);
+    expect(guide.tempo).toMatch(/3 seconds/i);
   });
 
   it('returns a non-mutating catalog for library exploration', () => {

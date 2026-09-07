@@ -2,7 +2,7 @@
 
 > **Living plan:** This is the canonical product and delivery plan for Forge. Update it whenever scope, priorities, sequencing, or release status changes. Individual sprint files remain the implementation record.
 
-**Current checkpoint:** Sprint 4.69 on PR #2
+**Current checkpoint:** Sprint 4.70 on PR #2
 **Product stage:** Functional responsive prototype moving toward an authenticated release candidate  
 **Last reviewed:** September 3, 2026
 
@@ -220,7 +220,7 @@ Initial delivery order:
 3. ~~Hip hinge/RDL.~~ AI-character guide and constraint-aware planner integration delivered in Sprint 4.66; range-of-motion artwork and individualized endpoint language refined in Sprint 4.67; separate rear muscle visualization delivered in Sprint 4.68 and refined into an anatomical illustration in Sprint 4.69.
 4. ~~Bench press.~~ AI-character guide delivered.
 5. ~~Row.~~ AI-character guide delivered.
-6. Lateral raise.
+6. ~~Lateral raise.~~ Consistent two-position AI-character guide with controlled-range coaching delivered in Sprint 4.70; shared muscle-color treatment remains scheduled for a later visual-system pass.
 7. Face pull.
 8. Core and mobility movements. Initial dead-bug guide delivered; broader coverage remains.
 9. Remaining exercise library by training-plan usage.
