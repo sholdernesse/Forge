@@ -3,6 +3,8 @@ export interface ExerciseGuide {
   title: string;
   imageSrc: string;
   imageAlt: string;
+  muscleImageSrc?: string;
+  muscleImageAlt?: string;
   setup: string[];
   movement: string[];
   mistakes: string[];
@@ -110,6 +112,8 @@ const guides: ExerciseGuide[] = [
     title: 'Barbell Romanian deadlift',
     imageSrc: '/exercises/barbell-rdl-guide-v2.webp',
     imageAlt: 'Barbell Romanian deadlift shown standing tall and hinged with the bar near mid-shin at a controlled endpoint.',
+    muscleImageSrc: '/exercises/barbell-rdl-muscles.webp',
+    muscleImageAlt: 'Rear views of a barbell Romanian deadlift with green highlighting the glutes and rear hamstrings and amber indicating supporting back and forearm muscles.',
     setup: ['Stand with the bar close to the upper thighs and feet about hip-width apart.', 'Soften the knees, brace the trunk, and keep the shoulders controlled.', 'Use a double-overhand grip just outside the legs.'],
     movement: ['Push the hips backward while keeping the bar close to the legs.', 'Lower toward mid-shin only while the spine stays neutral and hamstring tension remains controlled.', 'Drive the floor away and bring the hips forward to stand tall without leaning back.'],
     mistakes: ['Turning the hinge into a deep squat', 'Letting the bar drift away from the legs', 'Rounding the back or forcing extra depth'],
@@ -117,7 +121,7 @@ const guides: ExerciseGuide[] = [
     tempo: 'Lower for about 3 seconds, pause briefly at your controlled depth, then stand in 1–2 seconds.',
     breathing: 'Brace before hinging; keep pressure through the descent and exhale as you return to standing.',
     primaryMuscles: ['Hamstrings', 'glutes'],
-    secondaryMuscles: ['Spinal erectors', 'upper back', 'forearms'],
+    secondaryMuscles: ['Spinal erectors', 'lats', 'upper back', 'forearms', 'core'],
     safetyNote: 'Use safeties and a load you can keep close to the body. Stop for sharp back, hip, or hamstring pain.',
   },
 ];
