@@ -3,8 +3,8 @@ export interface ExerciseGuide {
   title: string;
   imageSrc: string;
   imageAlt: string;
-  muscleImageSrc?: string;
-  muscleImageAlt?: string;
+  muscleImageSrc: string;
+  muscleImageAlt: string;
   setup: string[];
   movement: string[];
   mistakes: string[];
@@ -22,6 +22,8 @@ const guides: ExerciseGuide[] = [
     title: 'Barbell bench press',
     imageSrc: '/exercises/barbell-bench-guide.webp',
     imageAlt: 'Barbell bench press shown at the top and controlled bottom positions.',
+    muscleImageSrc: '/exercises/barbell-bench-muscles.webp',
+    muscleImageAlt: 'Front three-quarter anatomical illustrations of a flat barbell bench press showing the chest in green and the triceps and front shoulders in amber.',
     setup: ['Plant both feet and keep your hips in contact with the bench.', 'Pull your shoulder blades back and down before unracking.', 'Grip so your forearms are vertical at the bottom.'],
     movement: ['Lower the bar under control toward the lower chest.', 'Keep wrists stacked over elbows and elbows below the shoulders.', 'Press up and slightly back without bouncing the bar.'],
     mistakes: ['Flaring the elbows straight out', 'Lifting the hips to finish a repetition', 'Losing shoulder position or bouncing the bar'],
@@ -37,6 +39,8 @@ const guides: ExerciseGuide[] = [
     title: 'Controlled box squat',
     imageSrc: '/exercises/box-squat-guide.webp',
     imageAlt: 'Barbell box squat shown standing and at a controlled touch to the box.',
+    muscleImageSrc: '/exercises/box-squat-muscles.webp',
+    muscleImageAlt: 'Front three-quarter anatomical illustrations of a box squat showing the quadriceps and glutes in green with supporting hamstrings, inner thighs, back, and core in amber.',
     setup: ['Set the box at a pain-free depth and the rack safeties just below it.', 'Brace before unracking and use a stable stance.', 'Keep pressure balanced through the whole foot.'],
     movement: ['Send hips back while allowing the knees to track over the toes.', 'Touch the box under control without relaxing your torso.', 'Drive through the floor and stand tall without rocking forward.'],
     mistakes: ['Collapsing the knees inward', 'Dropping quickly or fully sitting back', 'Rounding the lower back or shifting onto the toes'],
@@ -52,6 +56,8 @@ const guides: ExerciseGuide[] = [
     title: 'Dead bug',
     imageSrc: '/exercises/dead-bug-guide.webp',
     imageAlt: 'Dead bug shown in the starting position and with opposite arm and leg extended.',
+    muscleImageSrc: '/exercises/dead-bug-muscles.webp',
+    muscleImageAlt: 'Elevated side anatomical illustrations of a dead bug showing the abdominal wall in green with supporting hip flexors and trunk stabilizers in amber.',
     setup: ['Lie on your back with hips and knees at 90 degrees.', 'Reach your arms toward the ceiling and gently brace your abdomen.', 'Exhale enough to bring your ribs down toward the mat.'],
     movement: ['Slowly extend one leg and the opposite arm.', 'Move only as far as you can without your lower back lifting.', 'Return with control, reset your brace, and switch sides.'],
     mistakes: ['Arching the lower back', 'Moving quickly instead of controlling the range', 'Holding your breath or extending too far'],
@@ -67,6 +73,8 @@ const guides: ExerciseGuide[] = [
     title: 'Dumbbell overhead press',
     imageSrc: '/exercises/dumbbell-overhead-press-guide-v2.webp',
     imageAlt: 'Dumbbell overhead press shown with weights at shoulder level and controlled overhead lockout.',
+    muscleImageSrc: '/exercises/dumbbell-overhead-press-muscles.webp',
+    muscleImageAlt: 'Front anatomical illustrations of a dumbbell overhead press showing the deltoids in green and supporting triceps, upper chest, and core in amber.',
     setup: ['Sit or stand tall with feet stable and ribs stacked over the pelvis.', 'Start with wrists above elbows and dumbbells just outside the shoulders.', 'Brace before pressing and keep your head neutral.'],
     movement: ['Press the dumbbells upward without leaning back.', 'Allow the arms to travel naturally while keeping the forearms near vertical.', 'Finish with the weights over the shoulders, then lower under control.'],
     mistakes: ['Arching the lower back to move the weight', 'Letting wrists fold backward or elbows drift far behind the torso', 'Crashing the dumbbells together or dropping the descent'],
@@ -82,6 +90,8 @@ const guides: ExerciseGuide[] = [
     title: 'Chest-supported dumbbell row',
     imageSrc: '/exercises/chest-supported-row-guide-v2.webp',
     imageAlt: 'Chest-supported dumbbell row shown with arms extended and elbows pulled beside the torso.',
+    muscleImageSrc: '/exercises/chest-supported-row-muscles.webp',
+    muscleImageAlt: 'Rear three-quarter anatomical illustrations of a chest-supported row showing the lats and middle back in green with supporting rear shoulders and arms in amber.',
     setup: ['Set the bench angle so your chest is supported without forcing your neck upward.', 'Plant your feet and let the dumbbells hang with shoulders controlled.', 'Keep the ribs against the pad and wrists neutral.'],
     movement: ['Pull the elbows beside the torso while the chest stays on the pad.', 'Pause briefly when the shoulder blades move back without shrugging.', 'Lower until the arms are long while maintaining shoulder control.'],
     mistakes: ['Lifting the chest from the pad to finish the pull', 'Shrugging the shoulders toward the ears', 'Swinging the dumbbells or shortening the controlled reach'],
@@ -97,6 +107,8 @@ const guides: ExerciseGuide[] = [
     title: 'Barbell hip thrust',
     imageSrc: '/exercises/hip-thrust-guide-v2.webp',
     imageAlt: 'Hip thrust shown in the lowered position and at a controlled shoulder-to-knee lockout.',
+    muscleImageSrc: '/exercises/hip-thrust-muscles.webp',
+    muscleImageAlt: 'Rear-side anatomical illustrations of a barbell hip thrust showing the glutes in green and supporting hamstrings, quadriceps, and core in amber.',
     setup: ['Place the lower shoulder blades against a stable bench and pad the bar across the hip crease.', 'Set feet so the shins are near vertical at the top.', 'Keep the chin gently tucked and ribs controlled.'],
     movement: ['Lower the hips under control while the upper back stays supported.', 'Drive through the whole foot and lift the hips without throwing the head back.', 'Finish when shoulders, hips, and knees form a controlled line, then pause.'],
     mistakes: ['Overextending the lower back above the natural lockout', 'Pushing through the toes or letting knees collapse inward', 'Using momentum or allowing the bench to move'],
@@ -112,6 +124,8 @@ const guides: ExerciseGuide[] = [
     title: 'Dumbbell lateral raise',
     imageSrc: '/exercises/dumbbell-lateral-raise-guide.webp',
     imageAlt: 'Standing dumbbell lateral raise shown with the weights beside the thighs and raised under control to shoulder height.',
+    muscleImageSrc: '/exercises/dumbbell-lateral-raise-muscles.webp',
+    muscleImageAlt: 'Front anatomical illustrations of a dumbbell lateral raise showing the middle deltoids in green with supporting shoulder and upper-trapezius muscles in amber.',
     setup: ['Stand tall with feet about hip-width apart, knees soft, and ribs stacked over the pelvis.', 'Hold light dumbbells beside the thighs with neutral wrists and relaxed shoulders.', 'Set the arms slightly forward of the exact side plane and keep a soft bend in the elbows.'],
     movement: ['Lead with the elbows and raise both arms smoothly without swinging the torso.', 'Stop around shoulder height or earlier if that is your comfortable controlled range.', 'Lower the dumbbells slowly until the shoulders reset without letting the weights drop.'],
     mistakes: ['Shrugging the shoulders toward the ears', 'Swinging the dumbbells or leaning to create momentum', 'Raising above a comfortable shoulder-height endpoint or bending the wrists'],

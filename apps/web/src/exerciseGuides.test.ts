@@ -16,13 +16,17 @@ describe('exercise guides', () => {
     for (const id of exerciseGuideIds()) {
       expect(exerciseGuide(id)?.imageSrc).toMatch(/\.(webp|svg)$/);
       expect(exerciseGuide(id)?.imageAlt.length).toBeGreaterThan(30);
+      expect(exerciseGuide(id)?.muscleImageSrc).toMatch(/-muscles(?:-v\d+)?\.webp$/);
+      expect(exerciseGuide(id)?.muscleImageAlt.length).toBeGreaterThan(30);
     }
   });
 
   it('uses the same AI-character image format for every covered exercise', () => {
     const guides = exerciseGuides();
     expect(guides.every((guide) => guide.imageSrc.endsWith('.webp'))).toBe(true);
+    expect(guides.every((guide) => guide.muscleImageSrc.endsWith('.webp'))).toBe(true);
     expect(new Set(guides.map((guide) => guide.imageSrc)).size).toBe(guides.length);
+    expect(new Set(guides.map((guide) => guide.muscleImageSrc)).size).toBe(guides.length);
   });
 
   it('keeps explicit muscle intent on the overhead press character guide', () => {

@@ -2,7 +2,7 @@
 
 > **Living plan:** This is the canonical product and delivery plan for Forge. Update it whenever scope, priorities, sequencing, or release status changes. Individual sprint files remain the implementation record.
 
-**Current checkpoint:** Sprint 4.70 on PR #2
+**Current checkpoint:** Sprint 4.71 on PR #2
 **Product stage:** Functional responsive prototype moving toward an authenticated release candidate  
 **Last reviewed:** September 3, 2026
 
@@ -209,6 +209,7 @@ Requirements:
 - Maintain consistent characters, clothing, camera angle, environment, lighting, and visual language across exercises.
 - Offer male and female character selection where body proportions or presentation may affect how the movement is understood.
 - Show setup, slow controlled movement, full comfortable range, finish position, primary muscles, and important secondary muscles.
+- Require two distinct visual sets for every guided movement: an unaltered range-of-motion demonstration and a companion anatomical illustration from the clearest muscle-viewing angle.
 - Preserve pause, slow playback, reduced-motion behavior, and concise written cues.
 - Validate each movement against reviewed exercise standards; generated imagery must not become the source of truth.
 - Build reusable motion assets and a content pipeline rather than generating unrelated visuals inside the app at runtime.
@@ -222,10 +223,12 @@ Initial delivery order:
 5. ~~Row.~~ AI-character guide delivered.
 6. ~~Lateral raise.~~ Consistent two-position AI-character guide with controlled-range coaching delivered in Sprint 4.70; shared muscle-color treatment remains scheduled for a later visual-system pass.
 7. Face pull.
-8. Core and mobility movements. Initial dead-bug guide delivered; broader coverage remains.
+8. Core and mobility movements. Initial dead-bug movement and anatomical guide pair delivered; broader coverage remains.
 9. Remaining exercise library by training-plan usage.
 
 **Exit:** The most-used movements have consistent, safe, understandable Forge character demonstrations on desktop and phone.
+
+Sprint 4.71 establishes the paired movement/anatomy contract across every currently guided exercise. Muscle colors remain intentionally provisional until a later cross-guide visual review.
 
 ### Phase E — Nutrition depth
 

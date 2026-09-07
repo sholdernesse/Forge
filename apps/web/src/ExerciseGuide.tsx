@@ -26,13 +26,13 @@ export function ExerciseGuide({ guide, onClose }: ExerciseGuideProps) {
     <section ref={dialogRef} className="form-guide" role="dialog" aria-modal="true" aria-labelledby="form-guide-title" tabIndex={-1} onMouseDown={(event) => event.stopPropagation()}>
       <header><div><span className="section-label">VISUAL FORM GUIDE</span><h2 id="form-guide-title">{guide.title}</h2></div><button onClick={onClose} aria-label="Close form guide"><X size={20} /></button></header>
       <figure><img src={guide.imageSrc} alt={guide.imageAlt} /><figcaption><Eye size={15} /> Compare the same AI character’s setup and finishing position before adding load.</figcaption></figure>
-      {guide.muscleImageSrc && guide.muscleImageAlt ? <>
-        <figure className="guide-muscle-figure"><img src={guide.muscleImageSrc} alt={guide.muscleImageAlt} /><figcaption><Eye size={15} /> Rear view · see which muscles drive and stabilize the movement.</figcaption></figure>
+      <>
+        <figure className="guide-muscle-figure"><img src={guide.muscleImageSrc} alt={guide.muscleImageAlt} /><figcaption><Eye size={15} /> Anatomy view · see which muscles drive and stabilize the movement.</figcaption></figure>
         <div className="guide-muscle-legend" aria-label="Muscles worked">
           <span><i className="primary" aria-hidden="true" /><b>Primary</b><small>{guide.primaryMuscles.join(', ')}</small></span>
           <span><i className="secondary" aria-hidden="true" /><b>Supporting</b><small>{guide.secondaryMuscles.join(', ')}</small></span>
         </div>
-      </> : null}
+      </>
       <div className="guide-performance" aria-label="Movement rhythm">
         <span><TimerReset size={16} /><span><b>Tempo</b><small>{guide.tempo}</small></span></span>
         <span><Wind size={16} /><span><b>Breathing</b><small>{guide.breathing}</small></span></span>
