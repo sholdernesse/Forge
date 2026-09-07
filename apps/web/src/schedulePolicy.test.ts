@@ -20,6 +20,13 @@ describe('schedule and deload policy', () => {
     expect(reduced.exercises[2]!.sets[0]!.loadKg).toBe(54);
   });
 
+  it('uses a lighter planned consolidation before fatigue requires a deeper deload', () => {
+    const recoveredHistory = demoHistory.map((day) => ({ ...day, sleepScore: 90, soreness: 1, stress: 1 }));
+    const twin = buildDigitalTwin({ profile: demoProfile, goals: demoGoals, history: recoveredHistory, asOfDate: '2026-08-12' });
+    expect(assessDeload(twin, true)).toMatchObject({ active: true, volumeMultiplier: 0.75, loadMultiplier: 0.9 });
+    expect(assessDeload(twin, true).reasons).toContain('Week 4 is a planned consolidation week.');
+  });
+
   it('cycles adaptive, train, and rest schedule intents', () => {
     expect(nextScheduleIntent('adaptive')).toBe('train');
     expect(nextScheduleIntent('train')).toBe('rest');

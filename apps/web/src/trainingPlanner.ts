@@ -50,7 +50,7 @@ function finalizeStrengthPlan(session: WorkoutSession, deload: ReturnType<typeof
   return fitPreferredDuration(includePrimaryWarmup(applyDeload(session, deload)), preferences.preferredSessionMinutes);
 }
 
-export function generateTrainingPlan(twin: DigitalTwin, preferences: TrainingPreferences, sessionHistory: TrainingSessionRecord[] = [], scheduleIntent: ScheduleIntent = 'adaptive'): WorkoutSession {
+export function generateTrainingPlan(twin: DigitalTwin, preferences: TrainingPreferences, sessionHistory: TrainingSessionRecord[] = [], scheduleIntent: ScheduleIntent = 'adaptive', plannedDeload = false): WorkoutSession {
   const date = twin.asOfDate;
   const readiness = twin.recovery.readiness;
   const weeklyTarget = twin.goals.weeklyTrainingTarget ?? 4;
@@ -80,7 +80,7 @@ export function generateTrainingPlan(twin: DigitalTwin, preferences: TrainingPre
   const upperVolume = total('chest', 'back', 'shoulders', 'biceps', 'triceps');
   const lowerVolume = total('quads', 'hamstrings', 'glutes', 'calves');
   const upperDay = sessionHistory.length ? upperVolume <= lowerVolume : twin.training.sessionsLast7Days % 2 === 0;
-  const baseDeload = assessDeload(twin);
+  const baseDeload = assessDeload(twin, plannedDeload);
   const deload = feedback.action === 'deload'
     ? {
       ...baseDeload,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { OnboardingProfile } from './onboarding.js';
-import { nextBlockProposal, startingBlockFor, startingBlockReview } from './startingBlock.js';
+import { nextBlockProposal, plannedDeloadWeek, startingBlockFor, startingBlockReview } from './startingBlock.js';
 import type { TrainingSessionRecord } from './volumeLedger.js';
 
 const profile: OnboardingProfile = {
@@ -89,5 +89,14 @@ describe('four-week starting block', () => {
     expect(block.title).toBe('Training block 2');
     expect(block.currentWeek).toBe(2);
     expect(startingBlockReview(laterProfile, '2026-09-20', [])).toBeUndefined();
+  });
+
+  it('plans consolidation only in week four of later blocks', () => {
+    const laterProfile: OnboardingProfile = { ...profile, trainingBlock: { number: 2, startedAt: '2026-09-01T12:00:00.000Z', approach: 'progress' } };
+    expect(plannedDeloadWeek(laterProfile, '2026-09-21')).toBe(false);
+    expect(plannedDeloadWeek(laterProfile, '2026-09-22')).toBe(true);
+    expect(plannedDeloadWeek(laterProfile, '2026-09-29')).toBe(false);
+    expect(startingBlockFor(laterProfile, '2026-09-22').weeks[3]).toMatchObject({ title: 'Consolidate' });
+    expect(plannedDeloadWeek(profile, '2026-08-22')).toBe(false);
   });
 });

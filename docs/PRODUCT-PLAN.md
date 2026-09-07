@@ -2,7 +2,7 @@
 
 > **Living plan:** This is the canonical product and delivery plan for Forge. Update it whenever scope, priorities, sequencing, or release status changes. Individual sprint files remain the implementation record.
 
-**Current checkpoint:** Sprint 4.64 on PR #2
+**Current checkpoint:** Sprint 4.65 on PR #2
 **Product stage:** Functional responsive prototype moving toward an authenticated release candidate  
 **Last reviewed:** September 3, 2026
 
@@ -192,7 +192,7 @@ PR #2 should deliver a coherent, testable Forge web candidate with:
 - ~~Visible four-week starting block with goal, duration, exercise intent, and quality-first progression.~~ Delivered in Sprint 4.47; later-block generation remains.
 - ~~Evidence-based end-of-block review using adherence, movement quality, and discomfort signals.~~ Delivered in Sprint 4.48; later-block activation remains user-controlled future work.
 - ~~User-approved later-block activation that proposes progression or repetition from adherence, movement quality, and discomfort evidence.~~ Delivered in Sprint 4.52; longer mesocycle progression remains.
-- Plan-level deload timing across longer mesocycles.
+- ~~Plan-level deload timing across longer mesocycles.~~ Delivered in Sprint 4.65 as a bounded Week 4 consolidation in approved later blocks; fatigue and discomfort safeguards remain authoritative.
 - ~~Bounded weekly calendar browsing and persistent Adaptive, Train, or Rest selections.~~ Delivered in Sprint 4.49; richer templates remain evidence-gated.
 - ~~A compact Performance Timeline connecting workouts, nutrition, recovery, reflection, and outcomes without causal overclaiming.~~ Delivered in Sprint 4.50; deeper decision-event history remains evidence-gated.
 - ~~Plateau and adherence explanations grounded in sufficient repeated exposure, elapsed time, schedule coverage, and movement quality.~~ Delivered in Sprint 4.51.

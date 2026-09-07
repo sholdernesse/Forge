@@ -36,6 +36,12 @@ export interface NextBlockProposal {
   actionLabel: string;
 }
 
+export function plannedDeloadWeek(profile: OnboardingProfile, today: string): boolean {
+  if (!profile.trainingBlock || profile.trainingBlock.number < 2) return false;
+  const elapsedDays = calendarDaysBetween(profile.trainingBlock.startedAt, today);
+  return elapsedDays >= 21 && elapsedDays < 28;
+}
+
 const goalPurpose: Record<JourneyGoal, string> = {
   'build-muscle-strength': 'Build a repeatable strength base before adding load.',
   'lose-fat-body-composition': 'Protect strength while building a sustainable training rhythm.',
@@ -62,13 +68,13 @@ export function startingBlockFor(profile: OnboardingProfile, today: string): Sta
         ['Calibrate', 'Confirm realistic loads, recovery, and schedule fit.'],
         ['Repeat', 'Make quality work repeatable across the full week.'],
         ['Progress', 'Add reps or load only where control stays strong.'],
-        ['Review', 'Use four weeks of evidence to shape the next block.'],
+        [activeBlock.number > 1 ? 'Consolidate' : 'Review', activeBlock.number > 1 ? 'Reduce fatigue while keeping movement quality crisp.' : 'Use four weeks of evidence to shape the next block.'],
       ]
     : [
         ['Learn', 'Practice the movements and finish with reps in reserve.'],
         ['Repeat', 'Build confidence by repeating controlled sessions.'],
         ['Progress', 'Add a small challenge only where form stays steady.'],
-        ['Review', 'Use four weeks of feedback to shape the next block.'],
+        [activeBlock.number > 1 ? 'Consolidate' : 'Review', activeBlock.number > 1 ? 'Practice with less workload, then review the block.' : 'Use four weeks of feedback to shape the next block.'],
       ];
 
   return {

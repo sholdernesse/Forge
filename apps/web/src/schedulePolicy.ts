@@ -34,7 +34,7 @@ export function assessTrainingFeedback(records: TrainingSessionRecord[], asOfDat
   return { action: reasons.length ? 'deload' : 'none', reasons };
 }
 
-export function assessDeload(twin: DigitalTwin): DeloadAssessment {
+export function assessDeload(twin: DigitalTwin, planned = false): DeloadAssessment {
   const recent = twin.history.slice(-3);
   const average = (values: Array<number | undefined>) => {
     const present = values.filter((value): value is number => value !== undefined);
@@ -46,8 +46,10 @@ export function assessDeload(twin: DigitalTwin): DeloadAssessment {
   if (average(recent.map((day) => day.soreness)) >= 6) { fatigueScore += 1; reasons.push('Soreness has stayed elevated.'); }
   if (average(recent.map((day) => day.sleepScore)) > 0 && average(recent.map((day) => day.sleepScore)) < 65) { fatigueScore += 1; reasons.push('Recent sleep quality is below baseline.'); }
   if (average(recent.map((day) => day.stress)) >= 6) { fatigueScore += 1; reasons.push('Stress load has remained high.'); }
-  const active = fatigueScore >= 2;
-  return { active, fatigueScore, reasons, volumeMultiplier: active ? 0.65 : 1, loadMultiplier: active ? 0.9 : 1 };
+  if (planned) reasons.push('Week 4 is a planned consolidation week.');
+  const active = planned || fatigueScore >= 2;
+  const volumeMultiplier = active ? planned && fatigueScore < 2 ? 0.75 : 0.65 : 1;
+  return { active, fatigueScore, reasons, volumeMultiplier, loadMultiplier: active ? 0.9 : 1 };
 }
 
 export function applyDeload(session: WorkoutSession, assessment: DeloadAssessment): WorkoutSession {
