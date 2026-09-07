@@ -78,7 +78,11 @@ export function FoodLogger({ date, entries, favoriteFoodIds, savedMeals, foodDat
       const food = await foodDataClient.barcode(code);
       if (!food) { setBarcodeMessage('Barcode not found. You can still add the nutrition label manually.'); return; }
       setScannedFood(food); setQuery(food.name); setBarcodeMessage(`${food.name} found in Open Food Facts. Check the serving and label before adding.`);
-    } catch (error) { setBarcodeMessage(barcodeLookupFailureMessage(error)); }
+    } catch (error) {
+      const message = barcodeLookupFailureMessage(error);
+      const diagnostic = await foodDataClient.connectionDiagnostic();
+      setBarcodeMessage(diagnostic ? `${message} Diagnostic: ${diagnostic}` : message);
+    }
   }
 
   return <div className="workout-backdrop" onMouseDown={onClose}><section ref={dialogRef} className="food-logger" role="dialog" aria-modal="true" aria-labelledby="food-logger-title" tabIndex={-1} onMouseDown={(event) => event.stopPropagation()}>

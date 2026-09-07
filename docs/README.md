@@ -6,7 +6,7 @@ Canonical plan: [Forge Product Plan](./PRODUCT-PLAN.md).
 - `decisions/` — architecture decision records
 - `sprints/` — sprint scope and acceptance notes
 
-Current delivery: [Sprint 4.63 — Deterministic Phone API Routing](./sprints/sprint-4.63.md).
+Current delivery: [Sprint 4.64 — Observable Phone Food Lookup](./sprints/sprint-4.64.md).
 
 Deployment: [Microsoft Entra External ID for Forge](./deployment/entra-external-id.md).
 

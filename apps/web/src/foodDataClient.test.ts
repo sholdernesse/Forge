@@ -22,6 +22,21 @@ describe('food data client', () => {
     await expect(client.barcode('884912359155')).rejects.toEqual(new FoodDataError(503));
   });
 
+  it('reports the same-origin development health route without exposing credentials', async () => {
+    const request = vi.fn(async () => new Response(JSON.stringify({ status: 'ok' }), { status: 200 }));
+    const config = foodDataConfig({ DEV: true, VITE_FORGE_SYNC_URL: 'http://localhost:8787' }, async () => 'secret');
+    const client = new FoodDataClient(config!, request as typeof fetch);
+    await expect(client.connectionDiagnostic()).resolves.toBe('Route /api; health 200.');
+    expect(request).toHaveBeenCalledWith('/api/health');
+  });
+
+  it('keeps connection diagnostics disabled outside development', async () => {
+    const request = vi.fn();
+    const client = new FoodDataClient({ baseUrl: 'https://api.forge.test', accessToken: async () => 'secret' }, request as typeof fetch);
+    await expect(client.connectionDiagnostic()).resolves.toBeUndefined();
+    expect(request).not.toHaveBeenCalled();
+  });
+
   it('uses the configured API origin and the local proxy only in development', () => {
     expect(foodDataConfig({ VITE_FORGE_SYNC_URL: 'https://api.forge.test/' }, async () => 'token')?.baseUrl).toBe('https://api.forge.test');
     expect(foodDataConfig({ DEV: true }, async () => 'token')?.baseUrl).toBe('/api');

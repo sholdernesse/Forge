@@ -3,6 +3,7 @@ import type { FoodDefinition } from './foodLog.js';
 interface FoodDataConfig {
   baseUrl: string;
   accessToken(): Promise<string>;
+  diagnostics?: boolean;
 }
 
 export class FoodDataError extends Error {
@@ -68,6 +69,18 @@ export class FoodDataClient {
     return payload?.food ? normalizeFood(payload.food as ProviderFood) : undefined;
   }
 
+  async connectionDiagnostic(): Promise<string | undefined> {
+    if (!this.config.diagnostics) return undefined;
+    const route = `${this.config.baseUrl}/health`;
+    try {
+      const response = await this.request(route);
+      return `Route ${this.config.baseUrl}; health ${response.status}.`;
+    } catch (error) {
+      const reason = error instanceof Error ? error.name : 'unknown error';
+      return `Route ${this.config.baseUrl}; health unreachable (${reason}).`;
+    }
+  }
+
   private async get(path: string, allowMissing = false): Promise<unknown> {
     const token = await this.config.accessToken();
     const response = await this.request(`${this.config.baseUrl}${path}`, { headers: { authorization: `Bearer ${token}` } });
@@ -78,7 +91,7 @@ export class FoodDataClient {
 }
 
 export function foodDataConfig(environment: Record<string, unknown>, accessToken?: () => Promise<string>): FoodDataConfig | null {
-  if (environment.DEV === true && accessToken) return { baseUrl: '/api', accessToken };
+  if (environment.DEV === true && accessToken) return { baseUrl: '/api', accessToken, diagnostics: true };
   const baseUrl = environment.VITE_FORGE_SYNC_URL;
   if (typeof baseUrl !== 'string' || !baseUrl.trim() || !accessToken) return null;
   return { baseUrl: baseUrl.replace(/\/$/, ''), accessToken };
