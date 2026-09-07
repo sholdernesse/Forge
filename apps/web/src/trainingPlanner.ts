@@ -133,7 +133,9 @@ export function generateTrainingPlan(twin: DigitalTwin, preferences: TrainingPre
   const backSensitive = preferences.constraints.includes('lower-back-sensitive');
   const exercises = hasBarbellStation ? [
     repExercise('box-squat', backSensitive ? 'Controlled box squat' : 'Back squat', backSensitive ? 'Pain-free depth · braced torso' : 'Consistent depth', 4, 8, 59, 120),
-    repExercise('hip-thrust', 'Barbell hip thrust', 'Full lockout · ribs down', 4, 10, 68, 90),
+    backSensitive
+      ? repExercise('hip-thrust', 'Barbell hip thrust', 'Full lockout · ribs down', 4, 10, 68, 90)
+      : repExercise('barbell-rdl', 'Barbell Romanian deadlift', 'Three-second hinge · keep the bar close', 3, 8, 50, 120),
     repExercise('split-squat', 'Dumbbell split squat', 'Stable stance · each side', 3, 10, 13.6, 90),
     repExercise('standing-calf-raise', 'Standing calf raise', 'Two-second peak contraction', 3, 15, 27.2, 60),
     repExercise('dead-bugs', 'Dead bugs', 'Each side · slow exhale', 3, 10, 0, 60),

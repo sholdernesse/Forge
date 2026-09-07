@@ -105,6 +105,21 @@ const guides: ExerciseGuide[] = [
     secondaryMuscles: ['Hamstrings', 'quadriceps'],
     safetyNote: 'Use a stable bench, secure plates, and adequate bar padding. Stop for sharp back, hip, or knee pain.',
   },
+  {
+    exerciseId: 'barbell-rdl',
+    title: 'Barbell Romanian deadlift',
+    imageSrc: '/exercises/barbell-rdl-guide.webp',
+    imageAlt: 'Barbell Romanian deadlift shown standing tall and at the bottom of a controlled hip hinge.',
+    setup: ['Stand with the bar close to the upper thighs and feet about hip-width apart.', 'Soften the knees, brace the trunk, and keep the shoulders controlled.', 'Use a double-overhand grip just outside the legs.'],
+    movement: ['Push the hips backward while keeping the bar close to the legs.', 'Lower only while the spine stays neutral and hamstring tension remains controlled.', 'Drive the floor away and bring the hips forward to stand tall without leaning back.'],
+    mistakes: ['Turning the hinge into a deep squat', 'Letting the bar drift away from the legs', 'Rounding the back or forcing extra depth'],
+    selfChecks: ['From the side, the hips travel backward while the shins stay nearly vertical.', 'The bar remains above the mid-foot and close to the thighs and shins.', 'The bottom position ends when hamstring tension or spinal position would otherwise change.'],
+    tempo: 'Lower for about 3 seconds, pause briefly at your controlled depth, then stand in 1–2 seconds.',
+    breathing: 'Brace before hinging; keep pressure through the descent and exhale as you return to standing.',
+    primaryMuscles: ['Hamstrings', 'glutes'],
+    secondaryMuscles: ['Spinal erectors', 'upper back', 'forearms'],
+    safetyNote: 'Use safeties and a load you can keep close to the body. Stop for sharp back, hip, or hamstring pain.',
+  },
 ];
 
 export function exerciseGuide(exerciseId: string): ExerciseGuide | undefined {

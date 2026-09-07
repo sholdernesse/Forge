@@ -6,7 +6,7 @@ Canonical plan: [Forge Product Plan](./PRODUCT-PLAN.md).
 - `decisions/` — architecture decision records
 - `sprints/` — sprint scope and acceptance notes
 
-Current delivery: [Sprint 4.65 — Planned Consolidation Week](./sprints/sprint-4.65.md).
+Current delivery: [Sprint 4.66 — AI-Character RDL Guide](./sprints/sprint-4.66.md).
 
 Deployment: [Microsoft Entra External ID for Forge](./deployment/entra-external-id.md).
 

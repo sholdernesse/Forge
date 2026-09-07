@@ -10,6 +10,7 @@ describe('exercise guides', () => {
       'dumbbell-overhead-press',
       'chest-supported-row',
       'hip-thrust',
+      'barbell-rdl',
     ]));
     for (const id of exerciseGuideIds()) {
       expect(exerciseGuide(id)?.imageSrc).toMatch(/\.(webp|svg)$/);
@@ -28,6 +29,13 @@ describe('exercise guides', () => {
     expect(guide.imageSrc).toBe('/exercises/dumbbell-overhead-press-guide-v2.webp');
     expect(guide.primaryMuscles).toEqual(['Deltoids']);
     expect(guide.secondaryMuscles).toEqual(expect.arrayContaining(['Triceps', 'upper chest']));
+  });
+
+  it('teaches the hip hinge without turning it into a squat or forced range', () => {
+    const guide = exerciseGuide('barbell-rdl')!;
+    expect(guide.imageSrc).toBe('/exercises/barbell-rdl-guide.webp');
+    expect(guide.primaryMuscles).toEqual(['Hamstrings', 'glutes']);
+    expect([...guide.movement, ...guide.mistakes, ...guide.selfChecks].join(' ')).toMatch(/hips backward|deep squat|controlled depth/i);
   });
 
   it('returns a non-mutating catalog for library exploration', () => {

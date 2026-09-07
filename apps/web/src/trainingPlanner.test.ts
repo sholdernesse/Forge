@@ -42,6 +42,16 @@ describe('adaptive training planner', () => {
     expect(plan.exercises.find((exercise) => exercise.id === 'box-squat')?.sets[0]).toMatchObject({ kind: 'warmup', loadKg: 29.5 });
   });
 
+  it('uses the guided Romanian deadlift when a barbell athlete has no back constraint', () => {
+    const plan = generateTrainingPlan(twinWith(95, 3), {
+      ...demoTrainingPreferences,
+      constraints: [],
+    }, [{ workoutId: 'upper', date: '2026-08-10', title: 'Upper', durationMinutes: 50, muscleSets: { chest: 10, back: 10, shoulders: 12 } }]);
+    expect(plan.planType).toBe('lower-strength');
+    expect(plan.exercises.map((exercise) => exercise.id)).toContain('barbell-rdl');
+    expect(plan.exercises.map((exercise) => exercise.id)).not.toContain('hip-thrust');
+  });
+
   it('uses only available equipment and fits a shorter preferred session', () => {
     const plan = generateTrainingPlan(twinWith(95, 2), {
       equipment: ['bodyweight'],

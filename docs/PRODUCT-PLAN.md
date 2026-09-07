@@ -2,7 +2,7 @@
 
 > **Living plan:** This is the canonical product and delivery plan for Forge. Update it whenever scope, priorities, sequencing, or release status changes. Individual sprint files remain the implementation record.
 
-**Current checkpoint:** Sprint 4.65 on PR #2
+**Current checkpoint:** Sprint 4.66 on PR #2
 **Product stage:** Functional responsive prototype moving toward an authenticated release candidate  
 **Last reviewed:** September 3, 2026
 
@@ -215,14 +215,14 @@ Requirements:
 
 Initial delivery order:
 
-1. Overhead press.
-2. Squat pattern.
-3. Hip hinge/RDL.
-4. Bench press.
-5. Row.
+1. ~~Overhead press.~~ AI-character guide delivered.
+2. ~~Squat pattern.~~ AI-character guide delivered.
+3. ~~Hip hinge/RDL.~~ AI-character guide and constraint-aware planner integration delivered in Sprint 4.66.
+4. ~~Bench press.~~ AI-character guide delivered.
+5. ~~Row.~~ AI-character guide delivered.
 6. Lateral raise.
 7. Face pull.
-8. Core and mobility movements.
+8. Core and mobility movements. Initial dead-bug guide delivered; broader coverage remains.
 9. Remaining exercise library by training-plan usage.
 
 **Exit:** The most-used movements have consistent, safe, understandable Forge character demonstrations on desktop and phone.
