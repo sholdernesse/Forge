@@ -33,9 +33,10 @@ describe('exercise guides', () => {
 
   it('teaches the hip hinge without turning it into a squat or forced range', () => {
     const guide = exerciseGuide('barbell-rdl')!;
-    expect(guide.imageSrc).toBe('/exercises/barbell-rdl-guide.webp');
+    expect(guide.imageSrc).toBe('/exercises/barbell-rdl-guide-v2.webp');
     expect(guide.primaryMuscles).toEqual(['Hamstrings', 'glutes']);
-    expect([...guide.movement, ...guide.mistakes, ...guide.selfChecks].join(' ')).toMatch(/hips backward|deep squat|controlled depth/i);
+    expect([...guide.movement, ...guide.mistakes, ...guide.selfChecks].join(' ')).toMatch(/hips backward|deep squat|mid-shin|controlled depth/i);
+    expect(guide.selfChecks.join(' ')).toContain('not a required depth');
   });
 
   it('returns a non-mutating catalog for library exploration', () => {
