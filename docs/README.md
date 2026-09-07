@@ -6,7 +6,7 @@ Canonical plan: [Forge Product Plan](./PRODUCT-PLAN.md).
 - `decisions/` — architecture decision records
 - `sprints/` — sprint scope and acceptance notes
 
-Current delivery: [Sprint 4.68 — RDL Muscle Activation Guide](./sprints/sprint-4.68.md).
+Current delivery: [Sprint 4.69 — Anatomical RDL Muscle Illustration](./sprints/sprint-4.69.md).
 
 Deployment: [Microsoft Entra External ID for Forge](./deployment/entra-external-id.md).
 

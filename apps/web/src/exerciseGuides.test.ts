@@ -34,8 +34,8 @@ describe('exercise guides', () => {
   it('teaches the hip hinge without turning it into a squat or forced range', () => {
     const guide = exerciseGuide('barbell-rdl')!;
     expect(guide.imageSrc).toBe('/exercises/barbell-rdl-guide-v2.webp');
-    expect(guide.muscleImageSrc).toBe('/exercises/barbell-rdl-muscles.webp');
-    expect(guide.muscleImageAlt).toMatch(/Rear views|green|hamstrings/i);
+    expect(guide.muscleImageSrc).toBe('/exercises/barbell-rdl-muscles-v2.webp');
+    expect(guide.muscleImageAlt).toMatch(/anatomical|green|hamstring/i);
     expect(guide.primaryMuscles).toEqual(['Hamstrings', 'glutes']);
     expect(guide.secondaryMuscles).toEqual(expect.arrayContaining(['Spinal erectors', 'lats', 'forearms', 'core']));
     expect([...guide.movement, ...guide.mistakes, ...guide.selfChecks].join(' ')).toMatch(/hips backward|deep squat|mid-shin|controlled depth/i);
