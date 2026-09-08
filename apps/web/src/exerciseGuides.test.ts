@@ -141,6 +141,19 @@ describe('exercise guides', () => {
     }
   });
 
+  it('covers every movement the adaptive planner can prescribe', () => {
+    expect(exerciseGuideIds()).toEqual(expect.arrayContaining([
+      'zone-2-treadmill', 'zone-2-walk', 'mobility-flow', 'dead-bugs',
+      'barbell-bench', 'chest-supported-row', 'dumbbell-overhead-press', 'lateral-raise', 'band-face-pull',
+      'dumbbell-floor-press', 'one-arm-dumbbell-row', 'prone-y-raise',
+      'band-chest-press', 'band-row', 'band-overhead-press', 'band-lateral-raise',
+      'push-up', 'pike-push-up', 'reverse-snow-angel', 'shoulder-tap',
+      'box-squat', 'hip-thrust', 'barbell-rdl', 'split-squat', 'standing-calf-raise',
+      'goblet-squat', 'dumbbell-hip-thrust', 'band-squat', 'band-glute-bridge',
+      'bodyweight-squat', 'glute-bridge', 'reverse-lunge',
+    ]));
+  });
+
   it('gives users observable checks rather than diagnostic claims', () => {
     for (const id of exerciseGuideIds()) {
       const guide = exerciseGuide(id)!;

@@ -68,7 +68,7 @@ export function generateTrainingPlan(twin: DigitalTwin, preferences: TrainingPre
     return {
       id: `${date}-adaptive-recovery`, date, title: 'Cardio + mobility reset', status: 'not-started', planType: 'recovery', intensity: 'low', planReason: cause,
       exercises: [
-        durationExercise('zone-2-treadmill', preferences.equipment.includes('treadmill') ? 'Zone 2 treadmill' : 'Zone 2 walk', 'Conversational pace', Math.min(30, preferences.preferredSessionMinutes)),
+        durationExercise(preferences.equipment.includes('treadmill') ? 'zone-2-treadmill' : 'zone-2-walk', preferences.equipment.includes('treadmill') ? 'Zone 2 treadmill' : 'Zone 2 walk', 'Conversational pace', Math.min(30, preferences.preferredSessionMinutes)),
         durationExercise('mobility-flow', 'Hip + thoracic mobility', 'Controlled range', 10),
         repExercise('dead-bugs', 'Dead bugs', 'Each side · slow exhale', 3, 10, 0, 60),
       ],

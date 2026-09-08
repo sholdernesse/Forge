@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { buildDigitalTwin } from '@forge/digital-twin';
 import { demoGoals, demoHistory, demoProfile } from './demoData.js';
+import { exerciseGuide } from './exerciseGuides.js';
 import { demoTrainingPreferences, generateTrainingPlan } from './trainingPlanner.js';
 
 function twinWith(sleepScore: number, sessions: number) {
@@ -79,8 +80,41 @@ describe('adaptive training planner', () => {
       constraints: [],
       preferredSessionMinutes: 20,
     });
-    expect(plan.exercises[0]).toMatchObject({ id: 'zone-2-treadmill', name: 'Zone 2 walk' });
+    expect(plan.exercises[0]).toMatchObject({ id: 'zone-2-walk', name: 'Zone 2 walk' });
     expect(plan.exercises[0]?.sets[0]?.durationMinutes).toBe(20);
+  });
+
+  it('provides a visual guide for every movement it can prescribe', () => {
+    const preferences = (equipment: Parameters<typeof generateTrainingPlan>[1]['equipment'], constraints: Parameters<typeof generateTrainingPlan>[1]['constraints'] = []) => ({
+      equipment,
+      constraints,
+      preferredSessionMinutes: 60,
+    });
+    const plans = [
+      generateTrainingPlan(twinWith(10, 2), preferences(['treadmill'])),
+      generateTrainingPlan(twinWith(10, 2), preferences(['bodyweight'])),
+      generateTrainingPlan(twinWith(95, 2), preferences(['barbell', 'rack'], ['elbow-sensitive'])),
+      generateTrainingPlan(twinWith(95, 3), preferences(['barbell', 'rack'], ['lower-back-sensitive'])),
+      generateTrainingPlan(twinWith(95, 3), preferences(['barbell', 'rack'])),
+      generateTrainingPlan(twinWith(95, 2), preferences(['dumbbells'])),
+      generateTrainingPlan(twinWith(95, 3), preferences(['dumbbells'])),
+      generateTrainingPlan(twinWith(95, 2), preferences(['bands'])),
+      generateTrainingPlan(twinWith(95, 3), preferences(['bands'])),
+      generateTrainingPlan(twinWith(95, 2), preferences(['bodyweight'])),
+      generateTrainingPlan(twinWith(95, 3), preferences(['bodyweight'])),
+    ];
+    const prescribedIds = [...new Set(plans.flatMap((plan) => plan.exercises.map((exercise) => exercise.id)))].sort();
+
+    for (const id of prescribedIds) expect(exerciseGuide(id), `Missing visual guide for ${id}`).toBeDefined();
+    expect(prescribedIds).toEqual([
+      'band-chest-press', 'band-face-pull', 'band-glute-bridge', 'band-lateral-raise', 'band-overhead-press',
+      'band-row', 'band-squat', 'barbell-bench', 'barbell-rdl', 'bodyweight-squat', 'box-squat',
+      'chest-supported-row', 'dead-bugs', 'dumbbell-floor-press', 'dumbbell-hip-thrust',
+      'dumbbell-overhead-press', 'glute-bridge', 'goblet-squat', 'hip-thrust', 'lateral-raise',
+      'mobility-flow', 'one-arm-dumbbell-row', 'pike-push-up', 'prone-y-raise', 'push-up',
+      'reverse-lunge', 'reverse-snow-angel', 'shoulder-tap', 'split-squat', 'standing-calf-raise',
+      'zone-2-treadmill', 'zone-2-walk',
+    ]);
   });
 
   it('deloads after near-maximal effort and selects recovery after a stopped session', () => {
