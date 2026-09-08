@@ -14,6 +14,7 @@ describe('exercise guides', () => {
       'lateral-raise',
       'band-face-pull',
       'push-up',
+      'standing-calf-raise',
     ]));
     for (const id of exerciseGuideIds()) {
       expect(exerciseGuide(id)?.imageSrc).toMatch(/\.(webp|svg)$/);
@@ -71,6 +72,14 @@ describe('exercise guides', () => {
     expect(guide.muscleImageSrc).toBe('/exercises/push-up-muscles.webp');
     expect(guide.primaryMuscles).toEqual(['Chest', 'triceps']);
     expect([...guide.setup, ...guide.movement, ...guide.mistakes, ...guide.selfChecks].join(' ')).toMatch(/head.*heel|30–45|sag|elevated/i);
+  });
+
+  it('teaches a supported calf raise without bounce or ankle roll', () => {
+    const guide = exerciseGuide('standing-calf-raise')!;
+    expect(guide.imageSrc).toBe('/exercises/standing-calf-raise-guide.webp');
+    expect(guide.muscleImageSrc).toBe('/exercises/standing-calf-raise-muscles.webp');
+    expect(guide.primaryMuscles).toEqual(['Gastrocnemius', 'soleus']);
+    expect([...guide.setup, ...guide.movement, ...guide.mistakes, guide.safetyNote].join(' ')).toMatch(/stable block|rack|bounce|roll|without added load/i);
   });
 
   it('returns a non-mutating catalog for library exploration', () => {
