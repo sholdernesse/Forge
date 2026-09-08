@@ -36,7 +36,7 @@ export function MovementLibrary({ onClose }: MovementLibraryProps) {
         <div className="movement-library-summary"><span>{guides.length} movement{guides.length === 1 ? '' : 's'}</span><small>Every guide includes form and muscle views. Viewing one never changes your program.</small></div>
         <div className="movement-library-grid">
           {guides.map((guide) => <button key={guide.exerciseId} onClick={() => setSelected(guide)}>
-            <span className="movement-library-visual"><img src={guide.imageSrc} alt="" /><strong><Sparkles size={13} /> AI form guide</strong></span>
+            <span className="movement-library-visual"><img src={guide.imageSrc} alt="" loading="lazy" decoding="async" /><strong><Sparkles size={13} /> AI form guide</strong></span>
             <span className="movement-library-copy"><b>{guide.title}</b><small>Primary · {guide.primaryMuscles.join(', ')}</small><em>Also works {guide.secondaryMuscles.join(', ')}</em></span>
             <Dumbbell size={18} />
           </button>)}
