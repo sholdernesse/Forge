@@ -15,6 +15,7 @@ describe('exercise guides', () => {
       'band-face-pull',
       'push-up',
       'standing-calf-raise',
+      'split-squat',
     ]));
     for (const id of exerciseGuideIds()) {
       expect(exerciseGuide(id)?.imageSrc).toMatch(/\.(webp|svg)$/);
@@ -80,6 +81,14 @@ describe('exercise guides', () => {
     expect(guide.muscleImageSrc).toBe('/exercises/standing-calf-raise-muscles.webp');
     expect(guide.primaryMuscles).toEqual(['Gastrocnemius', 'soleus']);
     expect([...guide.setup, ...guide.movement, ...guide.mistakes, guide.safetyNote].join(' ')).toMatch(/stable block|rack|bounce|roll|without added load/i);
+  });
+
+  it('teaches a stationary split squat with stable stance and lead-leg control', () => {
+    const guide = exerciseGuide('split-squat')!;
+    expect(guide.imageSrc).toBe('/exercises/dumbbell-split-squat-guide.webp');
+    expect(guide.muscleImageSrc).toBe('/exercises/dumbbell-split-squat-muscles.webp');
+    expect(guide.primaryMuscles).toEqual(['Quadriceps', 'glutes']);
+    expect([...guide.setup, ...guide.movement, ...guide.mistakes, ...guide.selfChecks].join(' ')).toMatch(/parallel tracks|lead knee|whole lead foot|walking lunge/i);
   });
 
   it('returns a non-mutating catalog for library exploration', () => {

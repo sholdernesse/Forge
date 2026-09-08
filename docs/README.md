@@ -6,7 +6,7 @@ Canonical plan: [Forge Product Plan](./PRODUCT-PLAN.md).
 - `decisions/` — architecture decision records
 - `sprints/` — sprint scope and acceptance notes
 
-Current delivery: [Sprint 4.74 — Standing Calf Raise Visual Guide](./sprints/sprint-4.74.md).
+Current delivery: [Sprint 4.75 — Dumbbell Split Squat Visual Guide](./sprints/sprint-4.75.md).
 
 Deployment: [Microsoft Entra External ID for Forge](./deployment/entra-external-id.md).
 
