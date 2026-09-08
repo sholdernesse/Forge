@@ -13,6 +13,7 @@ describe('exercise guides', () => {
       'barbell-rdl',
       'lateral-raise',
       'band-face-pull',
+      'push-up',
     ]));
     for (const id of exerciseGuideIds()) {
       expect(exerciseGuide(id)?.imageSrc).toMatch(/\.(webp|svg)$/);
@@ -62,6 +63,14 @@ describe('exercise guides', () => {
     expect(guide.muscleImageSrc).toBe('/exercises/band-face-pull-muscles.webp');
     expect(guide.primaryMuscles).toEqual(expect.arrayContaining(['Rear deltoids', 'rhomboids', 'middle trapezius']));
     expect([...guide.setup, ...guide.movement, ...guide.mistakes].join(' ')).toMatch(/anchor|external|shrug|lean/i);
+  });
+
+  it('teaches a push-up as one controlled head-to-heel unit', () => {
+    const guide = exerciseGuide('push-up')!;
+    expect(guide.imageSrc).toBe('/exercises/push-up-guide.webp');
+    expect(guide.muscleImageSrc).toBe('/exercises/push-up-muscles.webp');
+    expect(guide.primaryMuscles).toEqual(['Chest', 'triceps']);
+    expect([...guide.setup, ...guide.movement, ...guide.mistakes, ...guide.selfChecks].join(' ')).toMatch(/head.*heel|30–45|sag|elevated/i);
   });
 
   it('returns a non-mutating catalog for library exploration', () => {
