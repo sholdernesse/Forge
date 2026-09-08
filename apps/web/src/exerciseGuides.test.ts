@@ -6,6 +6,7 @@ describe('exercise guides', () => {
     expect(exerciseGuideIds()).toEqual(expect.arrayContaining([
       'barbell-bench',
       'box-squat',
+      'bodyweight-squat',
       'dead-bugs',
       'dumbbell-overhead-press',
       'chest-supported-row',
@@ -83,6 +84,14 @@ describe('exercise guides', () => {
     expect(guide.muscleImageSrc).toBe('/exercises/standing-calf-raise-muscles.webp');
     expect(guide.primaryMuscles).toEqual(['Gastrocnemius', 'soleus']);
     expect([...guide.setup, ...guide.movement, ...guide.mistakes, guide.safetyNote].join(' ')).toMatch(/stable block|rack|bounce|roll|without added load/i);
+  });
+
+  it('teaches a bodyweight squat with self-selected controlled depth', () => {
+    const guide = exerciseGuide('bodyweight-squat')!;
+    expect(guide.imageSrc).toBe('/exercises/bodyweight-squat-guide.webp');
+    expect(guide.muscleImageSrc).toBe('/exercises/bodyweight-squat-muscles.webp');
+    expect(guide.primaryMuscles).toEqual(['Quadriceps', 'glutes']);
+    expect([...guide.setup, ...guide.movement, ...guide.mistakes, ...guide.selfChecks].join(' ')).toMatch(/whole foot|knees.*toes|controlled.*depth|forcing/i);
   });
 
   it('teaches a stationary split squat with stable stance and lead-leg control', () => {
