@@ -2,7 +2,7 @@
 
 > **Living plan:** This is the canonical product and delivery plan for Forge. Update it whenever scope, priorities, sequencing, or release status changes. Individual sprint files remain the implementation record.
 
-**Current checkpoint:** Sprint 4.76 on PR #2
+**Current checkpoint:** Sprint 4.77 on PR #2
 **Product stage:** Functional responsive prototype moving toward an authenticated release candidate  
 **Last reviewed:** September 3, 2026
 
@@ -224,7 +224,7 @@ Initial delivery order:
 6. ~~Lateral raise.~~ Consistent two-position AI-character guide with controlled-range coaching delivered in Sprint 4.70; shared muscle-color treatment remains scheduled for a later visual-system pass.
 7. ~~Face pull.~~ Paired band-anchored range-of-motion and rear anatomical guides delivered in Sprint 4.72.
 8. Core and mobility movements. Initial dead-bug movement and anatomical guide pair delivered; broader coverage remains.
-9. Remaining exercise library by training-plan usage. Standard push-up paired guidance delivered in Sprint 4.73, supported standing calf raise in Sprint 4.74, dumbbell split squat in Sprint 4.75, and reverse lunge in Sprint 4.76; remaining planner movements continue by frequency and safety value.
+9. Remaining exercise library by training-plan usage. Standard push-up paired guidance delivered in Sprint 4.73, supported standing calf raise in Sprint 4.74, dumbbell split squat in Sprint 4.75, reverse lunge in Sprint 4.76, and prone Y raise in Sprint 4.77; remaining planner movements continue by frequency and safety value.
 
 **Exit:** The most-used movements have consistent, safe, understandable Forge character demonstrations on desktop and phone.
 

@@ -17,6 +17,7 @@ describe('exercise guides', () => {
       'standing-calf-raise',
       'split-squat',
       'reverse-lunge',
+      'prone-y-raise',
     ]));
     for (const id of exerciseGuideIds()) {
       expect(exerciseGuide(id)?.imageSrc).toMatch(/\.(webp|svg)$/);
@@ -98,6 +99,14 @@ describe('exercise guides', () => {
     expect(guide.muscleImageSrc).toBe('/exercises/reverse-lunge-muscles.webp');
     expect(guide.primaryMuscles).toEqual(['Quadriceps', 'glutes']);
     expect([...guide.setup, ...guide.movement, ...guide.mistakes, ...guide.selfChecks].join(' ')).toMatch(/step.*back|stationary lead|whole lead foot|forward lunge/i);
+  });
+
+  it('teaches the prone Y raise without turning it into a row or shrug', () => {
+    const guide = exerciseGuide('prone-y-raise')!;
+    expect(guide.imageSrc).toBe('/exercises/prone-y-raise-guide.webp');
+    expect(guide.muscleImageSrc).toBe('/exercises/prone-y-raise-muscles.webp');
+    expect(guide.primaryMuscles).toEqual(['Lower trapezius', 'rear deltoids']);
+    expect([...guide.setup, ...guide.movement, ...guide.mistakes, ...guide.selfChecks].join(' ')).toMatch(/thumbs|chest.*pad|shrug|T raise|even Y/i);
   });
 
   it('returns a non-mutating catalog for library exploration', () => {
