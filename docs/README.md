@@ -6,7 +6,7 @@ Canonical plan: [Forge Product Plan](./PRODUCT-PLAN.md).
 - `decisions/` — architecture decision records
 - `sprints/` — sprint scope and acceptance notes
 
-Current delivery: [Sprint 4.82 — Reliable Local HTTPS Startup](./sprints/sprint-4.82.md).
+Current delivery: [Sprint 4.83 — Windows HTTPS Launcher Repair](./sprints/sprint-4.83.md).
 
 Deployment: [Microsoft Entra External ID for Forge](./deployment/entra-external-id.md).
 

@@ -1,7 +1,6 @@
 import { spawn, spawnSync } from 'node:child_process';
 
 const isWindows = process.platform === 'win32';
-const corepack = isWindows ? 'corepack.cmd' : 'corepack';
 const developmentEnvironment = {
   ...process.env,
   DATABASE_URL: 'postgresql://forge:forge-local-only@localhost:5432/forge',
@@ -30,12 +29,18 @@ for (let attempt = 1; attempt <= 30 && !databaseReady(); attempt += 1) {
   await new Promise((resolve) => setTimeout(resolve, 1_000));
 }
 
-run(corepack, ['pnpm', '--filter', '@forge/api', 'build'], { env: developmentEnvironment });
-run(corepack, ['pnpm', '--filter', '@forge/api', 'migrate'], { env: developmentEnvironment });
+const runPnpm = (args) => isWindows
+  ? run(`corepack pnpm ${args.join(' ')}`, [], { env: developmentEnvironment, shell: true })
+  : run('corepack', ['pnpm', ...args], { env: developmentEnvironment });
 
-const development = spawn(corepack, ['pnpm', '--parallel', '--filter', '@forge/api', '--filter', '@forge/web', 'dev:https'], {
+runPnpm(['--filter', '@forge/api', 'build']);
+runPnpm(['--filter', '@forge/api', 'migrate']);
+
+const developmentArguments = ['--parallel', '--filter', '@forge/api', '--filter', '@forge/web', 'dev:https'];
+const development = spawn(isWindows ? `corepack pnpm ${developmentArguments.join(' ')}` : 'corepack', isWindows ? [] : ['pnpm', ...developmentArguments], {
   stdio: 'inherit',
   env: developmentEnvironment,
+  shell: isWindows,
 });
 development.on('error', (error) => {
   console.error(error);
