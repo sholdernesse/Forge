@@ -42,7 +42,14 @@ Do not transfer `rootCA-key.pem`.
 corepack pnpm dev:https
 ```
 
-This starts both the HTTPS web app and the local Forge API. The web server proxies `/api` internally so the phone never makes an insecure HTTP request.
+Docker Desktop must be running. This one command stops any conflicting Compose API container, starts and waits for the local PostgreSQL container, applies the database schema, and then starts both the HTTPS web app and local Forge API. The web server proxies `/api` internally so the phone never makes an insecure HTTP request.
+
+If startup stops before the API and web addresses appear, inspect the database with:
+
+```powershell
+docker compose ps postgres
+docker compose logs --tail=100 postgres
+```
 
 On the iPhone, open:
 
