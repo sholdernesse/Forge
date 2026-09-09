@@ -34,6 +34,28 @@ describe('dashboard sync', () => {
     expect(request.mock.calls[1]?.[1]).toMatchObject({ method: 'PUT' });
   });
 
+  it('pushes a newer local snapshot after an offline period instead of accepting stale remote data', async () => {
+    const remoteState = { ...state, checkIn: { ...state.checkIn, sleepScore: 60 } };
+    const localState = { ...state, checkIn: { ...state.checkIn, sleepScore: 78 } };
+    const request = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ state: remoteState, updatedAt: '2026-08-12T12:00:00.000Z', revision: 'rev-1' }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ state: localState, updatedAt: '2026-09-09T07:45:00.000Z', revision: 'rev-2' }), { status: 200 }));
+    const client = new DashboardSyncClient({ baseUrl: 'https://sync.forge.test', accessToken: async () => 'secret' }, request as typeof fetch);
+
+    await expect(client.initialize(localState, '2026-09-09T07:44:00.000Z')).resolves.toMatchObject({ revision: 'rev-2', state: localState });
+    expect(request.mock.calls[1]?.[1]).toMatchObject({ method: 'PUT', headers: { 'if-match': 'rev-1' } });
+    expect(JSON.parse(String(request.mock.calls[1]?.[1]?.body))).toMatchObject({ state: localState });
+  });
+
+  it('keeps a newer remote snapshot without overwriting it during initialization', async () => {
+    const remote = { state, updatedAt: '2026-09-09T07:45:00.000Z', revision: 'rev-2' };
+    const request = vi.fn().mockResolvedValueOnce(new Response(JSON.stringify(remote), { status: 200 }));
+    const client = new DashboardSyncClient({ baseUrl: 'https://sync.forge.test', accessToken: async () => 'secret' }, request as typeof fetch);
+
+    await expect(client.initialize(state, '2026-09-09T07:44:00.000Z')).resolves.toEqual(remote);
+    expect(request).toHaveBeenCalledTimes(1);
+  });
+
   it('reloads the winning snapshot when two clients race to create it', async () => {
     const winner = { state, updatedAt: '2026-08-12T12:01:00.000Z', revision: 'rev-winner' };
     const request = vi.fn()

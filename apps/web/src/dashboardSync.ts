@@ -64,7 +64,7 @@ export class DashboardSyncClient {
 
   async initialize(localState: DashboardState, localUpdatedAt: string): Promise<RemoteDashboard> {
     const remote = await this.load();
-    if (remote) return remote;
+    if (remote && !newerThanLocal(localUpdatedAt, remote.updatedAt)) return remote;
     try {
       return await this.save(localState, localUpdatedAt);
     } catch (error) {
