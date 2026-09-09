@@ -320,6 +320,7 @@ export function App() {
         .catch((error: unknown) => {
           if (!active) return;
           if (!(error instanceof DashboardSyncConflictError)) {
+            connected = false;
             setSyncStatus('offline');
             return;
           }

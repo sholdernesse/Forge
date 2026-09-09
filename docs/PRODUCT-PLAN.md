@@ -2,7 +2,7 @@
 
 > **Living plan:** This is the canonical product and delivery plan for Forge. Update it whenever scope, priorities, sequencing, or release status changes. Individual sprint files remain the implementation record.
 
-**Current checkpoint:** Sprint 4.84 on PR #2
+**Current checkpoint:** Sprint 4.85 on PR #2
 **Product stage:** Functional responsive prototype moving toward an authenticated release candidate  
 **Last reviewed:** September 8, 2026
 
@@ -85,7 +85,7 @@ See [Sprint 4 architecture](./architecture/sprint-4.md) for package and data-flo
 
 - Monorepo with shared, Digital Twin, recommendation, coach, API, and web packages.
 - Explainable recommendations with evidence and confidence.
-- Versioned local persistence and authenticated cross-device sync.
+- Versioned local persistence and authenticated cross-device sync, including automatic recovery after a transient remote-write failure.
 - Conflict detection, account isolation, safe validation, and release checks.
 - Azure infrastructure definitions, production web gateway, recovery procedures, and Render standby documentation.
 - Reproducible CI covering lint, typecheck, tests, build, security boundaries, release policy, infrastructure compilation, and container builds.

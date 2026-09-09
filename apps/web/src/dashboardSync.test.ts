@@ -56,6 +56,23 @@ describe('dashboard sync', () => {
     expect(request).toHaveBeenCalledTimes(1);
   });
 
+  it('recovers the latest local snapshot after a transient save failure', async () => {
+    const localState = { ...state, checkIn: { ...state.checkIn, sleepScore: 53, sleepHours: 8.9 } };
+    const staleRemote = { state, updatedAt: '2026-08-12T22:09:11.214Z', revision: 'rev-1' };
+    const recovered = { state: localState, updatedAt: '2026-09-09T07:55:40.020Z', revision: 'rev-2' };
+    const request = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify(staleRemote), { status: 200 }))
+      .mockResolvedValueOnce(new Response(null, { status: 503 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify(staleRemote), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify(recovered), { status: 200 }));
+    const client = new DashboardSyncClient({ baseUrl: 'https://sync.forge.test', accessToken: async () => 'secret' }, request as typeof fetch);
+
+    await client.load();
+    await expect(client.save(localState, recovered.updatedAt)).rejects.toThrow('Dashboard sync save failed (503)');
+    await expect(client.initialize(localState, recovered.updatedAt)).resolves.toEqual(recovered);
+    expect(request.mock.calls[3]?.[1]).toMatchObject({ method: 'PUT', headers: { 'if-match': 'rev-1' } });
+  });
+
   it('reloads the winning snapshot when two clients race to create it', async () => {
     const winner = { state, updatedAt: '2026-08-12T12:01:00.000Z', revision: 'rev-winner' };
     const request = vi.fn()
