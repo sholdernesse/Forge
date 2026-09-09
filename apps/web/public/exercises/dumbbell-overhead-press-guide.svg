@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" role="img" aria-labelledby="title desc">
+  <title id="title">Dumbbell overhead press positions</title>
+  <desc id="desc">Side-by-side start and finish positions for a seated dumbbell overhead press.</desc>
+  <rect width="960" height="540" fill="#07130f"/>
+  <g font-family="Arial,sans-serif" fill="#bfe8ce" font-weight="700" text-anchor="middle">
+    <text x="240" y="50" font-size="22">START</text><text x="720" y="50" font-size="22">FINISH</text>
+  </g>
+  <g stroke="#315447" stroke-width="3" fill="#0d211a"><rect x="35" y="70" width="410" height="420" rx="20"/><rect x="515" y="70" width="410" height="420" rx="20"/></g>
+  <g stroke="#83f8aa" stroke-width="13" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <circle cx="240" cy="145" r="34" stroke-width="9"/><path d="M240 180 L240 335 M180 215 L205 270 L170 270 M300 215 L275 270 L310 270 M240 335 L205 430 M240 335 L275 430"/>
+    <path d="M150 252 h40 M290 252 h40" stroke="#ffb36c"/><path d="M150 235 v34 M330 235 v34" stroke="#ffb36c"/>
+    <circle cx="720" cy="145" r="34" stroke-width="9"/><path d="M720 180 L720 335 M700 210 L680 115 M740 210 L760 115 M720 335 L685 430 M720 335 L755 430"/>
+    <path d="M655 105 h50 M735 105 h50" stroke="#ffb36c"/><path d="M655 88 v34 M785 88 v34" stroke="#ffb36c"/>
+  </g>
+  <g fill="#78958a" font-family="Arial,sans-serif" font-size="17" text-anchor="middle">
+    <text x="240" y="470">Wrists stacked above elbows</text><text x="720" y="470">Weights finish over shoulders</text>
+  </g>
+</svg>

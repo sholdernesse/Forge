@@ -1,0 +1,100 @@
+name: Release readiness evidence
+
+on:
+  workflow_dispatch:
+    inputs:
+      candidate_commit:
+        description: Full deployed candidate commit SHA
+        required: true
+        type: string
+      deployment_url:
+        description: HTTPS URL of the deployed candidate
+        required: true
+        type: string
+      physical_result:
+        description: Physical desktop/mobile acceptance
+        required: true
+        type: choice
+        options: [BLOCKED, FAIL, PASS]
+      physical_evidence_url:
+        description: Restricted redacted evidence URL
+        required: true
+        type: string
+      postgres_result:
+        description: Isolated PostgreSQL recovery drill
+        required: true
+        type: choice
+        options: [BLOCKED, FAIL, PASS]
+      postgres_evidence_url:
+        description: Restricted recovery record URL
+        required: true
+        type: string
+      render_result:
+        description: Authorized Render activation exercise
+        required: true
+        type: choice
+        options: [BLOCKED, FAIL, PASS]
+      render_evidence_url:
+        description: Restricted Render exercise evidence URL
+        required: true
+        type: string
+      identity_result:
+        description: Deployed identity and account isolation
+        required: true
+        type: choice
+        options: [BLOCKED, FAIL, PASS]
+      identity_evidence_url:
+        description: Restricted identity evidence URL
+        required: true
+        type: string
+      failover_result:
+        description: DNS cutover and failback
+        required: true
+        type: choice
+        options: [BLOCKED, FAIL, PASS]
+      failover_evidence_url:
+        description: Restricted cutover/failback evidence URL
+        required: true
+        type: string
+      confirm:
+        description: I confirm these results reference the deployed candidate
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: forge-release-readiness
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    if: ${{ inputs.confirm }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.candidate_commit }}
+
+      - name: Confirm candidate exists in this repository
+        shell: bash
+        run: test "$(git rev-parse HEAD)" = "${{ inputs.candidate_commit }}"
+
+      - name: Validate release evidence
+        shell: bash
+        env:
+          CANDIDATE_COMMIT: ${{ inputs.candidate_commit }}
+          DEPLOYMENT_URL: ${{ inputs.deployment_url }}
+          PHYSICAL_RESULT: ${{ inputs.physical_result }}
+          PHYSICAL_EVIDENCE_URL: ${{ inputs.physical_evidence_url }}
+          POSTGRES_RESULT: ${{ inputs.postgres_result }}
+          POSTGRES_EVIDENCE_URL: ${{ inputs.postgres_evidence_url }}
+          RENDER_RESULT: ${{ inputs.render_result }}
+          RENDER_EVIDENCE_URL: ${{ inputs.render_evidence_url }}
+          IDENTITY_RESULT: ${{ inputs.identity_result }}
+          IDENTITY_EVIDENCE_URL: ${{ inputs.identity_evidence_url }}
+          FAILOVER_RESULT: ${{ inputs.failover_result }}
+          FAILOVER_EVIDENCE_URL: ${{ inputs.failover_evidence_url }}
+        run: bash scripts/release/validate-readiness.sh

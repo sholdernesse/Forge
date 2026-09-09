@@ -38,6 +38,12 @@ export interface DailySnapshot {
   stress?: number;
   restingHeartRate?: number;
   hrvMs?: number;
+  /** End-of-day self-reflection signals. These are wellbeing context, not clinical measures. */
+  mindScore?: number;
+  bodyScore?: number;
+  soulScore?: number;
+  reflectionNote?: string;
+  reflectedAt?: ISODateTime;
 }
 
 export interface RecoveryState {

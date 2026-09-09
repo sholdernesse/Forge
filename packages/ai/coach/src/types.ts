@@ -13,7 +13,18 @@ export interface CoachingEvaluation {
   newDecisionCount: number;
 }
 
+export type CoachAnswerBasis = 'recommendations' | 'safety-boundary' | 'insufficient-data' | 'readiness';
+
 export interface CoachAnswer {
   answer: string;
+  basis: CoachAnswerBasis;
   recommendationIds: string[];
+  suggestedAction: CoachSuggestedAction;
+}
+
+export type CoachActionType = 'open-workout' | 'open-nutrition' | 'open-check-in';
+
+export interface CoachSuggestedAction {
+  type: CoachActionType;
+  label: string;
 }

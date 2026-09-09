@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" role="img" aria-labelledby="title desc">
+  <title id="title">Chest-supported dumbbell row positions</title>
+  <desc id="desc">Side-by-side bottom and pulled positions for a chest-supported dumbbell row.</desc>
+  <rect width="960" height="540" fill="#07130f"/>
+  <g font-family="Arial,sans-serif" fill="#bfe8ce" font-weight="700" text-anchor="middle"><text x="240" y="50" font-size="22">BOTTOM</text><text x="720" y="50" font-size="22">PULL</text></g>
+  <g stroke="#315447" stroke-width="3" fill="#0d211a"><rect x="35" y="70" width="410" height="420" rx="20"/><rect x="515" y="70" width="410" height="420" rx="20"/></g>
+  <g stroke="#58756a" stroke-width="15" stroke-linecap="round"><path d="M120 355 L335 235 M185 320 L160 450 M300 255 L350 450"/><path d="M600 355 L815 235 M665 320 L640 450 M780 255 L830 450"/></g>
+  <g stroke="#83f8aa" stroke-width="13" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <circle cx="320" cy="190" r="31" stroke-width="9"/><path d="M290 220 L175 285 M185 280 L155 390 M210 300 L195 415 M175 285 L140 435"/>
+    <path d="M130 420 h45 M175 400 v40" stroke="#ffb36c"/>
+    <circle cx="800" cy="190" r="31" stroke-width="9"/><path d="M770 220 L655 285 M670 278 L625 315 L655 350 M695 298 L650 330 L680 365 M655 285 L620 435"/>
+    <path d="M635 340 h45 M635 320 v40" stroke="#ffb36c"/>
+  </g>
+  <g fill="#78958a" font-family="Arial,sans-serif" font-size="17" text-anchor="middle"><text x="240" y="470">Arms reach without shoulder roll</text><text x="720" y="470">Elbows pull beside the torso</text></g>
+</svg>
