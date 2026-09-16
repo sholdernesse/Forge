@@ -12,7 +12,7 @@ describe('food log', () => {
   });
 
   it('scales macros in quarter-serving increments', () => {
-    expect(scaleFood(foodCatalog[2]!, 1.5)).toMatchObject({ caloriesKcal: 420, proteinG: 79.5, quantity: 1.5 });
+    expect(scaleFood({ ...foodCatalog[2]!, fiberG: 2, calciumMg: 20, vitaminDMcg: 1.2 }, 1.5)).toMatchObject({ caloriesKcal: 420, proteinG: 79.5, fiberG: 3, calciumMg: 30, vitaminDMcg: 1.8, quantity: 1.5 });
   });
 
   it('searches locally and resolves the barcode provider boundary', () => {

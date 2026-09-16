@@ -26,9 +26,17 @@ interface ProviderFood {
   fatG?: unknown;
   fiberG?: unknown;
   sodiumMg?: unknown;
+  potassiumMg?: unknown;
+  calciumMg?: unknown;
+  ironMg?: unknown;
+  vitaminDMcg?: unknown;
   barcode?: unknown;
   nutritionBasis?: unknown;
   servingGrams?: unknown;
+}
+
+function nonnegative(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0;
 }
 
 function normalizeFood(value: ProviderFood): FoodDefinition | undefined {
@@ -49,8 +57,12 @@ function normalizeFood(value: ProviderFood): FoodDefinition | undefined {
     verification: value.verification as 'government' | 'community',
     nutritionBasis: value.nutritionBasis as 'per-100g' | 'per-serving',
     ...(typeof value.brand === 'string' ? { brand: value.brand } : {}),
-    ...(typeof value.fiberG === 'number' ? { fiberG: value.fiberG } : {}),
-    ...(typeof value.sodiumMg === 'number' ? { sodiumMg: value.sodiumMg } : {}),
+    ...(nonnegative(value.fiberG) ? { fiberG: value.fiberG } : {}),
+    ...(nonnegative(value.sodiumMg) ? { sodiumMg: value.sodiumMg } : {}),
+    ...(nonnegative(value.potassiumMg) ? { potassiumMg: value.potassiumMg } : {}),
+    ...(nonnegative(value.calciumMg) ? { calciumMg: value.calciumMg } : {}),
+    ...(nonnegative(value.ironMg) ? { ironMg: value.ironMg } : {}),
+    ...(nonnegative(value.vitaminDMcg) ? { vitaminDMcg: value.vitaminDMcg } : {}),
     ...(typeof value.barcode === 'string' ? { barcode: value.barcode } : {}),
     ...(typeof value.servingGrams === 'number' && Number.isFinite(value.servingGrams) && value.servingGrams > 0 ? { servingGrams: value.servingGrams } : {}),
   };

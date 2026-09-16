@@ -2,9 +2,9 @@
 
 > **Living plan:** This is the canonical product and delivery plan for Forge. Update it whenever scope, priorities, sequencing, or release status changes. Individual sprint files remain the implementation record.
 
-**Current checkpoint:** Sprint 4.85 on PR #2
+**Current checkpoint:** Sprint 4.86 on PR #2
 **Product stage:** Functional responsive prototype moving toward an authenticated release candidate  
-**Last reviewed:** September 8, 2026
+**Last reviewed:** September 16, 2026
 
 ## 1. North star
 
@@ -63,7 +63,7 @@ The interface should never require fitness expertise to understand the next acti
 | Progress | Understand strength, volume, quality, and session trends | Functional |
 | Coach | Understand why Forge changed the plan and act directly | Functional prototype |
 | Movement guidance | Learn setup, range, tempo, and working muscles visually | Interim still-image system |
-| Account and sync | Continue securely across devices | Implemented; physical acceptance pending |
+| Account and sync | Continue securely across devices | Implemented; desktop write recovery remains an open acceptance defect |
 
 ## 6. Architecture guardrails
 
@@ -155,6 +155,7 @@ PR #2 should deliver a coherent, testable Forge web candidate with:
 1. **Complete physical desktop/mobile acceptance**
    - Run the [physical acceptance checklist](./acceptance/physical-desktop-mobile.md) against the deployed candidate.
    - Record browser/device evidence, cross-device continuity, conflict recovery, account isolation, and responsive behavior.
+   - Resolve the observed desktop state that remains `Offline · saved locally` despite a healthy authenticated API and locally persisted save event.
 2. **Record authorized recovery evidence**
    - PostgreSQL restore and Render standby exercises remain operational gates when infrastructure is authorized.
 
@@ -238,7 +239,7 @@ Sprint 4.71 establishes the paired movement/anatomy contract across every curren
 - ~~Camera barcode capture with manual fallback.~~ Native secure-camera scanning delivered in Sprint 4.55; Sprints 4.57–4.60 complete secure iPhone capture and local API lookup, Sprint 4.61 distinguishes missing products from outages while adding an exact-barcode USDA fallback, Sprints 4.62–4.63 make local authorization and phone routing deterministic, and Sprint 4.64 adds safe development connection evidence for physical acceptance.
 - ~~Goal-aware alternate-food suggestions with explicit nutritional tradeoffs.~~ Delivered in Sprint 4.56 for comparable provider results; category, allergy, and dietary-preference depth remains future work.
 - ~~Low-friction hydration logging with quick-add amounts.~~ Delivered in Sprint 4.53; evidence-based target context remains future work.
-- Optional weekly micronutrient coverage after verified food data is available; avoid deficiency diagnosis or high-dose supplement advice.
+- ~~Daily micronutrient coverage from verified food records.~~ Fiber, sodium, potassium, calcium, iron, and vitamin D delivered in Sprint 4.86 using standard FDA Daily Values; weekly coverage and broader nutrients remain evidence-gated.
 - Longer-history expenditure calibration.
 - Adaptive body-composition targets and clear adjustment explanations.
 - Meal planning only where it reduces logging burden.

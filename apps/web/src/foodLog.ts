@@ -12,6 +12,12 @@ export interface FoodEntry {
   fatG: number;
   quantity?: number;
   sourceFoodId?: string;
+  fiberG?: number;
+  sodiumMg?: number;
+  potassiumMg?: number;
+  calciumMg?: number;
+  ironMg?: number;
+  vitaminDMcg?: number;
 }
 
 export interface FoodDefinition {
@@ -29,6 +35,10 @@ export interface FoodDefinition {
   verification?: 'government' | 'community';
   fiberG?: number;
   sodiumMg?: number;
+  potassiumMg?: number;
+  calciumMg?: number;
+  ironMg?: number;
+  vitaminDMcg?: number;
   nutritionBasis?: 'per-100g' | 'per-serving';
   servingGrams?: number;
 }
@@ -69,7 +79,22 @@ export function createFoodEntry(date: string, meal: MealType, food: Omit<FoodEnt
 export function scaleFood(food: FoodDefinition, quantity: number) {
   const safeQuantity = Math.max(0.25, Math.round(quantity * 4) / 4);
   const scale = (value: number) => Math.round(value * safeQuantity * 10) / 10;
-  return { name: food.name, serving: `${safeQuantity} × ${food.serving}`, caloriesKcal: Math.round(food.caloriesKcal * safeQuantity), proteinG: scale(food.proteinG), carbsG: scale(food.carbsG), fatG: scale(food.fatG), quantity: safeQuantity, sourceFoodId: food.id };
+  return {
+    name: food.name,
+    serving: `${safeQuantity} × ${food.serving}`,
+    caloriesKcal: Math.round(food.caloriesKcal * safeQuantity),
+    proteinG: scale(food.proteinG),
+    carbsG: scale(food.carbsG),
+    fatG: scale(food.fatG),
+    quantity: safeQuantity,
+    sourceFoodId: food.id,
+    ...(food.fiberG !== undefined ? { fiberG: scale(food.fiberG) } : {}),
+    ...(food.sodiumMg !== undefined ? { sodiumMg: scale(food.sodiumMg) } : {}),
+    ...(food.potassiumMg !== undefined ? { potassiumMg: scale(food.potassiumMg) } : {}),
+    ...(food.calciumMg !== undefined ? { calciumMg: scale(food.calciumMg) } : {}),
+    ...(food.ironMg !== undefined ? { ironMg: scale(food.ironMg) } : {}),
+    ...(food.vitaminDMcg !== undefined ? { vitaminDMcg: scale(food.vitaminDMcg) } : {}),
+  };
 }
 
 export function searchFoods(catalog: FoodDefinition[], query: string): FoodDefinition[] {

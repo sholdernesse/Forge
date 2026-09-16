@@ -4,9 +4,9 @@ import { HybridFoodProvider } from './foodProvider.js';
 describe('hybrid food provider', () => {
   it('normalizes USDA search results without exposing the provider key', async () => {
     let requestedUrl = '';
-    const request = vi.fn(async (input: string | URL | Request) => { requestedUrl = String(input); return Response.json({ foods: [{ fdcId: 123, description: 'Greek yogurt', brandName: 'Example', servingSize: 170, servingSizeUnit: 'g', foodNutrients: [{ nutrientName: 'Energy', value: 100 }, { nutrientName: 'Protein', value: 17 }, { nutrientName: 'Carbohydrate, by difference', value: 6 }, { nutrientName: 'Total lipid (fat)', value: 0 }] }] }); });
+    const request = vi.fn(async (input: string | URL | Request) => { requestedUrl = String(input); return Response.json({ foods: [{ fdcId: 123, description: 'Greek yogurt', brandName: 'Example', servingSize: 170, servingSizeUnit: 'g', foodNutrients: [{ nutrientName: 'Energy', value: 100 }, { nutrientName: 'Protein', value: 17 }, { nutrientName: 'Carbohydrate, by difference', value: 6 }, { nutrientName: 'Total lipid (fat)', value: 0 }, { nutrientName: 'Calcium, Ca', value: 121 }, { nutrientName: 'Potassium, K', value: 155 }, { nutrientName: 'Vitamin D (D2 + D3)', value: 1.2 }] }] }); });
     const provider = new HybridFoodProvider('server-secret', request as typeof fetch);
-    await expect(provider.search('yogurt')).resolves.toEqual([expect.objectContaining({ id: 'usda-123', name: 'Greek yogurt', serving: '100 g reference', nutritionBasis: 'per-100g', proteinG: 17, verification: 'government' })]);
+    await expect(provider.search('yogurt')).resolves.toEqual([expect.objectContaining({ id: 'usda-123', name: 'Greek yogurt', serving: '100 g reference', nutritionBasis: 'per-100g', proteinG: 17, calciumMg: 121, potassiumMg: 155, vitaminDMcg: 1.2, verification: 'government' })]);
     expect(requestedUrl).toContain('server-secret');
   });
 

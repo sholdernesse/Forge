@@ -182,6 +182,19 @@ main { margin-left: 228px; padding: 38px clamp(28px, 4vw, 64px) 64px; max-width:
 .hydration-quick-log button.hydration-undo { border-color: transparent; background: transparent; color: #7ea6b5; }
 .nutrition-safeguard { display: flex; gap: 8px; align-items: center; margin-top: 9px; color: #9a8b60; font-size: 9px; }
 .log-food-button { width: 100%; margin-top: 12px; display: flex; align-items: center; gap: 8px; padding: 11px 13px; border: 1px solid #35624f; border-radius: 9px; background: #153529; color: #78fba5; font-weight: 900; }
+.micronutrient-coverage { margin-top: 12px; border: 1px solid #263f37; border-radius: 10px; background: #0d211a; }
+.micronutrient-coverage summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px; cursor: pointer; list-style: none; }
+.micronutrient-coverage summary::-webkit-details-marker { display: none; }
+.micronutrient-coverage summary > span { display: grid; gap: 2px; }
+.micronutrient-coverage summary b { color: #dcefe3; font-size: 11px; }
+.micronutrient-coverage summary small,.micronutrient-coverage footer,.micronutrient-coverage p { color: #78958a; font-size: 9px; line-height: 1.45; }
+.micronutrient-coverage summary strong { color: #78fba5; font-size: 9px; text-transform: uppercase; letter-spacing: .08em; }
+.micronutrient-coverage > div { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 12px 12px; }
+.micronutrient-coverage > div > div { display: grid; gap: 6px; }
+.micronutrient-coverage > div span { display: grid; gap: 2px; }
+.micronutrient-coverage > div i { height: 4px; overflow: hidden; border-radius: 999px; background: #1a382d; }
+.micronutrient-coverage > div em { display: block; height: 100%; border-radius: inherit; background: #64ed99; }
+.micronutrient-coverage footer,.micronutrient-coverage p { margin: 0; padding: 0 12px 12px; }
 .log-food-button span { margin-left: auto; color: #7b9a8e; font-size: 9px; font-weight: 600; }
 .food-logger { width: min(720px, 100%); max-height: calc(100vh - 48px); overflow: auto; border: 1px solid #23483b; border-radius: 20px; background: #091713; box-shadow: 0 30px 90px rgba(0,0,0,.55); }
 .food-header { position: sticky; top: 0; z-index: 2; display: grid; grid-template-columns: 42px 1fr auto; gap: 14px; align-items: center; padding: 18px 20px; border-bottom: 1px solid #19372d; background: rgba(9,23,19,.97); }
@@ -327,6 +340,7 @@ h1 { font-size: clamp(28px, 3vw, 40px); letter-spacing: -.04em; margin-top: 5px;
 @media(max-width:600px){.form-guide-backdrop{padding:0;place-items:stretch}.form-guide{width:100%;height:100dvh;max-height:none;border:0;border-radius:0}.form-guide>header{padding:14px 16px}.form-guide>header h2{font-size:18px}.guide-tabs{padding-inline:14px}.guide-steps{padding-inline:14px}.guide-safety,.discomfort-button,.discomfort-advice{margin-inline:14px}}
 @media(max-width:600px){.food-logger{width:100%;height:100dvh;max-height:none;border:0;border-radius:0}.food-header{padding:14px 16px}.meal-tabs,.food-search,.saved-meals,.quick-foods,.barcode-entry,.custom-food,.meal-log{padding-inline:14px}.food-search{grid-template-columns:1fr}.quick-foods>div{grid-template-columns:1fr}.custom-food>div{grid-template-columns:1fr 1fr}}
 @media(max-width:600px){.food-alternative{margin-inline:14px;grid-template-columns:1fr}.food-alternative>button{width:100%}}
+@media(max-width:480px){.micronutrient-coverage>div{grid-template-columns:1fr}.micronutrient-coverage summary{align-items:flex-start}}
 @media(max-width:720px){.strength-panel,.schedule-panel,.nutrition-panel{grid-column:auto}.strength-list{grid-template-columns:1fr}.week-strip{gap:4px}.week-strip>button{padding-inline:2px}.week-strip small{display:none}.volume-ledger{grid-template-columns:1fr}.volume-ledger>div{grid-template-columns:92px 1fr 34px}.macro-targets{grid-template-columns:1fr 1fr 1fr;gap:6px}.macro-targets>div{padding:10px 8px}.macro-targets strong{font-size:17px}.macro-targets small{display:none}}
 @media(max-width:720px){.topbar-settings{display:grid}}
 @media(max-width:720px){.sync-conflict{grid-template-columns:auto 1fr}.sync-conflict>div{min-width:0}.sync-conflict button{width:100%}.sync-conflict button:first-of-type{grid-column:1/2}.sync-conflict button:last-of-type{grid-column:2/3}}

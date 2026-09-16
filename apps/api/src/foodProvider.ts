@@ -11,6 +11,10 @@ export interface FoodSearchResult {
   fatG: number;
   fiberG?: number;
   sodiumMg?: number;
+  potassiumMg?: number;
+  calciumMg?: number;
+  ironMg?: number;
+  vitaminDMcg?: number;
   barcode?: string;
   nutritionBasis: 'per-100g' | 'per-serving';
   servingGrams?: number;
@@ -65,6 +69,10 @@ function usdaFood(value: unknown): FoodSearchResult | undefined {
     fatG: rounded(nutrient(nutrients, ['total lipid (fat)', 'total fat'])),
     ...(nutrient(nutrients, ['fiber, total dietary', 'dietary fiber']) !== undefined ? { fiberG: rounded(nutrient(nutrients, ['fiber, total dietary', 'dietary fiber'])) } : {}),
     ...(nutrient(nutrients, ['sodium, na', 'sodium']) !== undefined ? { sodiumMg: rounded(nutrient(nutrients, ['sodium, na', 'sodium'])) } : {}),
+    ...(nutrient(nutrients, ['potassium, k', 'potassium']) !== undefined ? { potassiumMg: rounded(nutrient(nutrients, ['potassium, k', 'potassium'])) } : {}),
+    ...(nutrient(nutrients, ['calcium, ca', 'calcium']) !== undefined ? { calciumMg: rounded(nutrient(nutrients, ['calcium, ca', 'calcium'])) } : {}),
+    ...(nutrient(nutrients, ['iron, fe', 'iron']) !== undefined ? { ironMg: rounded(nutrient(nutrients, ['iron, fe', 'iron'])) } : {}),
+    ...(nutrient(nutrients, ['vitamin d (d2 + d3)', 'vitamin d']) !== undefined ? { vitaminDMcg: rounded(nutrient(nutrients, ['vitamin d (d2 + d3)', 'vitamin d'])) } : {}),
     ...(typeof item.gtinUpc === 'string' ? { barcode: item.gtinUpc } : {}),
   };
 }

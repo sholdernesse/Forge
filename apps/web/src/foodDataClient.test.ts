@@ -4,11 +4,15 @@ import { FoodDataClient, FoodDataError, foodDataConfig } from './foodDataClient.
 describe('food data client', () => {
   it('authenticates search and rejects malformed provider records', async () => {
     const request = vi.fn(async () => Response.json({ foods: [
-      { id: 'usda-1', source: 'usda', verification: 'government', name: 'Oats', serving: '100 g', nutritionBasis: 'per-100g', servingGrams: 100, caloriesKcal: 389, proteinG: 16.9, carbsG: 66.3, fatG: 6.9 },
+      { id: 'usda-1', source: 'usda', verification: 'government', name: 'Oats', serving: '100 g', nutritionBasis: 'per-100g', servingGrams: 100, caloriesKcal: 389, proteinG: 16.9, carbsG: 66.3, fatG: 6.9, fiberG: 10.6, ironMg: 4.7, potassiumMg: 429 },
       { id: 'bad', name: 'Incomplete' },
+      { id: 'usda-2', source: 'usda', verification: 'government', name: 'Invalid nutrient', serving: '100 g', nutritionBasis: 'per-100g', caloriesKcal: 100, proteinG: 1, carbsG: 2, fatG: 3, calciumMg: -10 },
     ] }));
     const client = new FoodDataClient({ baseUrl: 'https://api.forge.test', accessToken: async () => 'token' }, request as typeof fetch);
-    await expect(client.search('oats')).resolves.toEqual([expect.objectContaining({ id: 'usda-1', category: 'other' })]);
+    await expect(client.search('oats')).resolves.toEqual([
+      expect.objectContaining({ id: 'usda-1', category: 'other', fiberG: 10.6, ironMg: 4.7, potassiumMg: 429 }),
+      expect.not.objectContaining({ calciumMg: expect.anything() }),
+    ]);
     expect(request).toHaveBeenCalledWith('https://api.forge.test/v1/foods/search?q=oats', { headers: { authorization: 'Bearer token' } });
   });
 
