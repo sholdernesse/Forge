@@ -190,6 +190,13 @@ main { margin-left: 228px; padding: 38px clamp(28px, 4vw, 64px) 64px; max-width:
 .micronutrient-coverage summary small,.micronutrient-coverage footer,.micronutrient-coverage p { color: #78958a; font-size: 9px; line-height: 1.45; }
 .micronutrient-coverage summary strong { color: #78fba5; font-size: 9px; text-transform: uppercase; letter-spacing: .08em; }
 .micronutrient-coverage > div { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 12px 12px; }
+.nutrition-week-story { display: grid; gap: 4px; margin: 0 12px 12px; padding: 10px; border: 1px solid #29483d; border-radius: 8px; background: #10271f; }
+.nutrition-week-story span { color: #7fa38f; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; }
+.nutrition-week-story b { color: #dcefe3; font-size: 10px; }
+.nutrition-week-story p { padding: 0; color: #86a499; }
+.nutrition-week-story.opportunity { border-color: #66562d; background: #292414; }
+.nutrition-week-story.limit { border-color: #71483f; background: #2b1b18; }
+.nutrition-week-story.balanced { border-color: #326148; }
 .micronutrient-coverage > div > div { display: grid; gap: 6px; }
 .micronutrient-coverage > div span { display: grid; gap: 2px; }
 .micronutrient-coverage > div i { height: 4px; overflow: hidden; border-radius: 999px; background: #1a382d; }

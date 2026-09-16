@@ -18,7 +18,7 @@ import { assessDeload, nextScheduleIntent, type ScheduleOverrides } from './sche
 import { calculateNutritionTargets } from './nutritionPlanner.js';
 import { FoodLogger } from './FoodLogger.js';
 import { demoFoodEntries, foodTotals, type FoodEntry, type SavedMeal } from './foodLog.js';
-import { micronutrientCoverage } from './micronutrients.js';
+import { micronutrientCoverage, weeklyNutritionStory } from './micronutrients.js';
 import { demoSavedMeals } from './foodCatalog.js';
 import { freshWorkoutPlan } from './prototypeActions.js';
 import { SettingsPanel } from './SettingsPanel.js';
@@ -219,6 +219,7 @@ export function App() {
   const targetProtein = nutritionTargets.proteinG;
   const calorieTarget = nutritionTargets.caloriesKcal;
   const nutrientCoverage = useMemo(() => micronutrientCoverage(foodEntries, TODAY), [foodEntries, TODAY]);
+  const nutritionStory = useMemo(() => weeklyNutritionStory(foodEntries, TODAY), [foodEntries, TODAY]);
   const weightStory = weightProgressStory(history, athleteGoals.primary, TODAY);
   const timeline = performanceTimeline(history, sessionHistory, TODAY);
   const strengthLeaders = strongestMovements(exerciseHistory).slice(0, 3);
@@ -770,6 +771,7 @@ export function App() {
             <div className="hydration-quick-log"><span><Droplets size={17} /><span><b>Water logged today</b><small>{(waterMl / 1_000).toFixed(waterMl % 1_000 === 0 ? 1 : 2)} L · {Math.round(waterMl / 29.5735)} fl oz</small></span></span><div><button onClick={() => logWater(237)}>+ 8 fl oz</button><button onClick={() => logWater(473)}>+ 16 fl oz</button>{waterMl > 0 && <button className="hydration-undo" onClick={undoWater}>Undo last</button>}</div></div>
             <details className="micronutrient-coverage">
               <summary><span><b>Nutrition quality</b><small>{nutrientCoverage.length ? `${nutrientCoverage.length} nutrients tracked` : 'Add a searched or scanned food'}</small></span><strong>View</strong></summary>
+              <section className={`nutrition-week-story ${nutritionStory.tone}`}><span>7-day pattern · {nutritionStory.trackedDays}/7 days</span><b>{nutritionStory.headline}</b><p>{nutritionStory.detail}</p></section>
               {nutrientCoverage.length ? <div>{nutrientCoverage.map((nutrient) => <div key={nutrient.key}><span><b>{nutrient.label}</b><small>{nutrient.amount.toLocaleString()} {nutrient.unit} · {nutrient.percent}% Daily Value{nutrient.direction === 'limit' ? ' limit' : ''}</small></span><i><em style={{ width: `${Math.min(100, nutrient.percent)}%` }} /></i></div>)}</div> : <p>Micronutrients appear when a searched or scanned food provides verified nutrient values.</p>}
               <footer>FDA Daily Values are general label references. Coverage reflects tracked foods only and does not diagnose a deficiency.</footer>
             </details>

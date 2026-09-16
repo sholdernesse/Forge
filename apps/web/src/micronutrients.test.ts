@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { micronutrientCoverage } from './micronutrients.js';
+import { micronutrientCoverage, weeklyNutritionStory } from './micronutrients.js';
 import type { FoodEntry } from './foodLog.js';
 
 const entry = (overrides: Partial<FoodEntry> = {}): FoodEntry => ({
@@ -24,5 +24,26 @@ describe('micronutrient coverage', () => {
 
   it('does not turn missing provider data into a zero or deficiency claim', () => {
     expect(micronutrientCoverage([entry()], '2026-09-16')).toEqual([]);
+  });
+
+  it('waits for four tracked days before highlighting a weekly pattern', () => {
+    expect(weeklyNutritionStory([entry({ fiberG: 7 })], '2026-09-16')).toMatchObject({ trackedDays: 1, tone: 'building' });
+  });
+
+  it('selects one repeated food opportunity without calling it a deficiency', () => {
+    const entries = ['16', '15', '14', '13'].map((day, index) => entry({ id: `food-${index}`, date: `2026-09-${day}`, fiberG: 14, calciumMg: 260 }));
+    expect(weeklyNutritionStory(entries, '2026-09-16')).toEqual(expect.objectContaining({
+      trackedDays: 4,
+      headline: 'Calcium is the clearest food opportunity',
+      tone: 'opportunity',
+    }));
+  });
+
+  it('prioritizes a repeatedly high sodium limit over minimum-nutrient opportunities', () => {
+    const entries = ['16', '15', '14', '13'].map((day, index) => entry({ id: `food-${index}`, date: `2026-09-${day}`, fiberG: 28, sodiumMg: 2_500 }));
+    expect(weeklyNutritionStory(entries, '2026-09-16')).toEqual(expect.objectContaining({
+      headline: 'Sodium is the clearest limit to watch',
+      tone: 'limit',
+    }));
   });
 });

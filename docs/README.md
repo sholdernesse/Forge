@@ -6,7 +6,7 @@ Canonical plan: [Forge Product Plan](./PRODUCT-PLAN.md).
 - `decisions/` — architecture decision records
 - `sprints/` — sprint scope and acceptance notes
 
-Current delivery: [Sprint 4.86 — Verified Micronutrient Coverage](./sprints/sprint-4.86.md).
+Current delivery: [Sprint 4.87 — Weekly Nutrition Pattern](./sprints/sprint-4.87.md).
 
 Deployment: [Microsoft Entra External ID for Forge](./deployment/entra-external-id.md).
 
