@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addHydration, hydrationTotal, isHydrationEntry, undoLatestHydration } from './hydration.js';
+import { addHydration, hydrationContext, hydrationTotal, isHydrationEntry, undoLatestHydration } from './hydration.js';
 
 describe('hydration logging', () => {
   it('adds bounded quick entries and totals only the selected day', () => {
@@ -22,5 +22,14 @@ describe('hydration logging', () => {
   it('rejects malformed or excessive entries', () => {
     expect(isHydrationEntry({ id: 'water', date: '2026-09-03', amountMl: 250, createdAt: '2026-09-03T12:00:00.000Z' })).toBe(true);
     expect(isHydrationEntry({ id: 'water', date: '2026-09-03', amountMl: 5_000, createdAt: '2026-09-03T12:00:00.000Z' })).toBe(false);
+  });
+
+  it('keeps the total-water reference distinct from plain-water logging', () => {
+    expect(hydrationContext('male')).toEqual({
+      reference: '3.7 L total-water reference',
+      explanation: 'Food and all drinks count toward this general adult reference. Activity, heat, and illness can change individual needs.',
+    });
+    expect(hydrationContext('female').reference).toBe('2.7 L total-water reference');
+    expect(hydrationContext('unspecified').reference).toBe('2.7–3.7 L total-water reference');
   });
 });

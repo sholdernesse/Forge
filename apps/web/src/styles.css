@@ -180,6 +180,7 @@ main { margin-left: 228px; padding: 38px clamp(28px, 4vw, 64px) 64px; max-width:
 .hydration-quick-log > div { display: flex; flex-wrap: wrap; gap: 6px; }
 .hydration-quick-log button { border: 1px solid #37677c; border-radius: 999px; background: #17384a; color: #a9e7ff; padding: 6px 9px; font-size: 9px; font-weight: 900; cursor: pointer; }
 .hydration-quick-log button.hydration-undo { border-color: transparent; background: transparent; color: #7ea6b5; }
+.hydration-quick-log p { margin: 0; color: #6f929f; font-size: 9px; line-height: 1.45; }
 .nutrition-safeguard { display: flex; gap: 8px; align-items: center; margin-top: 9px; color: #9a8b60; font-size: 9px; }
 .log-food-button { width: 100%; margin-top: 12px; display: flex; align-items: center; gap: 8px; padding: 11px 13px; border: 1px solid #35624f; border-radius: 9px; background: #153529; color: #78fba5; font-weight: 900; }
 .micronutrient-coverage { margin-top: 12px; border: 1px solid #263f37; border-radius: 10px; background: #0d211a; }

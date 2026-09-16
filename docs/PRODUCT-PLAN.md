@@ -2,7 +2,7 @@
 
 > **Living plan:** This is the canonical product and delivery plan for Forge. Update it whenever scope, priorities, sequencing, or release status changes. Individual sprint files remain the implementation record.
 
-**Current checkpoint:** Sprint 4.87 on PR #2
+**Current checkpoint:** Sprint 4.88 on PR #2
 **Product stage:** Functional responsive prototype moving toward an authenticated release candidate  
 **Last reviewed:** September 16, 2026
 
@@ -238,7 +238,7 @@ Sprint 4.71 establishes the paired movement/anatomy contract across every curren
 - ~~Provider-neutral authenticated food search and barcode gateway.~~ Delivered in Sprint 4.54 using USDA FoodData Central with Open Food Facts barcode fallback; production USDA credentials remain an operational configuration step.
 - ~~Camera barcode capture with manual fallback.~~ Native secure-camera scanning delivered in Sprint 4.55; Sprints 4.57–4.60 complete secure iPhone capture and local API lookup, Sprint 4.61 distinguishes missing products from outages while adding an exact-barcode USDA fallback, Sprints 4.62–4.63 make local authorization and phone routing deterministic, and Sprint 4.64 adds safe development connection evidence for physical acceptance.
 - ~~Goal-aware alternate-food suggestions with explicit nutritional tradeoffs.~~ Delivered in Sprint 4.56 for comparable provider results; category, allergy, and dietary-preference depth remains future work.
-- ~~Low-friction hydration logging with quick-add amounts.~~ Delivered in Sprint 4.53; evidence-based target context remains future work.
+- ~~Low-friction hydration logging with honest target context.~~ Quick-add amounts were delivered in Sprint 4.53; Sprint 4.88 adds the established adult total-water reference while keeping it distinct from Forge's plain-water log and noting that activity, heat, and illness change individual needs.
 - ~~Daily and seven-day micronutrient coverage from verified food records.~~ Fiber, sodium, potassium, calcium, iron, and vitamin D delivered in Sprint 4.86 using standard FDA Daily Values; Sprint 4.87 adds a minimum-evidence weekly pattern and one food-first priority. Broader nutrients remain evidence-gated.
 - Longer-history expenditure calibration.
 - Adaptive body-composition targets and clear adjustment explanations.

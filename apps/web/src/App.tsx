@@ -43,7 +43,7 @@ import { useAccessibleDialog } from './useAccessibleDialog.js';
 import { nextBlockProposal, plannedDeloadWeek, startingBlockFor, startingBlockReview } from './startingBlock.js';
 import { performanceTimeline, weightProgressStory } from './performanceTimeline.js';
 import { strengthProgressInsight } from './strengthInsight.js';
-import { addHydration, hydrationTotal, undoLatestHydration, type HydrationEntry } from './hydration.js';
+import { addHydration, hydrationContext, hydrationTotal, undoLatestHydration, type HydrationEntry } from './hydration.js';
 import { FoodDataClient, foodDataConfig } from './foodDataClient.js';
 
 const defaultCheckIn: CheckIn = { sleepScore: 77, sleepHours: 7, soreness: 4, stress: 3, weightKg: 75.8 };
@@ -232,6 +232,7 @@ export function App() {
   const scheduleWeekLabel = `${new Date(`${week[0]!.date}T12:00:00Z`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })}–${new Date(`${week[6]!.date}T12:00:00Z`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })}`;
   const loggedNutrition = foodTotals(foodEntries, TODAY);
   const waterMl = hydrationTotal(hydrationEntries, TODAY);
+  const waterContext = hydrationContext(athleteProfile.sex);
   const filteredTrainingRecords = filterTrainingHistory(sessionHistory, historyFilter, historyQuery, historyRange, TODAY);
   const visibleHistoryCount = visibleTrainingHistoryCount(filteredTrainingRecords.length, historyVisibleCount);
   const recentTraining = trainingHistoryEntries(filteredTrainingRecords, visibleHistoryCount, historySort);
@@ -768,7 +769,7 @@ export function App() {
             <p className="panel-copy">{nutritionTargets.reason}</p>
             <div className="macro-targets"><div><span>Protein</span><strong>{nutritionTargets.proteinG}g</strong><small>Preserve and build lean mass</small></div><div><span>Carbs</span><strong>{nutritionTargets.carbsG}g</strong><small>Fuel training and recovery</small></div><div><span>Fat</span><strong>{nutritionTargets.fatG}g</strong><small>Hormones and satiety</small></div></div>
             <div className="nutrition-adjustment"><span><Flame size={17} /><b>Today’s adjustment</b></span><strong>{nutritionTargets.adjustmentKcal > 0 ? '+' : ''}{nutritionTargets.adjustmentKcal} kcal</strong></div>
-            <div className="hydration-quick-log"><span><Droplets size={17} /><span><b>Water logged today</b><small>{(waterMl / 1_000).toFixed(waterMl % 1_000 === 0 ? 1 : 2)} L · {Math.round(waterMl / 29.5735)} fl oz</small></span></span><div><button onClick={() => logWater(237)}>+ 8 fl oz</button><button onClick={() => logWater(473)}>+ 16 fl oz</button>{waterMl > 0 && <button className="hydration-undo" onClick={undoWater}>Undo last</button>}</div></div>
+            <div className="hydration-quick-log"><span><Droplets size={17} /><span><b>Water logged today</b><small>{(waterMl / 1_000).toFixed(waterMl % 1_000 === 0 ? 1 : 2)} L · {Math.round(waterMl / 29.5735)} fl oz · {waterContext.reference}</small></span></span><div><button onClick={() => logWater(237)}>+ 8 fl oz</button><button onClick={() => logWater(473)}>+ 16 fl oz</button>{waterMl > 0 && <button className="hydration-undo" onClick={undoWater}>Undo last</button>}</div><p>{waterContext.explanation}</p></div>
             <details className="micronutrient-coverage">
               <summary><span><b>Nutrition quality</b><small>{nutrientCoverage.length ? `${nutrientCoverage.length} nutrients tracked` : 'Add a searched or scanned food'}</small></span><strong>View</strong></summary>
               <section className={`nutrition-week-story ${nutritionStory.tone}`}><span>7-day pattern · {nutritionStory.trackedDays}/7 days</span><b>{nutritionStory.headline}</b><p>{nutritionStory.detail}</p></section>
