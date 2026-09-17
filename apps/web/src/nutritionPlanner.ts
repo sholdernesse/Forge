@@ -13,13 +13,36 @@ export interface NutritionTargets {
   safeguards: string[];
 }
 
-function weightedTrend(history: DailySnapshot[]): number | undefined {
-  const weights = history.filter((day) => day.weightKg !== undefined).slice(-7);
-  if (weights.length < 4) return undefined;
+interface NutritionCalibration {
+  trendKgPerWeek?: number;
+  weighIns: number;
+  spanDays: number;
+  loggedDays: number;
+}
+
+function nutritionCalibration(history: DailySnapshot[]): NutritionCalibration {
+  const ordered = [...history].sort((a, b) => a.date.localeCompare(b.date));
+  const latest = ordered.at(-1)?.date;
+  if (!latest) return { weighIns: 0, spanDays: 0, loggedDays: 0 };
+  const latestTime = Date.parse(`${latest}T00:00:00Z`);
+  const window = ordered.filter((day) => {
+    const ageDays = (latestTime - Date.parse(`${day.date}T00:00:00Z`)) / 86_400_000;
+    return ageDays >= 0 && ageDays <= 14;
+  });
+  const weights = window.filter((day) => day.weightKg !== undefined);
+  const loggedDays = window.filter((day) => day.date !== latest && day.caloriesKcal !== undefined).length;
+  const spanDays = weights.length > 1
+    ? (Date.parse(`${weights.at(-1)!.date}T00:00:00Z`) - Date.parse(`${weights[0]!.date}T00:00:00Z`)) / 86_400_000
+    : 0;
+  if (weights.length < 8 || spanDays < 12) return { weighIns: weights.length, spanDays, loggedDays };
   const first = weights.slice(0, Math.min(3, weights.length)).reduce((sum, day) => sum + day.weightKg!, 0) / Math.min(3, weights.length);
   const last = weights.slice(-Math.min(3, weights.length)).reduce((sum, day) => sum + day.weightKg!, 0) / Math.min(3, weights.length);
-  const days = Math.max(1, Date.parse(`${weights.at(-1)!.date}T00:00:00Z`) - Date.parse(`${weights[0]!.date}T00:00:00Z`)) / 86_400_000;
-  return Math.round(((last - first) / days * 7) * 100) / 100;
+  return {
+    trendKgPerWeek: Math.round(((last - first) / spanDays * 7) * 100) / 100,
+    weighIns: weights.length,
+    spanDays,
+    loggedDays,
+  };
 }
 
 export function calculateNutritionTargets(twin: DigitalTwin, workout: WorkoutSession): NutritionTargets {
@@ -31,13 +54,13 @@ export function calculateNutritionTargets(twin: DigitalTwin, workout: WorkoutSes
   const basal = 10 * weight + 6.25 * height - 5 * age + sexOffset;
   const maintenance = Math.round(basal * 1.48 / 50) * 50;
   const baseGoalAdjustment = twin.goals.primary === 'fat-loss' ? -350 : twin.goals.primary === 'muscle-gain' ? 200 : twin.goals.primary === 'recomposition' ? -150 : 0;
-  const trend = weightedTrend(twin.history);
-  const completeNutritionDays = twin.history.slice(-7, -1).filter((day) => day.caloriesKcal !== undefined).length;
+  const calibration = nutritionCalibration(twin.history);
+  const trend = calibration.trendKgPerWeek;
   const safeguards: string[] = [];
   let trendAdjustment = 0;
 
-  if (trend === undefined) safeguards.push('Waiting for at least four weigh-ins before adapting calories.');
-  else if (completeNutritionDays < 4) safeguards.push('Calories held steady until four complete logging days are available.');
+  if (trend === undefined) safeguards.push('Calories held steady until weight history spans at least 12 days with eight weigh-ins.');
+  else if (calibration.loggedDays < 10) safeguards.push('Calories held steady until ten prior nutrition-log days support the longer trend.');
   else if (twin.goals.primary === 'recomposition') {
     if (trend < -0.45) trendAdjustment = 100;
     if (trend > 0.15) trendAdjustment = -100;
@@ -50,8 +73,12 @@ export function calculateNutritionTargets(twin: DigitalTwin, workout: WorkoutSes
   const proteinG = Math.round(weight * (twin.goals.primary === 'muscle-gain' ? 2 : 1.8));
   const fatG = Math.round(weight * 0.8);
   const carbsG = Math.max(0, Math.round((caloriesKcal - proteinG * 4 - fatG * 9) / 4));
-  const confidence = trend !== undefined && completeNutritionDays >= 6 ? 'high' : trend !== undefined && completeNutritionDays >= 4 ? 'medium' : 'low';
-  const direction = trend === undefined ? 'Weight trend is still calibrating.' : `Seven-day trend is ${trend > 0 ? '+' : ''}${trend} kg/week.`;
+  const confidence = trend !== undefined && calibration.loggedDays >= 12 && calibration.weighIns >= 12
+    ? 'high'
+    : trend !== undefined && calibration.loggedDays >= 10
+      ? 'medium'
+      : 'low';
+  const direction = trend === undefined ? 'Longer weight trend is still calibrating.' : `Longer weight trend is ${trend > 0 ? '+' : ''}${trend} kg/week.`;
   const demand = workout.planType === 'recovery' ? 'Recovery-day demand is lower.' : `${workout.intensity ?? 'moderate'} training demand adds fuel.`;
 
   return { caloriesKcal, proteinG, carbsG, fatG, ...(trend === undefined ? {} : { trendKgPerWeek: trend }), adjustmentKcal, confidence, reason: `${direction} ${demand}`, safeguards };

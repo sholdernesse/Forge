@@ -2,7 +2,7 @@
 
 > **Living plan:** This is the canonical product and delivery plan for Forge. Update it whenever scope, priorities, sequencing, or release status changes. Individual sprint files remain the implementation record.
 
-**Current checkpoint:** Sprint 4.88 on PR #2
+**Current checkpoint:** Sprint 4.89 on PR #2
 **Product stage:** Functional responsive prototype moving toward an authenticated release candidate  
 **Last reviewed:** September 16, 2026
 
@@ -240,7 +240,7 @@ Sprint 4.71 establishes the paired movement/anatomy contract across every curren
 - ~~Goal-aware alternate-food suggestions with explicit nutritional tradeoffs.~~ Delivered in Sprint 4.56 for comparable provider results; category, allergy, and dietary-preference depth remains future work.
 - ~~Low-friction hydration logging with honest target context.~~ Quick-add amounts were delivered in Sprint 4.53; Sprint 4.88 adds the established adult total-water reference while keeping it distinct from Forge's plain-water log and noting that activity, heat, and illness change individual needs.
 - ~~Daily and seven-day micronutrient coverage from verified food records.~~ Fiber, sodium, potassium, calcium, iron, and vitamin D delivered in Sprint 4.86 using standard FDA Daily Values; Sprint 4.87 adds a minimum-evidence weekly pattern and one food-first priority. Broader nutrients remain evidence-gated.
-- Longer-history expenditure calibration.
+- ~~Longer-history calorie calibration.~~ Sprint 4.89 replaces the short seven-day trigger with a minimum 12-day weight span, eight weigh-ins, and ten prior nutrition-log days before the existing bounded recomposition correction can activate. Direct expenditure estimation remains deferred until stronger intake and activity evidence exists.
 - Adaptive body-composition targets and clear adjustment explanations.
 - Meal planning only where it reduces logging burden.
 

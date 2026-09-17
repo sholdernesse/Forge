@@ -6,7 +6,7 @@ Canonical plan: [Forge Product Plan](./PRODUCT-PLAN.md).
 - `decisions/` — architecture decision records
 - `sprints/` — sprint scope and acceptance notes
 
-Current delivery: [Sprint 4.88 — Honest Hydration Context](./sprints/sprint-4.88.md).
+Current delivery: [Sprint 4.89 — Longer Nutrition Calibration](./sprints/sprint-4.89.md).
 
 Deployment: [Microsoft Entra External ID for Forge](./deployment/entra-external-id.md).
 
