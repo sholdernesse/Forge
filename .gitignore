@@ -8,3 +8,6 @@ coverage
 !.env.example
 .DS_Store
 *.log
+backups/
+apps/web/.cert/
+/sprint-3.1/
