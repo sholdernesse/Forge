@@ -7,6 +7,7 @@ export interface DashboardEnvelope {
 export interface DashboardRepository {
   get(userId: string): Promise<DashboardEnvelope | null>;
   put(userId: string, state: unknown, expectedRevision?: string): Promise<DashboardEnvelope>;
+  delete(userId: string): Promise<boolean>;
   close?(): Promise<void>;
 }
 

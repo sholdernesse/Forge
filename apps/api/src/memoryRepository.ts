@@ -15,4 +15,8 @@ export class MemoryDashboardRepository implements DashboardRepository {
     this.dashboards.set(userId, envelope);
     return envelope;
   }
+
+  async delete(userId: string): Promise<boolean> {
+    return this.dashboards.delete(userId);
+  }
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createFoodEntry, demoFoodEntries, foodTotals, lookupBarcode, mealEntries, quickFoods, scaleFood, searchFoods } from './foodLog.js';
+import { createFoodEntry, demoFoodEntries, foodTotals, lookupBarcode, mealEntries, quickFoods, recentMeals, repeatMealEntries, scaleFood, searchFoods } from './foodLog.js';
 import { demoSavedMeals, foodCatalog } from './foodCatalog.js';
 
 describe('food log', () => {
@@ -25,5 +25,28 @@ describe('food log', () => {
     const entries = mealEntries(demoSavedMeals[1]!, foodCatalog, '2026-08-12', 'lunch', () => `meal-${++sequence}`);
     expect(entries.map((entry) => entry.id)).toEqual(['meal-1', 'meal-2']);
     expect(foodTotals(entries, '2026-08-12').caloriesKcal).toBe(485);
+  });
+});
+
+describe('recent meal reuse', () => {
+  const history = [
+    createFoodEntry('2026-08-10', 'breakfast', { name: 'Eggs', serving: '2', caloriesKcal: 140, proteinG: 12, carbsG: 1, fatG: 10 }, 'eggs-10'),
+    createFoodEntry('2026-08-10', 'breakfast', { name: 'Toast', serving: '1 slice', caloriesKcal: 100, proteinG: 4, carbsG: 18, fatG: 1 }, 'toast-10'),
+    createFoodEntry('2026-08-11', 'breakfast', { name: 'Oats', serving: '1 bowl', caloriesKcal: 360, proteinG: 30, carbsG: 45, fatG: 7 }, 'oats-11'),
+    createFoodEntry('2026-08-11', 'lunch', { name: 'Chicken', serving: '6 oz', caloriesKcal: 280, proteinG: 53, carbsG: 0, fatG: 6 }, 'chicken-11'),
+  ];
+
+  it('suggests distinct prior meals in most-recent order for the selected meal type', () => {
+    const suggestions = recentMeals(history, '2026-08-12', 'breakfast');
+    expect(suggestions.map((meal) => meal.label)).toEqual(['Oats', 'Eggs + Toast']);
+    expect(suggestions[0]).toMatchObject({ caloriesKcal: 360, proteinG: 30 });
+  });
+
+  it('repeats the exact logged foods on the current date without reusing entry ids', () => {
+    const suggestion = recentMeals(history, '2026-08-12', 'breakfast')[1]!;
+    const repeated = repeatMealEntries(suggestion, '2026-08-12', 'snack');
+    expect(repeated.map((entry) => entry.name)).toEqual(['Eggs', 'Toast']);
+    expect(repeated.every((entry) => entry.date === '2026-08-12' && entry.meal === 'snack')).toBe(true);
+    expect(repeated.map((entry) => entry.id)).not.toContain('eggs-10');
   });
 });

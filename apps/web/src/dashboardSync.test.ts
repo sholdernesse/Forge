@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { DashboardSyncClient, DashboardSyncConflictError, dashboardSyncConfig, newerThanLocal } from './dashboardSync.js';
+import { DashboardSyncClient, DashboardSyncConflictError, dashboardSyncConfig, newerThanLocal, syncFailureStatus } from './dashboardSync.js';
 import type { DashboardState } from './dashboardStorage.js';
 
 const state: DashboardState = {
@@ -23,6 +23,19 @@ describe('dashboard sync', () => {
     await client.load();
     await client.save(state, '2026-08-12T12:01:00.000Z');
     expect(request.mock.calls[1]?.[1]).toMatchObject({ method: 'PUT', headers: { 'if-match': 'rev-1' } });
+  });
+
+  it('deletes the authenticated cloud dashboard and clears its revision', async () => {
+    const request = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ state, updatedAt: '2026-08-12T12:00:00.000Z', revision: 'rev-1' }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ state, updatedAt: '2026-08-12T12:01:00.000Z', revision: 'rev-2' }), { status: 200 }));
+    const client = new DashboardSyncClient({ baseUrl: 'https://sync.forge.test', accessToken: async () => 'secret' }, request as typeof fetch);
+    await client.load();
+    await client.delete();
+    await client.save(state, '2026-08-12T12:01:00.000Z');
+    expect(request.mock.calls[1]).toEqual(['https://sync.forge.test/v1/dashboard', { method: 'DELETE', headers: { authorization: 'Bearer secret' } }]);
+    expect(request.mock.calls[2]?.[1]).not.toHaveProperty('headers.if-match');
   });
 
   it('creates the first remote dashboard after an authenticated 404', async () => {
@@ -104,5 +117,10 @@ describe('dashboard sync', () => {
     expect(dashboardSyncConfig({ DEV: true, VITE_FORGE_SYNC_URL: 'http://localhost:8787' }, async () => 'token')?.baseUrl).toBe('/api');
     expect(newerThanLocal('2026-08-12T12:01:00.000Z', '2026-08-12T12:00:00.000Z')).toBe(true);
     expect(newerThanLocal('2026-08-12T11:59:00.000Z', '2026-08-12T12:00:00.000Z')).toBe(false);
+  });
+
+  it('distinguishes a disconnected browser from a reachable browser that is retrying sync', () => {
+    expect(syncFailureStatus(false)).toBe('offline');
+    expect(syncFailureStatus(true)).toBe('reconnecting');
   });
 });

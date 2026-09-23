@@ -28,8 +28,11 @@ Authenticated food search uses USDA FoodData Central when `USDA_FOODDATA_API_KEY
 
 - `GET /v1/foods/search?q=oats` searches USDA and returns normalized Forge food records.
 - `GET /v1/foods/barcode/{8-14 digit code}` looks up a packaged product in Open Food Facts.
+- `POST /v1/foods/photo-analysis` accepts a bounded metadata-free image data URL, identifies visible foods through the configured vision provider, and uses USDA matches when available. The image is processed in memory and is not written to Forge storage.
 
 If USDA is not configured, the web app continues to use its local foods. Provider outages also leave local search and manual nutrition-label entry available.
+
+Meal-photo analysis additionally requires server-only `OPENAI_API_KEY` and `OPENAI_VISION_MODEL` values. The browser never receives the API key. Results are estimates that remain editable and are not added to the nutrition log until the user explicitly approves them.
 
 ## Data ownership
 

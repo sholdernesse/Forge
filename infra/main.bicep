@@ -13,6 +13,16 @@ param postgresAdministratorLogin string = 'forgeadmin'
 @secure()
 param postgresAdministratorPassword string
 
+@secure()
+@minLength(32)
+param auditHmacKey string
+
+@secure()
+param openAiApiKey string
+
+@secure()
+param usdaFoodDataApiKey string
+
 param tags object = {}
 
 var suffix = uniqueString(subscription().subscriptionId, resourceGroup().id, environmentName)
@@ -251,6 +261,30 @@ resource databaseUrl 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
   parent: keyVault
   properties: {
     value: 'postgresql://${postgresAdministratorLogin}:${uriComponent(postgresAdministratorPassword)}@${postgresServer.properties.fullyQualifiedDomainName}:5432/${forgeDatabase.name}?sslmode=require'
+  }
+}
+
+resource auditHmacSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+  name: 'forge-audit-hmac-key'
+  parent: keyVault
+  properties: {
+    value: auditHmacKey
+  }
+}
+
+resource openAiApiSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+  name: 'forge-openai-api-key'
+  parent: keyVault
+  properties: {
+    value: openAiApiKey
+  }
+}
+
+resource usdaFoodDataApiSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+  name: 'forge-usda-fooddata-api-key'
+  parent: keyVault
+  properties: {
+    value: usdaFoodDataApiKey
   }
 }
 

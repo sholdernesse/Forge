@@ -11,6 +11,21 @@ export interface NutritionTargets {
   confidence: 'low' | 'medium' | 'high';
   reason: string;
   safeguards: string[];
+  bodyComposition: BodyCompositionTarget;
+  adjustmentBreakdown: CalorieAdjustment[];
+}
+
+export interface BodyCompositionTarget {
+  label: string;
+  rangeLabel: string;
+  status: 'calibrating' | 'on-track' | 'outside-range' | 'stable';
+  statusLabel: string;
+}
+
+export interface CalorieAdjustment {
+  label: string;
+  kcal: number;
+  explanation: string;
 }
 
 interface NutritionCalibration {
@@ -18,6 +33,23 @@ interface NutritionCalibration {
   weighIns: number;
   spanDays: number;
   loggedDays: number;
+}
+
+function bodyCompositionTarget(goal: DigitalTwin['goals']['primary'], weightKg: number, trendKgPerWeek?: number): BodyCompositionTarget {
+  const ranges = {
+    'fat-loss': { min: -weightKg * 0.0075, max: -weightKg * 0.0025, label: 'Gradual fat loss' },
+    recomposition: { min: -weightKg * 0.0025, max: weightKg * 0.0015, label: 'Recomposition' },
+    'muscle-gain': { min: weightKg * 0.001, max: weightKg * 0.0025, label: 'Gradual muscle gain' },
+    performance: { min: -weightKg * 0.0015, max: weightKg * 0.0015, label: 'Performance support' },
+    maintenance: { min: -weightKg * 0.0015, max: weightKg * 0.0015, label: 'Weight maintenance' },
+  } satisfies Record<DigitalTwin['goals']['primary'], { min: number; max: number; label: string }>;
+  const target = ranges[goal];
+  const signed = (value: number) => `${value > 0 ? '+' : ''}${value.toFixed(2)}`;
+  const rangeLabel = `${signed(target.min)} to ${signed(target.max)} kg/week`;
+  if (trendKgPerWeek === undefined) return { label: target.label, rangeLabel, status: 'calibrating', statusLabel: 'Building a reliable trend' };
+  if (trendKgPerWeek >= target.min && trendKgPerWeek <= target.max) return { label: target.label, rangeLabel, status: 'on-track', statusLabel: 'Current trend is in range' };
+  const stableGoal = goal === 'maintenance' || goal === 'performance';
+  return { label: target.label, rangeLabel, status: stableGoal ? 'stable' : 'outside-range', statusLabel: stableGoal ? 'Current trend needs review' : 'Current trend is outside range' };
 }
 
 function nutritionCalibration(history: DailySnapshot[]): NutritionCalibration {
@@ -80,6 +112,24 @@ export function calculateNutritionTargets(twin: DigitalTwin, workout: WorkoutSes
       : 'low';
   const direction = trend === undefined ? 'Longer weight trend is still calibrating.' : `Longer weight trend is ${trend > 0 ? '+' : ''}${trend} kg/week.`;
   const demand = workout.planType === 'recovery' ? 'Recovery-day demand is lower.' : `${workout.intensity ?? 'moderate'} training demand adds fuel.`;
+  const adjustmentBreakdown: CalorieAdjustment[] = [
+    { label: 'Goal baseline', kcal: baseGoalAdjustment, explanation: `Supports the selected ${twin.goals.primary.replace('-', ' ')} goal.` },
+    { label: 'Training demand', kcal: trainingAdjustment, explanation: workout.planType === 'recovery' ? 'Recovery day uses less training fuel.' : 'Today’s session adds training fuel.' },
+    { label: 'Recovery support', kcal: recoveryAdjustment, explanation: recoveryAdjustment ? 'Lower readiness avoids compounding recovery strain.' : 'Readiness does not require extra recovery fuel.' },
+    { label: 'Trend correction', kcal: trendAdjustment, explanation: trendAdjustment ? 'A sustained, well-logged trend triggered the bounded correction.' : 'No evidence-supported trend correction is active.' },
+  ];
 
-  return { caloriesKcal, proteinG, carbsG, fatG, ...(trend === undefined ? {} : { trendKgPerWeek: trend }), adjustmentKcal, confidence, reason: `${direction} ${demand}`, safeguards };
+  return {
+    caloriesKcal,
+    proteinG,
+    carbsG,
+    fatG,
+    ...(trend === undefined ? {} : { trendKgPerWeek: trend }),
+    adjustmentKcal,
+    confidence,
+    reason: `${direction} ${demand}`,
+    safeguards,
+    bodyComposition: bodyCompositionTarget(twin.goals.primary, weight, trend),
+    adjustmentBreakdown,
+  };
 }

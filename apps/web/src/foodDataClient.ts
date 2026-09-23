@@ -35,6 +35,26 @@ interface ProviderFood {
   servingGrams?: unknown;
 }
 
+export interface MealPhotoItem {
+  name: string;
+  portionDescription: string;
+  estimatedGrams: number;
+  confidence: number;
+  caloriesKcal: number;
+  proteinG: number;
+  carbsG: number;
+  fatG: number;
+  nutritionSource: 'usda' | 'ai-estimate';
+  referenceFoodId?: string;
+  referenceFoodName?: string;
+}
+
+export interface MealPhotoAnalysis {
+  items: MealPhotoItem[];
+  assumptions: string[];
+  warnings: string[];
+}
+
 function nonnegative(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value) && value >= 0;
 }
@@ -68,6 +88,33 @@ function normalizeFood(value: ProviderFood): FoodDefinition | undefined {
   };
 }
 
+function normalizeMealPhotoAnalysis(value: unknown): MealPhotoAnalysis | undefined {
+  if (!value || typeof value !== 'object') return undefined;
+  const payload = value as Record<string, unknown>;
+  if (!Array.isArray(payload.items) || !Array.isArray(payload.assumptions) || !Array.isArray(payload.warnings)) return undefined;
+  const finite = (candidate: unknown) => typeof candidate === 'number' && Number.isFinite(candidate) && candidate >= 0;
+  const items = payload.items.flatMap((candidate): MealPhotoItem[] => {
+    if (!candidate || typeof candidate !== 'object') return [];
+    const item = candidate as Record<string, unknown>;
+    if (typeof item.name !== 'string' || typeof item.portionDescription !== 'string' || !finite(item.estimatedGrams) || !finite(item.confidence) || !finite(item.caloriesKcal) || !finite(item.proteinG) || !finite(item.carbsG) || !finite(item.fatG) || !['usda', 'ai-estimate'].includes(String(item.nutritionSource))) return [];
+    return [{
+      name: item.name,
+      portionDescription: item.portionDescription,
+      estimatedGrams: item.estimatedGrams as number,
+      confidence: item.confidence as number,
+      caloriesKcal: item.caloriesKcal as number,
+      proteinG: item.proteinG as number,
+      carbsG: item.carbsG as number,
+      fatG: item.fatG as number,
+      nutritionSource: item.nutritionSource as 'usda' | 'ai-estimate',
+      ...(typeof item.referenceFoodId === 'string' ? { referenceFoodId: item.referenceFoodId } : {}),
+      ...(typeof item.referenceFoodName === 'string' ? { referenceFoodName: item.referenceFoodName } : {}),
+    }];
+  });
+  if (!items.length || items.length !== payload.items.length || payload.assumptions.some((item) => typeof item !== 'string') || payload.warnings.some((item) => typeof item !== 'string')) return undefined;
+  return { items, assumptions: payload.assumptions as string[], warnings: payload.warnings as string[] };
+}
+
 export class FoodDataClient {
   constructor(private readonly config: FoodDataConfig, private readonly request: typeof fetch = fetch) {}
 
@@ -79,6 +126,13 @@ export class FoodDataClient {
   async barcode(code: string): Promise<FoodDefinition | undefined> {
     const payload = await this.get(`/v1/foods/barcode/${encodeURIComponent(code)}`, true) as { food?: unknown } | undefined;
     return payload?.food ? normalizeFood(payload.food as ProviderFood) : undefined;
+  }
+
+  async analyzeMealPhoto(imageDataUrl: string): Promise<MealPhotoAnalysis> {
+    const payload = await this.post('/v1/foods/photo-analysis', { imageDataUrl }) as { analysis?: unknown };
+    const analysis = normalizeMealPhotoAnalysis(payload.analysis);
+    if (!analysis) throw new FoodDataError(502);
+    return analysis;
   }
 
   async connectionDiagnostic(): Promise<string | undefined> {
@@ -97,6 +151,14 @@ export class FoodDataClient {
     const token = await this.config.accessToken();
     const response = await this.request(`${this.config.baseUrl}${path}`, { headers: { authorization: `Bearer ${token}` } });
     if (allowMissing && response.status === 404) return undefined;
+    if (!response.ok) throw new FoodDataError(response.status);
+    return response.json();
+  }
+
+
+  private async post(path: string, body: unknown): Promise<unknown> {
+    const token = await this.config.accessToken();
+    const response = await this.request(`${this.config.baseUrl}${path}`, { method: 'POST', headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' }, body: JSON.stringify(body) });
     if (!response.ok) throw new FoodDataError(response.status);
     return response.json();
   }

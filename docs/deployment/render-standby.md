@@ -13,7 +13,7 @@
 
 1. Declare an incident and assign one operator to Azure containment and another to Render activation.
 2. In Render, create a Blueprint from this repository and review every resource before applying it.
-3. Supply `OIDC_ISSUER`, `OIDC_AUDIENCE`, `OIDC_JWKS_URL`, and `OIDC_REQUIRED_SCOPE` for the API. Supply the `VITE_ENTRA_*` Blueprint values before the first web build so the image contains the same public SPA configuration as the primary release.
+3. Supply `OIDC_ISSUER`, `OIDC_AUDIENCE`, `OIDC_JWKS_URL`, `OIDC_REQUIRED_SCOPE`, `OPENAI_API_KEY`, `OPENAI_VISION_MODEL`, and `USDA_FOODDATA_API_KEY` for the API. Supply the `VITE_ENTRA_*`, `VITE_FORGE_SUPPORT_EMAIL`, and exact `VITE_FORGE_RELEASE_SHA` Blueprint values before the first web build so the image contains the same public SPA configuration and candidate identity as the primary release.
 4. Set `FORGE_WEB_ORIGIN` to the final HTTPS standby origin. Confirm the API remains a private service and PostgreSQL has an empty IP allow list.
 5. Download the latest trusted backup and checksum to a secured operator host. Restore it with:
 

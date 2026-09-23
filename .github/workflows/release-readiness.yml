@@ -82,6 +82,12 @@ jobs:
         shell: bash
         run: test "$(git rev-parse HEAD)" = "${{ inputs.candidate_commit }}"
 
+      - name: Smoke-test deployed candidate
+        env:
+          DEPLOYMENT_URL: ${{ inputs.deployment_url }}
+          EXPECTED_COMMIT: ${{ inputs.candidate_commit }}
+        run: node scripts/release/smoke-candidate.mjs
+
       - name: Validate release evidence
         shell: bash
         env:

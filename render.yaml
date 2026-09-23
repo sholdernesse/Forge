@@ -25,6 +25,14 @@ services:
         sync: false
       - key: OIDC_REQUIRED_SCOPE
         sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_VISION_MODEL
+        sync: false
+      - key: USDA_FOODDATA_API_KEY
+        sync: false
+      - key: MEAL_PHOTO_HOURLY_LIMIT
+        value: 10
 
   - type: web
     name: forge-web-standby
@@ -49,6 +57,10 @@ services:
       - key: VITE_ENTRA_API_SCOPE
         sync: false
       - key: VITE_ENTRA_REDIRECT_URI
+        sync: false
+      - key: VITE_FORGE_SUPPORT_EMAIL
+        sync: false
+      - key: VITE_FORGE_RELEASE_SHA
         sync: false
 
 databases:

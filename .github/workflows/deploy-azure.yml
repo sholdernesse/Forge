@@ -43,20 +43,29 @@ jobs:
         env:
           AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
           POSTGRES_PASSWORD: ${{ secrets.FORGE_POSTGRES_ADMIN_PASSWORD }}
+          AUDIT_HMAC_KEY: ${{ secrets.FORGE_AUDIT_HMAC_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          USDA_API_KEY: ${{ secrets.USDA_FOODDATA_API_KEY }}
+          OPENAI_VISION_MODEL: ${{ vars.OPENAI_VISION_MODEL }}
           ENTRA_CLIENT_ID: ${{ vars.VITE_ENTRA_CLIENT_ID }}
           ENTRA_AUTHORITY: ${{ vars.VITE_ENTRA_AUTHORITY }}
           ENTRA_API_SCOPE: ${{ vars.VITE_ENTRA_API_SCOPE }}
           OIDC_ISSUER: ${{ vars.OIDC_ISSUER }}
           OIDC_AUDIENCE: ${{ vars.OIDC_AUDIENCE }}
           OIDC_JWKS_URL: ${{ vars.OIDC_JWKS_URL }}
+          FORGE_SUPPORT_EMAIL: ${{ vars.VITE_FORGE_SUPPORT_EMAIL }}
         run: |
-          required=(AZURE_RESOURCE_GROUP POSTGRES_PASSWORD ENTRA_CLIENT_ID ENTRA_AUTHORITY ENTRA_API_SCOPE OIDC_ISSUER OIDC_AUDIENCE OIDC_JWKS_URL)
+          required=(AZURE_RESOURCE_GROUP POSTGRES_PASSWORD AUDIT_HMAC_KEY OPENAI_API_KEY USDA_API_KEY OPENAI_VISION_MODEL ENTRA_CLIENT_ID ENTRA_AUTHORITY ENTRA_API_SCOPE OIDC_ISSUER OIDC_AUDIENCE OIDC_JWKS_URL FORGE_SUPPORT_EMAIL)
           for name in "${required[@]}"; do
             if [ -z "${!name}" ]; then
               echo "Missing required GitHub environment variable or secret: $name" >&2
               exit 1
             fi
           done
+          if [ "${#AUDIT_HMAC_KEY}" -lt 32 ]; then
+            echo "FORGE_AUDIT_HMAC_KEY must contain at least 32 characters" >&2
+            exit 1
+          fi
 
       - name: Sign in to Azure using GitHub OIDC
         uses: azure/login@v2
@@ -71,6 +80,9 @@ jobs:
         env:
           RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
           POSTGRES_PASSWORD: ${{ secrets.FORGE_POSTGRES_ADMIN_PASSWORD }}
+          AUDIT_HMAC_KEY: ${{ secrets.FORGE_AUDIT_HMAC_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          USDA_API_KEY: ${{ secrets.USDA_FOODDATA_API_KEY }}
         run: |
           deployment="forge-${{ inputs.environment }}-foundation"
           az deployment group create \
@@ -81,6 +93,9 @@ jobs:
               environmentName="${{ inputs.environment }}" \
               location="${{ inputs.location }}" \
               postgresAdministratorPassword="$POSTGRES_PASSWORD" \
+              auditHmacKey="$AUDIT_HMAC_KEY" \
+              openAiApiKey="$OPENAI_API_KEY" \
+              usdaFoodDataApiKey="$USDA_API_KEY" \
             --only-show-errors
 
           for output in registryName registryLoginServer workloadIdentityName keyVaultName containerEnvironmentName apiAppName webAppName webOrigin; do
@@ -107,6 +122,8 @@ jobs:
             --build-arg VITE_ENTRA_AUTHORITY="${{ vars.VITE_ENTRA_AUTHORITY }}" \
             --build-arg VITE_ENTRA_API_SCOPE="${{ vars.VITE_ENTRA_API_SCOPE }}" \
             --build-arg VITE_ENTRA_REDIRECT_URI="$WEB_ORIGIN" \
+            --build-arg VITE_FORGE_SUPPORT_EMAIL="${{ vars.VITE_FORGE_SUPPORT_EMAIL }}" \
+            --build-arg VITE_FORGE_RELEASE_SHA="$GITHUB_SHA" \
             --tag "$web_image" .
 
           docker push "$api_image"
@@ -139,14 +156,19 @@ jobs:
               oidcIssuer="${{ vars.OIDC_ISSUER }}" \
               oidcAudience="${{ vars.OIDC_AUDIENCE }}" \
               oidcJwksUrl="${{ vars.OIDC_JWKS_URL }}" \
+              openAiVisionModel="${{ vars.OPENAI_VISION_MODEL }}" \
             --only-show-errors
 
           web_url=$(az deployment group show --name "$deployment" --resource-group "$RESOURCE_GROUP" --query 'properties.outputs.webUrl.value' --output tsv)
           echo "web_url=$web_url" >> "$GITHUB_OUTPUT"
 
-      - name: Verify deployed health endpoint
+      - name: Verify deployed candidate
         shell: bash
-        run: curl --fail --retry 8 --retry-delay 10 --retry-all-errors "${{ steps.apps.outputs.web_url }}/health"
+        env:
+          DEPLOYMENT_URL: ${{ steps.apps.outputs.web_url }}
+          EXPECTED_COMMIT: ${{ github.sha }}
+          SMOKE_ATTEMPTS: 8
+        run: node scripts/release/smoke-candidate.mjs
 
       - name: Write deployment summary
         run: |

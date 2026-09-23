@@ -49,6 +49,16 @@ export interface SavedMeal {
   items: Array<{ foodId: string; quantity: number }>;
 }
 
+export interface RecentMeal {
+  id: string;
+  date: string;
+  meal: MealType;
+  label: string;
+  items: FoodEntry[];
+  caloriesKcal: number;
+  proteinG: number;
+}
+
 export const quickFoods: Omit<FoodEntry, 'id' | 'date' | 'meal'>[] = [
   { name: 'Eggs + egg white', serving: '2 eggs + 1 white', caloriesKcal: 178, proteinG: 19, carbsG: 1, fatG: 10 },
   { name: 'Protein oats', serving: '1 bowl', caloriesKcal: 360, proteinG: 30, carbsG: 45, fatG: 7 },
@@ -112,4 +122,25 @@ export function mealEntries(savedMeal: SavedMeal, catalog: FoodDefinition[], dat
     const food = catalog.find((candidate) => candidate.id === item.foodId);
     return food ? [createFoodEntry(date, meal, scaleFood(food, item.quantity), idFactory())] : [];
   });
+}
+
+export function recentMeals(entries: FoodEntry[], beforeDate: string, meal: MealType, limit = 3): RecentMeal[] {
+  const dates = [...new Set(entries.filter((entry) => entry.date < beforeDate && entry.meal === meal).map((entry) => entry.date))].sort().reverse();
+  const seen = new Set<string>();
+  const suggestions: RecentMeal[] = [];
+  for (const date of dates) {
+    const items = entries.filter((entry) => entry.date === date && entry.meal === meal);
+    const signature = items.map((entry) => `${entry.name}|${entry.serving}|${entry.caloriesKcal}`).sort().join('::');
+    if (!signature || seen.has(signature)) continue;
+    seen.add(signature);
+    const caloriesKcal = items.reduce((sum, entry) => sum + entry.caloriesKcal, 0);
+    const proteinG = Math.round(items.reduce((sum, entry) => sum + entry.proteinG, 0) * 10) / 10;
+    suggestions.push({ id: `${date}-${meal}`, date, meal, label: items.map((entry) => entry.name).join(' + '), items, caloriesKcal, proteinG });
+    if (suggestions.length === limit) break;
+  }
+  return suggestions;
+}
+
+export function repeatMealEntries(recentMeal: RecentMeal, date: string, meal: MealType): FoodEntry[] {
+  return recentMeal.items.map(({ id: _id, date: _date, meal: _meal, ...food }, index) => createFoodEntry(date, meal, food, `${date}-${meal}-repeat-${Date.now()}-${index}`));
 }

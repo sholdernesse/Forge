@@ -27,6 +27,10 @@ services:
       FORGE_WEB_ORIGIN: http://localhost:4173
       FORGE_DEV_TOKEN: forge-local-development-token-change-me
       FORGE_DEV_USER_ID: forge-development-user
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_VISION_MODEL: ${OPENAI_VISION_MODEL:-gpt-6-astra}
+      USDA_FOODDATA_API_KEY: ${USDA_FOODDATA_API_KEY:-DEMO_KEY}
+      MEAL_PHOTO_HOURLY_LIMIT: ${MEAL_PHOTO_HOURLY_LIMIT:-10}
     ports:
       - "8787:8787"
     depends_on:

@@ -26,6 +26,13 @@ describe('food data client', () => {
     await expect(client.barcode('884912359155')).rejects.toEqual(new FoodDataError(503));
   });
 
+  it('posts an authenticated meal photo and validates the structured result', async () => {
+    const request = vi.fn(async () => Response.json({ analysis: { items: [{ name: 'Chicken', portionDescription: 'one breast', estimatedGrams: 150, confidence: .9, caloriesKcal: 248, proteinG: 46.5, carbsG: 0, fatG: 5.4, nutritionSource: 'usda', referenceFoodId: 'usda-1' }], assumptions: [], warnings: ['Confirm oil.'] } }));
+    const client = new FoodDataClient({ baseUrl: '/api', accessToken: async () => 'token' }, request as typeof fetch);
+    await expect(client.analyzeMealPhoto('data:image/jpeg;base64,YWJj')).resolves.toMatchObject({ items: [{ name: 'Chicken', nutritionSource: 'usda' }] });
+    expect(request).toHaveBeenCalledWith('/api/v1/foods/photo-analysis', { method: 'POST', headers: { authorization: 'Bearer token', 'content-type': 'application/json' }, body: JSON.stringify({ imageDataUrl: 'data:image/jpeg;base64,YWJj' }) });
+  });
+
   it('reports the same-origin development health route without exposing credentials', async () => {
     const request = vi.fn(async () => new Response(JSON.stringify({ status: 'ok' }), { status: 200 }));
     const config = foodDataConfig({ DEV: true, VITE_FORGE_SYNC_URL: 'http://localhost:8787' }, async () => 'secret');

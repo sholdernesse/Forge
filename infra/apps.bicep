@@ -14,6 +14,8 @@ param oidcIssuer string
 param oidcAudience string
 param oidcJwksUrl string
 param oidcRequiredScope string = 'access_as_user'
+param openAiVisionModel string
+param mealPhotoHourlyLimit int = 10
 param minimumReplicas int = 0
 param maximumReplicas int = 3
 param tags object = {}
@@ -76,6 +78,21 @@ resource api 'Microsoft.App/containerApps@2024-03-01' = {
           keyVaultUrl: '${keyVault.properties.vaultUri}secrets/forge-database-url'
           identity: workloadIdentity.id
         }
+        {
+          name: 'audit-hmac-key'
+          keyVaultUrl: '${keyVault.properties.vaultUri}secrets/forge-audit-hmac-key'
+          identity: workloadIdentity.id
+        }
+        {
+          name: 'openai-api-key'
+          keyVaultUrl: '${keyVault.properties.vaultUri}secrets/forge-openai-api-key'
+          identity: workloadIdentity.id
+        }
+        {
+          name: 'usda-fooddata-api-key'
+          keyVaultUrl: '${keyVault.properties.vaultUri}secrets/forge-usda-fooddata-api-key'
+          identity: workloadIdentity.id
+        }
       ]
     }
     template: {
@@ -99,6 +116,26 @@ resource api 'Microsoft.App/containerApps@2024-03-01' = {
             {
               name: 'DATABASE_POOL_SIZE'
               value: '10'
+            }
+            {
+              name: 'FORGE_AUDIT_HMAC_KEY'
+              secretRef: 'audit-hmac-key'
+            }
+            {
+              name: 'OPENAI_API_KEY'
+              secretRef: 'openai-api-key'
+            }
+            {
+              name: 'OPENAI_VISION_MODEL'
+              value: openAiVisionModel
+            }
+            {
+              name: 'USDA_FOODDATA_API_KEY'
+              secretRef: 'usda-fooddata-api-key'
+            }
+            {
+              name: 'MEAL_PHOTO_HOURLY_LIMIT'
+              value: string(mealPhotoHourlyLimit)
             }
             {
               name: 'FORGE_WEB_ORIGIN'

@@ -11,9 +11,21 @@ export default defineConfig(({ mode }) => {
           cert: readFileSync(new URL('./.cert/forge-cert.pem', import.meta.url)),
         }
       : undefined;
+  const releaseConfig = JSON.stringify({
+    releaseSha: process.env.VITE_FORGE_RELEASE_SHA ?? '',
+    supportEmail: process.env.VITE_FORGE_SUPPORT_EMAIL ?? '',
+  });
 
   return {
-    plugins: [react()],
+    plugins: [
+      react(),
+      {
+        name: 'forge-release-config',
+        generateBundle() {
+          this.emitFile({ type: 'asset', fileName: 'release-config.json', source: releaseConfig });
+        },
+      },
+    ],
     resolve: {
       alias: {
         '@forge/coach': fileURLToPath(

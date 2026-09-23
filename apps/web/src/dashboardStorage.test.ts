@@ -2,9 +2,13 @@ import { describe, expect, it } from 'vitest';
 import { demoHistory } from './demoData.js';
 import {
   DASHBOARD_STORAGE_KEY,
+  DASHBOARD_DELETION_KEY,
+  clearDashboardDeletionMarker,
   clearDashboardState,
+  dashboardDeletionPending,
   loadDashboardState,
   saveDashboardState,
+  markDashboardDeletionPending,
   type DashboardState,
   type DashboardStorage,
 } from './dashboardStorage.js';
@@ -97,6 +101,17 @@ describe('dashboard storage', () => {
     saveDashboardState(storage, fallback);
     clearDashboardState(storage);
     expect(storage.getItem(DASHBOARD_STORAGE_KEY)).toBeNull();
+  });
+
+  it('keeps a deletion marker separate from dashboard data until an explicit fresh start', () => {
+    const storage = new MemoryStorage();
+    saveDashboardState(storage, fallback);
+    markDashboardDeletionPending(storage);
+    clearDashboardState(storage);
+    expect(dashboardDeletionPending(storage)).toBe(true);
+    expect(storage.getItem(DASHBOARD_DELETION_KEY)).not.toBeNull();
+    clearDashboardDeletionMarker(storage);
+    expect(dashboardDeletionPending(storage)).toBe(false);
   });
 
   it('filters malformed coach messages and keeps the newest 40', () => {

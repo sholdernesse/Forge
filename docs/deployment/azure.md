@@ -44,9 +44,12 @@ AZURE_CLIENT_ID
 AZURE_TENANT_ID
 AZURE_SUBSCRIPTION_ID
 FORGE_POSTGRES_ADMIN_PASSWORD
+FORGE_AUDIT_HMAC_KEY
+OPENAI_API_KEY
+USDA_FOODDATA_API_KEY
 ```
 
-The PostgreSQL administrator password should be a generated high-entropy value used only for the deployment. It is passed as a secure Bicep parameter and stored in the Forge Key Vault as part of the complete database URL.
+The PostgreSQL administrator password should be a generated high-entropy value used only for the deployment. `FORGE_AUDIT_HMAC_KEY` must be an independent generated secret of at least 32 characters. The OpenAI and USDA credentials must be restricted server-side keys with spending/rate controls appropriate to the environment. These values are passed as secure Bicep parameters and stored in the Forge Key Vault; none is compiled into the web image.
 
 ## GitHub environment variables
 
@@ -55,12 +58,14 @@ AZURE_RESOURCE_GROUP
 VITE_ENTRA_CLIENT_ID
 VITE_ENTRA_AUTHORITY
 VITE_ENTRA_API_SCOPE
+VITE_FORGE_SUPPORT_EMAIL
 OIDC_ISSUER
 OIDC_AUDIENCE
 OIDC_JWKS_URL
+OPENAI_VISION_MODEL
 ```
 
-The Entra SPA values are public application configuration. The OIDC values tell the API which issuer, audience, signing keys, and delegated scope to accept.
+The Entra SPA values and support address are public application configuration. `VITE_FORGE_SUPPORT_EMAIL` must be a verified, monitored mailbox and is compiled into the public Privacy, Terms, and Support pages. The OIDC values tell the API which issuer, audience, signing keys, and delegated scope to accept. `OPENAI_VISION_MODEL` selects the approved image-capable server model without exposing the API key.
 
 ## Deploy
 

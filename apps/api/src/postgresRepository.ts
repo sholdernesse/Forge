@@ -52,6 +52,11 @@ export class PostgresDashboardRepository implements DashboardRepository {
     return envelope(result.rows[0]);
   }
 
+  async delete(userId: string): Promise<boolean> {
+    const result = await this.pool.query('DELETE FROM dashboard_snapshots WHERE user_id = $1', [userId]);
+    return (result.rowCount ?? 0) > 0;
+  }
+
   async close(): Promise<void> {
     await this.pool.end();
   }

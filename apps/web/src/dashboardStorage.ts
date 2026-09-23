@@ -55,6 +55,7 @@ export interface DashboardStorage {
 }
 
 export const DASHBOARD_STORAGE_KEY = 'forge.dashboard.v1';
+export const DASHBOARD_DELETION_KEY = 'forge.dashboard.deletion-pending.v1';
 export const DASHBOARD_SAVED_EVENT = 'forge:dashboard-saved';
 
 function inRange(value: unknown, minimum: number, maximum: number): value is number {
@@ -151,4 +152,16 @@ export function dashboardStateUpdatedAt(storage: DashboardStorage): string | und
 
 export function clearDashboardState(storage: DashboardStorage): void {
   storage.removeItem(DASHBOARD_STORAGE_KEY);
+}
+
+export function markDashboardDeletionPending(storage: DashboardStorage): void {
+  storage.setItem(DASHBOARD_DELETION_KEY, new Date().toISOString());
+}
+
+export function dashboardDeletionPending(storage: DashboardStorage): boolean {
+  return storage.getItem(DASHBOARD_DELETION_KEY) !== null;
+}
+
+export function clearDashboardDeletionMarker(storage: DashboardStorage): void {
+  storage.removeItem(DASHBOARD_DELETION_KEY);
 }

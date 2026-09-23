@@ -17,8 +17,22 @@ for variable in OIDC_ISSUER OIDC_AUDIENCE OIDC_JWKS_URL OIDC_REQUIRED_SCOPE; do
   grep -q "key: ${variable}" render.yaml || fail "standby API is missing ${variable}"
 done
 
-for variable in VITE_ENTRA_CLIENT_ID VITE_ENTRA_AUTHORITY VITE_ENTRA_API_SCOPE; do
+for variable in OPENAI_API_KEY OPENAI_VISION_MODEL USDA_FOODDATA_API_KEY; do
+  grep -q "key: ${variable}" render.yaml || fail "standby API is missing ${variable}"
+done
+
+grep -q "name: 'forge-openai-api-key'" infra/main.bicep || fail "Azure Key Vault is missing the OpenAI secret"
+grep -q "name: 'forge-usda-fooddata-api-key'" infra/main.bicep || fail "Azure Key Vault is missing the USDA secret"
+grep -q "name: 'OPENAI_API_KEY'" infra/apps.bicep || fail "Azure API app is missing the OpenAI secret reference"
+
+for variable in VITE_ENTRA_CLIENT_ID VITE_ENTRA_AUTHORITY VITE_ENTRA_API_SCOPE VITE_FORGE_SUPPORT_EMAIL VITE_FORGE_RELEASE_SHA; do
   grep -q "key: ${variable}" render.yaml || fail "standby web build is missing ${variable}"
+done
+
+for location in 'location /assets/' 'location / {'; do
+  block="$(sed -n "/${location//\//\\/}/,/^  }/p" apps/web/nginx.conf)"
+  grep -q 'X-Content-Type-Options' <<< "$block" || fail "$location is missing route-level security headers"
+  grep -q 'X-Frame-Options' <<< "$block" || fail "$location is missing frame protection"
 done
 
 if grep -Eq 'key: ENTRA_(ISSUER|AUDIENCE|JWKS_URI)' render.yaml; then

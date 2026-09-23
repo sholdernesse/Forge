@@ -1,6 +1,10 @@
 import { parseDashboardState, type DashboardState } from './dashboardStorage.js';
 
-export type SyncStatus = 'local' | 'connecting' | 'synced' | 'syncing' | 'conflict' | 'offline';
+export type SyncStatus = 'local' | 'connecting' | 'synced' | 'syncing' | 'reconnecting' | 'conflict' | 'offline';
+
+export function syncFailureStatus(browserOnline: boolean): SyncStatus {
+  return browserOnline ? 'reconnecting' : 'offline';
+}
 
 export interface RemoteDashboard {
   state: DashboardState;
@@ -77,6 +81,20 @@ export class DashboardSyncClient {
 
   save(state: DashboardState, updatedAt: string): Promise<RemoteDashboard> {
     const operation = this.saveQueue.then(() => this.performSave(state, updatedAt));
+    this.saveQueue = operation.then(() => undefined, () => undefined);
+    return operation;
+  }
+
+  delete(): Promise<void> {
+    const operation = this.saveQueue.then(async () => {
+      const token = await this.config.accessToken();
+      const response = await this.request(`${this.config.baseUrl}/v1/dashboard`, {
+        method: 'DELETE',
+        headers: { authorization: `Bearer ${token}` },
+      });
+      if (!response.ok) throw new Error(`Dashboard deletion failed (${response.status})`);
+      this.revision = undefined;
+    });
     this.saveQueue = operation.then(() => undefined, () => undefined);
     return operation;
   }

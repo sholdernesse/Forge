@@ -18,6 +18,14 @@ This checklist is the remaining human acceptance gate for PR #2. It must be run 
 - [ ] Navigate Previous and Next across matching workouts on both viewports; confirm search, sort, range, pagination, and export scope remain unchanged.
 - [ ] Confirm controls remain usable without horizontal page scrolling at the phone's normal portrait zoom and after one orientation change.
 
+## Nutrition camera workflows
+
+- [ ] On the phone, photograph a non-sensitive test plate with two or more distinct foods. Confirm Forge previews the prepared image and returns editable items, portions, confidence, nutrition source, assumptions, and warnings.
+- [ ] Correct one portion or macro, exclude one detected item, and add the reviewed meal. Confirm only selected items enter the chosen meal period and daily totals update immediately.
+- [ ] Refresh the phone and desktop. Confirm approved nutrition entries synchronize, while the submitted photograph does not appear in history, exports, browser storage, API logs, or the synchronized dashboard.
+- [ ] Scan one packaged-food barcode after the photo test to confirm the shared camera permission still permits the existing barcode workflow.
+- [ ] Confirm an unsupported image and a provider-unavailable response produce actionable messages without adding nutrition entries.
+
 ## Conflict and isolation
 
 - [ ] Load the same revision on both devices, save a change on the phone, then attempt a stale desktop save. Confirm the phone's newer data is not overwritten and the conflict is visible/recoverable.

@@ -7,8 +7,8 @@ import {
   Repeat2, Save, Target, TrendingDown, Utensils, X,
 } from 'lucide-react';
 import { demoGoals, demoHistory, demoProfile } from './demoData.js';
-import { cacheDashboardState, clearDashboardState, dashboardStateUpdatedAt, DASHBOARD_SAVED_EVENT, loadDashboardState, saveDashboardState, type CheckIn, type CoachMessage, type DashboardSaveEventDetail } from './dashboardStorage.js';
-import { DashboardSyncClient, DashboardSyncConflictError, dashboardSyncConfig, newerThanLocal, type RemoteDashboard, type SyncStatus } from './dashboardSync.js';
+import { cacheDashboardState, clearDashboardDeletionMarker, clearDashboardState, dashboardDeletionPending, dashboardStateUpdatedAt, DASHBOARD_SAVED_EVENT, loadDashboardState, markDashboardDeletionPending, saveDashboardState, type CheckIn, type CoachMessage, type DashboardSaveEventDetail, type DashboardState } from './dashboardStorage.js';
+import { DashboardSyncClient, DashboardSyncConflictError, dashboardSyncConfig, newerThanLocal, syncFailureStatus, type RemoteDashboard, type SyncStatus } from './dashboardSync.js';
 import { WorkoutPlayer } from './WorkoutPlayer.js';
 import { clearWorkoutRest, completedSetCount, isWorkingSet, createTodayWorkout, totalSetCount, workoutElapsedMinutes, type WorkoutFeedback, type WorkoutSession } from './workoutSession.js';
 import { demoExerciseHistory, exerciseProgressTimeline, recordPerformances, strongestMovements, type ExercisePerformance } from './progression.js';
@@ -45,6 +45,7 @@ import { performanceTimeline, weightProgressStory } from './performanceTimeline.
 import { strengthProgressInsight } from './strengthInsight.js';
 import { addHydration, hydrationContext, hydrationTotal, undoLatestHydration, type HydrationEntry } from './hydration.js';
 import { FoodDataClient, foodDataConfig } from './foodDataClient.js';
+import { forgeAccountDataFilename, forgeAccountDataJson } from './accountDataExport.js';
 
 const defaultCheckIn: CheckIn = { sleepScore: 77, sleepHours: 7, soreness: 4, stress: 3, weightKg: 75.8 };
 
@@ -191,6 +192,24 @@ export function App() {
     });
   }
 
+  function currentDashboardState(): DashboardState {
+    return {
+      history,
+      checkIn,
+      workoutSession: workout,
+      exerciseHistory,
+      sessionHistory,
+      scheduleOverrides,
+      foodEntries,
+      favoriteFoodIds,
+      savedMeals,
+      coachMessages,
+      hydrationEntries,
+      ...(savedAt ? { savedAt } : {}),
+      ...(onboardingProfile ? { onboardingProfile } : {}),
+    };
+  }
+
   const athleteProfile = useMemo(
     () => onboardingProfile
       ? userProfileFromOnboarding(onboardingProfile, auth.username ?? 'forge-athlete')
@@ -267,10 +286,15 @@ export function App() {
     }
     const config = dashboardSyncConfig(environment, auth.accessToken);
     if (!config) return;
+    if (dashboardDeletionPending(window.localStorage)) {
+      setSyncStatus('local');
+      return;
+    }
     const client = new DashboardSyncClient(config);
     let active = true;
     let connected = false;
     let connection: Promise<void> | undefined;
+    const browserOnline = () => typeof navigator === 'undefined' || navigator.onLine;
 
     const applyRemote = (remote: RemoteDashboard) => {
       const next = remote.state;
@@ -309,7 +333,7 @@ export function App() {
           setSyncStatus('synced');
         })
         .catch((error: unknown) => {
-          if (active) setSyncStatus('offline');
+          if (active) setSyncStatus(syncFailureStatus(browserOnline()));
           throw error;
         })
         .finally(() => { connection = undefined; });
@@ -325,7 +349,7 @@ export function App() {
           if (!active) return;
           if (!(error instanceof DashboardSyncConflictError)) {
             connected = false;
-            setSyncStatus('offline');
+            setSyncStatus(syncFailureStatus(browserOnline()));
             return;
           }
           setSyncStatus('conflict');
@@ -362,6 +386,9 @@ export function App() {
     window.addEventListener(DASHBOARD_SAVED_EVENT, handleSaved);
     const retry = () => { if (!connected) void connect().catch(() => undefined); };
     window.addEventListener('online', retry);
+    window.addEventListener('focus', retry);
+    const retryWhenVisible = () => { if (document.visibilityState === 'visible') retry(); };
+    document.addEventListener('visibilitychange', retryWhenVisible);
     const retryTimer = window.setInterval(retry, 15_000);
     retry();
 
@@ -369,9 +396,11 @@ export function App() {
       active = false;
       window.removeEventListener(DASHBOARD_SAVED_EVENT, handleSaved);
       window.removeEventListener('online', retry);
+      window.removeEventListener('focus', retry);
+      document.removeEventListener('visibilitychange', retryWhenVisible);
       window.clearInterval(retryTimer);
     };
-  }, [auth.accessToken, auth.status, demoMode, environment, initialState, onboardingProfile]);
+  }, [auth.accessToken, auth.status, environment, initialState]);
 
   useEffect(() => {
     if (workout.status !== 'not-started') return;
@@ -564,6 +593,7 @@ export function App() {
   }
 
   function completeOnboarding(profile: OnboardingProfile) {
+    clearDashboardDeletionMarker(window.localStorage);
     const nextCheckIn = { ...checkIn, weightKg: profile.weightKg };
     const nextHistory = history.map((day) => day.date === TODAY ? { ...day, weightKg: profile.weightKg } : day);
     setOnboardingProfile(profile);
@@ -604,6 +634,20 @@ export function App() {
 
   function resetPrototype() {
     clearDashboardState(window.localStorage);
+    window.location.reload();
+  }
+
+  function exportForgeData() {
+    downloadTrainingFile(forgeAccountDataJson(currentDashboardState()), 'application/json;charset=utf-8', forgeAccountDataFilename(TODAY));
+  }
+
+  async function deleteForgeData() {
+    const config = dashboardSyncConfig(environment, auth.accessToken);
+    if (!config) throw new Error('Cloud sync is unavailable');
+    markDashboardDeletionPending(window.localStorage);
+    await new DashboardSyncClient(config).delete();
+    clearDashboardState(window.localStorage);
+    await auth.signOut();
     window.location.reload();
   }
 
@@ -658,7 +702,7 @@ export function App() {
         <header className="topbar">
           <div><span className="eyebrow">{localDateHeading(sessionNow)}</span><h1>{greetingForHour(sessionNow.getHours())}, {displayName}.</h1><p>{firstRun ? 'Build a focused starting plan from your goals and real-life training setup.' : 'Your plan has adapted to how you’re recovering today.'}</p></div>
           <div className="topbar-actions">
-            <span className={`save-status sync-${syncStatus}`}>{syncStatus === 'offline' ? <CloudOff size={15} /> : syncStatus === 'conflict' ? <ShieldAlert size={15} /> : syncStatus === 'local' ? <Save size={15} /> : <Cloud size={15} />} {syncStatus === 'syncing' ? 'Syncing…' : syncStatus === 'connecting' ? 'Connecting…' : syncStatus === 'synced' ? 'Synced across devices' : syncStatus === 'conflict' ? 'Sync needs attention' : syncStatus === 'offline' ? 'Offline · saved locally' : savedAt ? 'Saved on this device' : demoMode ? 'Demo data' : 'Ready to set up'}</span>
+            <span className={`save-status sync-${syncStatus}`}>{syncStatus === 'offline' ? <CloudOff size={15} /> : syncStatus === 'conflict' ? <ShieldAlert size={15} /> : syncStatus === 'local' ? <Save size={15} /> : <Cloud size={15} />} {syncStatus === 'syncing' ? 'Syncing…' : syncStatus === 'connecting' ? 'Connecting…' : syncStatus === 'reconnecting' ? 'Reconnecting · saved locally' : syncStatus === 'synced' ? 'Synced across devices' : syncStatus === 'conflict' ? 'Sync needs attention' : syncStatus === 'offline' ? 'Offline · saved locally' : savedAt ? 'Saved on this device' : demoMode ? 'Demo data' : 'Ready to set up'}</span>
             {auth.status === 'signed-out' ? <button className="auth-button" onClick={() => void auth.signIn()}>Sign in</button> : auth.status === 'signed-in' ? <button className="auth-button signed-in" onClick={() => void auth.signOut()} title="Sign out">{auth.name ?? auth.username ?? 'Account'}</button> : null}
             <button className="topbar-settings" onClick={() => setSettingsOpen(true)} aria-label="Open Forge settings"><Settings size={18} /></button>
             <button className="reflection-button" disabled={firstRun} onClick={openReflection}><HeartPulse size={18} /> Evening reflection</button>
@@ -767,8 +811,14 @@ export function App() {
           <article className="panel nutrition-panel">
             <div className="panel-heading"><div><span className="section-label">ADAPTIVE NUTRITION</span><h3>{nutritionTargets.caloriesKcal.toLocaleString()} kcal · {nutritionTargets.confidence} confidence</h3></div><Apple size={22} className="trend-icon" /></div>
             <p className="panel-copy">{nutritionTargets.reason}</p>
+            <section className={`body-composition-target ${nutritionTargets.bodyComposition.status}`}>
+              <span>BODY-COMPOSITION TARGET</span>
+              <div><b>{nutritionTargets.bodyComposition.label}</b><strong>{nutritionTargets.bodyComposition.rangeLabel}</strong></div>
+              <small>{nutritionTargets.bodyComposition.statusLabel}</small>
+            </section>
             <div className="macro-targets"><div><span>Protein</span><strong>{nutritionTargets.proteinG}g</strong><small>Preserve and build lean mass</small></div><div><span>Carbs</span><strong>{nutritionTargets.carbsG}g</strong><small>Fuel training and recovery</small></div><div><span>Fat</span><strong>{nutritionTargets.fatG}g</strong><small>Hormones and satiety</small></div></div>
             <div className="nutrition-adjustment"><span><Flame size={17} /><b>Today’s adjustment</b></span><strong>{nutritionTargets.adjustmentKcal > 0 ? '+' : ''}{nutritionTargets.adjustmentKcal} kcal</strong></div>
+            <details className="nutrition-breakdown"><summary>Why this adjustment?</summary><div>{nutritionTargets.adjustmentBreakdown.map((item) => <article key={item.label}><span><b>{item.label}</b><small>{item.explanation}</small></span><strong>{item.kcal > 0 ? '+' : ''}{item.kcal}</strong></article>)}</div></details>
             <div className="hydration-quick-log"><span><Droplets size={17} /><span><b>Water logged today</b><small>{(waterMl / 1_000).toFixed(waterMl % 1_000 === 0 ? 1 : 2)} L · {Math.round(waterMl / 29.5735)} fl oz · {waterContext.reference}</small></span></span><div><button onClick={() => logWater(237)}>+ 8 fl oz</button><button onClick={() => logWater(473)}>+ 16 fl oz</button>{waterMl > 0 && <button className="hydration-undo" onClick={undoWater}>Undo last</button>}</div><p>{waterContext.explanation}</p></div>
             <details className="micronutrient-coverage">
               <summary><span><b>Nutrition quality</b><small>{nutrientCoverage.length ? `${nutrientCoverage.length} nutrients tracked` : 'Add a searched or scanned food'}</small></span><strong>View</strong></summary>
@@ -828,6 +878,7 @@ export function App() {
             </section>}
           </article>
         </section>
+        <footer className="app-footer"><span>Forge provides general fitness and nutrition guidance—not medical care.</span><nav aria-label="Legal and support"><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/support">Support</a></nav></footer>
       </main>
 
       {reflectionOpen && <div className="drawer-backdrop" onMouseDown={() => setReflectionOpen(false)}>
@@ -858,7 +909,7 @@ export function App() {
       {onboardingOpen && <OnboardingFlow onComplete={completeOnboarding} onClose={() => setOnboardingOpen(false)} />}
       {workoutOpen && <WorkoutPlayer session={workout} exerciseHistory={exerciseHistory} {...(currentWorkoutFocus ? { carryForward: currentWorkoutFocus } : {})} onChange={persistWorkout} onClose={() => setWorkoutOpen(false)} onFinish={finishWorkout} />}
       {foodLoggerOpen && <FoodLogger date={TODAY} entries={foodEntries} favoriteFoodIds={favoriteFoodIds} savedMeals={savedMeals} choicePriority={athleteGoals.primary === 'muscle-gain' || athleteGoals.primary === 'performance' ? 'protein' : athleteGoals.primary === 'fat-loss' ? 'calorie-efficiency' : 'balanced'} {...(foodDataClient ? { foodDataClient } : {})} onChange={updateFoodEntries} onPreferencesChange={updateFoodPreferences} onClose={() => setFoodLoggerOpen(false)} />}
-      {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} onGeneratePlan={generateNewPlan} onReset={resetPrototype} />}
+      {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} onGeneratePlan={generateNewPlan} onReset={resetPrototype} onExport={exportForgeData} onDelete={deleteForgeData} canDeleteCloud={auth.status === 'signed-in' || auth.status === 'development'} />}
       {coachOpen && <CoachPanel twin={twin} messages={coachMessages} onMessagesChange={updateCoachMessages} onAction={handleCoachAction} onClose={() => setCoachOpen(false)} />}
       {movementLibraryOpen && <MovementLibrary onClose={() => setMovementLibraryOpen(false)} />}
 

@@ -2,9 +2,9 @@
 
 > **Living plan:** This is the canonical product and delivery plan for Forge. Update it whenever scope, priorities, sequencing, or release status changes. Individual sprint files remain the implementation record.
 
-**Current checkpoint:** Sprint 4.89 on PR #2
-**Product stage:** Functional responsive prototype moving toward an authenticated release candidate  
-**Last reviewed:** September 16, 2026
+**Current checkpoint:** Sprint 4.97 on PR #2
+**Product stage:** Release Candidate 1 hardening and physical acceptance
+**Last reviewed:** September 21, 2026
 
 ## 1. North star
 
@@ -63,7 +63,7 @@ The interface should never require fitness expertise to understand the next acti
 | Progress | Understand strength, volume, quality, and session trends | Functional |
 | Coach | Understand why Forge changed the plan and act directly | Functional prototype |
 | Movement guidance | Learn setup, range, tempo, and working muscles visually | Interim still-image system |
-| Account and sync | Continue securely across devices | Implemented; desktop write recovery remains an open acceptance defect |
+| Account and sync | Continue securely across devices | Automated recovery hardened; deployed desktop/mobile revalidation remains |
 
 ## 6. Architecture guardrails
 
@@ -90,6 +90,8 @@ See [Sprint 4 architecture](./architecture/sprint-4.md) for package and data-flo
 - Azure infrastructure definitions, production web gateway, recovery procedures, and Render standby documentation.
 - Reproducible CI covering lint, typecheck, tests, build, security boundaries, release policy, infrastructure compilation, and container builds.
 - Shared stack-aware dialog keyboard behavior with targeted focus, Escape, semantic markup, and onboarding-flow tests.
+- Public privacy, beta terms, and support routes with a deployment-required support contact.
+- Automated deployed-candidate smoke validation for release identity, support configuration, API health, public routes, SPA fallback, security headers, immutable assets, and anonymous dashboard denial.
 
 ### Today and coaching
 
@@ -120,6 +122,7 @@ See [Sprint 4 architecture](./architecture/sprint-4.md) for package and data-flo
 - Adaptive calories and macros from deterministic policy.
 - Food search, quick foods, favorites, quantities, custom foods, saved meals, meal periods, and removal.
 - Provider-neutral barcode boundary with safe unknown-food behavior.
+- Opt-in meal-photo analysis with metadata-stripped upload, structured food detection, USDA enrichment, visibly labeled AI fallback, editable portions/macros, uncertainty notes, and explicit approval before logging.
 - Immediate daily totals and Digital Twin updates.
 - Low-friction daily water logging with bounded quick-add entries and cross-device persistence.
 
@@ -153,11 +156,15 @@ PR #2 should deliver a coherent, testable Forge web candidate with:
 ### Remaining release blockers
 
 1. **Complete physical desktop/mobile acceptance**
+   - Run the automated candidate smoke gate and confirm it identifies the exact deployed commit before beginning the human checklist.
    - Run the [physical acceptance checklist](./acceptance/physical-desktop-mobile.md) against the deployed candidate.
    - Record browser/device evidence, cross-device continuity, conflict recovery, account isolation, and responsive behavior.
-   - Resolve the observed desktop state that remains `Offline · saved locally` despite a healthy authenticated API and locally persisted save event.
+   - Revalidate the Sprint 4.95 sync remediation: a healthy browser now reports `Reconnecting · saved locally`, retries on focus and visibility recovery, and reserves `Offline · saved locally` for a browser-reported network outage.
 2. **Record authorized recovery evidence**
    - PostgreSQL restore and Render standby exercises remain operational gates when infrastructure is authorized.
+3. **Complete release-owner review**
+   - Configure and verify `VITE_FORGE_SUPPORT_EMAIL`.
+   - Approve the public beta privacy notice and terms before inviting users; obtain jurisdiction-specific legal review before a general-availability launch.
 
 ## 9. Prioritized roadmap
 
@@ -241,8 +248,8 @@ Sprint 4.71 establishes the paired movement/anatomy contract across every curren
 - ~~Low-friction hydration logging with honest target context.~~ Quick-add amounts were delivered in Sprint 4.53; Sprint 4.88 adds the established adult total-water reference while keeping it distinct from Forge's plain-water log and noting that activity, heat, and illness change individual needs.
 - ~~Daily and seven-day micronutrient coverage from verified food records.~~ Fiber, sodium, potassium, calcium, iron, and vitamin D delivered in Sprint 4.86 using standard FDA Daily Values; Sprint 4.87 adds a minimum-evidence weekly pattern and one food-first priority. Broader nutrients remain evidence-gated.
 - ~~Longer-history calorie calibration.~~ Sprint 4.89 replaces the short seven-day trigger with a minimum 12-day weight span, eight weigh-ins, and ten prior nutrition-log days before the existing bounded recomposition correction can activate. Direct expenditure estimation remains deferred until stronger intake and activity evidence exists.
-- Adaptive body-composition targets and clear adjustment explanations.
-- Meal planning only where it reduces logging burden.
+- ~~Adaptive body-composition targets and clear adjustment explanations.~~ Sprint 4.90 adds goal-specific weekly trend ranges, visible trend status, and a reconciled explanation of every calorie adjustment component without weakening the longer-history safeguards.
+- ~~Meal planning only where it reduces logging burden.~~ Saved meals provide intentional favorites; Sprint 4.91 adds one-tap reuse of distinct recent meals from the user’s own log without inventing a prescriptive meal plan.
 
 **Exit:** Nutrition adaptation is trustworthy, low-friction, and connected to the user’s goal and training demand.
 
@@ -253,7 +260,7 @@ Sprint 4.71 establishes the paired movement/anatomy contract across every curren
 - Authorized PostgreSQL production environment and tested backup/restore.
 - Azure deployment as the primary supported path.
 - Render standby activation only when cost and recovery objectives justify it.
-- Monitoring, error reporting, audit events, privacy retention, and support procedures.
+- ~~Monitoring, error reporting, audit events, privacy retention, and support procedures.~~ Sprint 4.92 adds privacy-safe structured API request logs, correlation IDs, and an initial Log Analytics operating guide; Sprint 4.93 adds pseudonymous dashboard-mutation audit events and production key enforcement; Sprint 4.94 adds portable export, account-scoped synchronized-data deletion, restore-safe deletion handling, retention rules, and support boundaries.
 - Load and capacity testing against measured traffic patterns.
 - Staged scaling toward 100,000+ users through stateless services, indexed account-scoped data, queues for asynchronous work, and observable limits.
 
