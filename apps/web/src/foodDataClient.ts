@@ -135,6 +135,17 @@ export class FoodDataClient {
     return analysis;
   }
 
+  async mealPhotoAvailable(): Promise<boolean> {
+    try {
+      const response = await this.request(`${this.config.baseUrl}/health`);
+      if (!response.ok) return false;
+      const payload = await response.json() as { capabilities?: { mealPhotoAnalysis?: unknown } };
+      return payload.capabilities?.mealPhotoAnalysis === true;
+    } catch {
+      return false;
+    }
+  }
+
   async connectionDiagnostic(): Promise<string | undefined> {
     if (!this.config.diagnostics) return undefined;
     const route = `${this.config.baseUrl}/health`;

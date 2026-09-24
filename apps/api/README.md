@@ -34,6 +34,8 @@ If USDA is not configured, the web app continues to use its local foods. Provide
 
 Meal-photo analysis additionally requires server-only `OPENAI_API_KEY` and `OPENAI_VISION_MODEL` values. The browser never receives the API key. Results are estimates that remain editable and are not added to the nutrition log until the user explicitly approves them.
 
+For local HTTPS development, place these values in the repository-root `.env.local`. The `dev:https` launcher loads that ignored file before starting the API. Check `/health` and require `capabilities.mealPhotoAnalysis` to be `true` before testing a plate photo.
+
 ## Data ownership
 
 The verified JWT `sub` claim becomes `dashboard_snapshots.user_id`. No route accepts a user ID from the browser. Updates require the revision returned by the latest successful read or write.

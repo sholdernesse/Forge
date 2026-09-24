@@ -26,6 +26,8 @@ export function FoodLogger({ date, entries, favoriteFoodIds, savedMeals, foodDat
   const [barcodeMessage, setBarcodeMessage] = useState('');
   const [scannerOpen, setScannerOpen] = useState(false);
   const [photoLoggerOpen, setPhotoLoggerOpen] = useState(false);
+  const [photoCheckState, setPhotoCheckState] = useState<'idle' | 'checking'>('idle');
+  const [photoMessage, setPhotoMessage] = useState('');
   const [remoteFoods, setRemoteFoods] = useState<FoodDefinition[]>([]);
   const [scannedFood, setScannedFood] = useState<FoodDefinition | undefined>();
   const [searchState, setSearchState] = useState<'idle' | 'searching' | 'unavailable'>('idle');
@@ -67,6 +69,20 @@ export function FoodLogger({ date, entries, favoriteFoodIds, savedMeals, foodDat
     setScannerOpen(true);
   }
 
+  async function openMealPhoto() {
+    if (!foodDataClient) return;
+    setPhotoCheckState('checking');
+    setPhotoMessage('Checking private photo analysis…');
+    const available = await foodDataClient.mealPhotoAvailable();
+    setPhotoCheckState('idle');
+    if (!available) {
+      setPhotoMessage('Meal-photo analysis is unavailable on the Forge API. For local testing, configure OPENAI_API_KEY and OPENAI_VISION_MODEL in the root .env.local file, restart Forge, and check /api/health.');
+      return;
+    }
+    setPhotoMessage('');
+    setPhotoLoggerOpen(true);
+  }
+
   function acceptScannedBarcode(code: string) {
     setScannerOpen(false);
     setBarcode(code);
@@ -97,7 +113,7 @@ export function FoodLogger({ date, entries, favoriteFoodIds, savedMeals, foodDat
     {recentMealSuggestions.length > 0 && <section className="recent-meals"><h3>Repeat a recent {meal}</h3><div>{recentMealSuggestions.map((recentMeal) => <button onClick={() => repeatRecentMeal(recentMeal)} key={recentMeal.id}><span><b>{recentMeal.label}</b><small>{recentMeal.caloriesKcal} kcal · {recentMeal.proteinG}g protein · {recentMeal.date}</small></span><Plus size={16} /></button>)}</div></section>}
     <section className="quick-foods"><h3>{query ? 'Search results' : `Foods for ${meal}`}</h3>{searchState === 'searching' && <small className="food-provider-state">Searching USDA FoodData Central…</small>}{searchState === 'unavailable' && <small className="food-provider-state warning">Online search is unavailable. Showing local matches.</small>}<div>{results.map((food) => { const scaled = scaleFood(food, quantity); return <div className="food-result" key={food.id}><button className={`favorite ${favoriteFoodIds.includes(food.id) ? 'active' : ''}`} onClick={() => toggleFavorite(food.id)} aria-label={`Favorite ${food.name}`}><Heart size={15} /></button><button className="food-add" onClick={() => addCatalogFood(food.id)}><span><b>{food.name}</b><small>{food.brand ? `${food.brand} · ` : ''}{scaled.serving} · {scaled.proteinG}g protein{food.verification ? ` · ${food.verification === 'government' ? 'USDA' : 'Community data'}` : ''}</small></span><strong>{scaled.caloriesKcal}</strong><Plus size={16} /></button></div>; })}</div></section>
     {alternative && comparisonFood && <section className="food-alternative"><span><b>Alternative to {comparisonFood.name}</b><strong>{alternative.food.name}</strong><small>{alternative.reason}<br />{alternative.evidence}</small></span><button onClick={() => addCatalogFood(alternative.food.id)}>Add alternative</button></section>}
-    <section className="meal-photo-entry"><div><h3><Camera size={17} /> Analyze a meal photo</h3><p>Identify visible foods, estimate portions, then review every value before it is logged.</p></div><button disabled={!foodDataClient} onClick={() => setPhotoLoggerOpen(true)}>Take meal photo</button>{!foodDataClient && <small>Sign in to use private photo analysis.</small>}</section>
+    <section className="meal-photo-entry"><div><h3><Camera size={17} /> Analyze a meal photo</h3><p>Identify visible foods, estimate portions, then review every value before it is logged.</p></div><button disabled={!foodDataClient || photoCheckState === 'checking'} onClick={() => void openMealPhoto()}>{photoCheckState === 'checking' ? 'Checking analysis…' : 'Take meal photo'}</button>{!foodDataClient && <small>Sign in to use private photo analysis.</small>}{photoMessage && <small className="food-provider-state warning" aria-live="polite">{photoMessage}</small>}</section>
     <section className="barcode-entry"><h3><Barcode size={17} /> Barcode lookup</h3><button className="scan-barcode" onClick={openScanner}><Camera size={16} /> Scan with camera</button><div><input inputMode="numeric" placeholder="Enter package barcode" value={barcode} onChange={(event) => setBarcode(event.target.value)} /><button onClick={() => void findBarcode()}>Lookup</button></div>{barcodeMessage && <small aria-live="polite">{barcodeMessage}</small>}</section>
     <section className="custom-food"><h3>Custom food</h3><input placeholder="Food name" value={custom.name} onChange={(event) => setCustom({ ...custom, name: event.target.value })} /><div>{(['caloriesKcal', 'proteinG', 'carbsG', 'fatG'] as const).map((field) => <label key={field}><span>{field === 'caloriesKcal' ? 'Calories' : field.replace('G', '')}</span><input type="number" min="0" value={custom[field]} onChange={(event) => setCustom({ ...custom, [field]: Number(event.target.value) })} /></label>)}</div><button onClick={addCustom}><Plus size={17} /> Add custom food</button></section>
     <section className="meal-log"><div className="meal-log-heading"><h3>Logged today</h3><button onClick={saveCurrentMeal}>Save current {meal}</button></div>{meals.map((mealName) => { const mealEntriesToday = today.filter((entry) => entry.meal === mealName); return mealEntriesToday.length ? <div className="logged-meal" key={mealName}><span className="meal-name">{mealName}</span>{mealEntriesToday.map((entry) => <div key={entry.id}><span><b>{entry.name}</b><small>{entry.serving} · P {entry.proteinG} · C {entry.carbsG} · F {entry.fatG}</small></span><strong>{entry.caloriesKcal}</strong><button onClick={() => onChange(entries.filter((item) => item.id !== entry.id))}><Trash2 size={15} /></button></div>)}</div> : null; })}</section>

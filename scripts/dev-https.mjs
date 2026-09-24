@@ -1,4 +1,9 @@
 import { spawn, spawnSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+
+const localEnvironmentPath = fileURLToPath(new URL('../.env.local', import.meta.url));
+if (existsSync(localEnvironmentPath)) process.loadEnvFile(localEnvironmentPath);
 
 const isWindows = process.platform === 'win32';
 const developmentEnvironment = {
@@ -6,6 +11,10 @@ const developmentEnvironment = {
   DATABASE_URL: 'postgresql://forge:forge-local-only@localhost:5432/forge',
   DATABASE_SSL: 'disable',
 };
+
+if (!developmentEnvironment.OPENAI_API_KEY?.trim() || !developmentEnvironment.OPENAI_VISION_MODEL?.trim()) {
+  console.warn('Forge meal-photo analysis is disabled. Add OPENAI_API_KEY and OPENAI_VISION_MODEL to .env.local, then restart dev:https.');
+}
 
 function run(command, args, options = {}) {
   const result = spawnSync(command, args, { stdio: 'inherit', ...options });

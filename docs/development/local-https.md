@@ -36,7 +36,26 @@ Transfer only `rootCA.pem` from that directory to the iPhone and install it as a
 
 Do not transfer `rootCA-key.pem`.
 
-## 4. Start Forge over HTTPS
+## 4. Configure local meal-photo analysis
+
+The camera can prepare and preview a plate photo without a provider credential, but macro analysis requires the local API to have a server-side OpenAI API key. Create the ignored local environment file from the repository root:
+
+```powershell
+Copy-Item .env.example .env.local
+notepad .env.local
+```
+
+Set `OPENAI_API_KEY` and `OPENAI_VISION_MODEL` in `.env.local`. Keep the key only in this ignored file; do not place it in `apps/web`, commit it, or paste it into browser configuration. `USDA_FOODDATA_API_KEY=DEMO_KEY` is sufficient for limited local acceptance, while a dedicated USDA key avoids demo limits.
+
+`corepack pnpm dev:https` loads the root `.env.local` before starting the API. Restart the command after changing any value. Confirm the provider is visible to Forge at:
+
+```text
+https://localhost:4173/api/health
+```
+
+The response must include `"mealPhotoAnalysis":true`. A `false` value means capture will work but analysis will remain unavailable.
+
+## 5. Start Forge over HTTPS
 
 ```powershell
 corepack pnpm dev:https

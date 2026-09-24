@@ -33,6 +33,15 @@ describe('food data client', () => {
     expect(request).toHaveBeenCalledWith('/api/v1/foods/photo-analysis', { method: 'POST', headers: { authorization: 'Bearer token', 'content-type': 'application/json' }, body: JSON.stringify({ imageDataUrl: 'data:image/jpeg;base64,YWJj' }) });
   });
 
+  it('checks meal-photo capability before opening the camera workflow', async () => {
+    const available = new FoodDataClient({ baseUrl: '/api', accessToken: async () => 'token' }, async () => Response.json({ capabilities: { mealPhotoAnalysis: true } }));
+    const unavailable = new FoodDataClient({ baseUrl: '/api', accessToken: async () => 'token' }, async () => Response.json({ capabilities: { mealPhotoAnalysis: false } }));
+    const unreachable = new FoodDataClient({ baseUrl: '/api', accessToken: async () => 'token' }, async () => { throw new TypeError('fetch failed'); });
+    await expect(available.mealPhotoAvailable()).resolves.toBe(true);
+    await expect(unavailable.mealPhotoAvailable()).resolves.toBe(false);
+    await expect(unreachable.mealPhotoAvailable()).resolves.toBe(false);
+  });
+
   it('reports the same-origin development health route without exposing credentials', async () => {
     const request = vi.fn(async () => new Response(JSON.stringify({ status: 'ok' }), { status: 200 }));
     const config = foodDataConfig({ DEV: true, VITE_FORGE_SYNC_URL: 'http://localhost:8787' }, async () => 'secret');
