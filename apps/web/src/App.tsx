@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { CoachService, type CoachActionType } from '@forge/coach';
 import { buildDigitalTwin, type DailySnapshot, type Recommendation } from '@forge/digital-twin';
 import {
@@ -46,6 +46,9 @@ import { strengthProgressInsight } from './strengthInsight.js';
 import { addHydration, hydrationContext, hydrationTotal, undoLatestHydration, type HydrationEntry } from './hydration.js';
 import { FoodDataClient, foodDataConfig } from './foodDataClient.js';
 import { forgeAccountDataFilename, forgeAccountDataJson } from './accountDataExport.js';
+import { operatingBudgetEnabled } from './operatingBudget.js';
+
+const OperatingBudgetPanel = lazy(async () => ({ default: (await import('./OperatingBudgetPanel.js')).OperatingBudgetPanel }));
 
 const defaultCheckIn: CheckIn = { sleepScore: 77, sleepHours: 7, soreness: 4, stress: 3, weightKg: 75.8 };
 
@@ -169,6 +172,7 @@ export function App() {
   const [onboardingProfile, setOnboardingProfile] = useState<OnboardingProfile | undefined>(initialState.onboardingProfile);
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [operatingBudgetOpen, setOperatingBudgetOpen] = useState(false);
   const [coachOpen, setCoachOpen] = useState(false);
   const [movementLibraryOpen, setMovementLibraryOpen] = useState(false);
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('local');
@@ -181,6 +185,7 @@ export function App() {
   const [historyExportScope, setHistoryExportScope] = useState<TrainingHistoryExportScope>('current-view');
   const [selectedStrengthId, setSelectedStrengthId] = useState<string | null>(null);
   const [historyVisibleCount, setHistoryVisibleCount] = useState(TRAINING_HISTORY_PAGE_SIZE);
+  const showOperationsBudget = operatingBudgetEnabled(environment);
   const reflectionDialogRef = useAccessibleDialog(() => setReflectionOpen(false), reflectionOpen);
   const checkInDialogRef = useAccessibleDialog(() => setCheckInOpen(false), checkInOpen);
 
@@ -909,7 +914,8 @@ export function App() {
       {onboardingOpen && <OnboardingFlow onComplete={completeOnboarding} onClose={() => setOnboardingOpen(false)} />}
       {workoutOpen && <WorkoutPlayer session={workout} exerciseHistory={exerciseHistory} {...(currentWorkoutFocus ? { carryForward: currentWorkoutFocus } : {})} onChange={persistWorkout} onClose={() => setWorkoutOpen(false)} onFinish={finishWorkout} />}
       {foodLoggerOpen && <FoodLogger date={TODAY} entries={foodEntries} favoriteFoodIds={favoriteFoodIds} savedMeals={savedMeals} choicePriority={athleteGoals.primary === 'muscle-gain' || athleteGoals.primary === 'performance' ? 'protein' : athleteGoals.primary === 'fat-loss' ? 'calorie-efficiency' : 'balanced'} {...(foodDataClient ? { foodDataClient } : {})} onChange={updateFoodEntries} onPreferencesChange={updateFoodPreferences} onClose={() => setFoodLoggerOpen(false)} />}
-      {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} onGeneratePlan={generateNewPlan} onReset={resetPrototype} onExport={exportForgeData} onDelete={deleteForgeData} canDeleteCloud={auth.status === 'signed-in' || auth.status === 'development'} />}
+      {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} onGeneratePlan={generateNewPlan} onReset={resetPrototype} onExport={exportForgeData} onDelete={deleteForgeData} onOpenBudget={() => setOperatingBudgetOpen(true)} canDeleteCloud={auth.status === 'signed-in' || auth.status === 'development'} showOperationsBudget={showOperationsBudget} />}
+      {operatingBudgetOpen && <Suspense fallback={<div className="workout-backdrop"><div className="budget-loading" role="status">Loading operating budget…</div></div>}><OperatingBudgetPanel onClose={() => setOperatingBudgetOpen(false)} /></Suspense>}
       {coachOpen && <CoachPanel twin={twin} messages={coachMessages} onMessagesChange={updateCoachMessages} onAction={handleCoachAction} onClose={() => setCoachOpen(false)} />}
       {movementLibraryOpen && <MovementLibrary onClose={() => setMovementLibraryOpen(false)} />}
 
