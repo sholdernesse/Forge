@@ -25,6 +25,15 @@ export function validateSnapshot(snapshot: DailySnapshot): DailySnapshot {
   assertRange('stress', snapshot.stress, 0, 10);
   assertRange('trainingRpe', snapshot.trainingRpe, 0, 10);
   assertRange('sleepHours', snapshot.sleepHours, 0, 24);
+  assertRange('mindScore', snapshot.mindScore, 1, 10);
+  assertRange('bodyScore', snapshot.bodyScore, 1, 10);
+  assertRange('soulScore', snapshot.soulScore, 1, 10);
+  if (snapshot.reflectionNote != null && snapshot.reflectionNote.length > 280) {
+    throw new RangeError('reflectionNote must be 280 characters or fewer.');
+  }
+  if (snapshot.reflectedAt != null && Number.isNaN(Date.parse(snapshot.reflectedAt))) {
+    throw new RangeError('reflectedAt must be a valid date-time.');
+  }
   for (const [name, value] of Object.entries(snapshot)) {
     if (name !== 'date' && typeof value === 'number' && value < 0) {
       throw new RangeError(`${name} cannot be negative.`);
