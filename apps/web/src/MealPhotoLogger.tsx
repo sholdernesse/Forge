@@ -61,8 +61,16 @@ export function entriesFromMealPhoto(items: DraftItem[], date: string, meal: Mea
   }, `${date}-${meal}-photo-${now}-${index}`));
 }
 
-function errorMessage(error: unknown) {
-  if (error instanceof FoodDataError && error.status === 503) return 'Photo analysis is not configured or is temporarily unavailable.';
+export function mealPhotoErrorMessage(error: unknown) {
+  if (error instanceof FoodDataError && error.reason === 'provider_authentication_failed') return 'OpenAI rejected the API key. Check OPENAI_API_KEY in .env.local, then restart Forge.';
+  if (error instanceof FoodDataError && error.reason === 'provider_access_denied') return 'This API project cannot use the configured vision model. Check the project permissions or choose an enabled model.';
+  if (error instanceof FoodDataError && error.reason === 'provider_model_unavailable') return 'OPENAI_VISION_MODEL is unavailable to this API project. Try gpt-6-luna, then restart Forge.';
+  if (error instanceof FoodDataError && error.reason === 'provider_quota_or_rate_limit') return 'The OpenAI API project has no available quota or is rate limited. Add API billing or wait, then try again.';
+  if (error instanceof FoodDataError && error.reason === 'provider_request_rejected') return 'OpenAI rejected the photo-analysis request. Check the API terminal for the failure category.';
+  if (error instanceof FoodDataError && error.reason === 'provider_timeout') return 'OpenAI did not finish the analysis within 30 seconds. Try the photo again.';
+  if (error instanceof FoodDataError && error.reason === 'provider_unreachable') return 'Forge could not reach OpenAI. Check the computer network or firewall and try again.';
+  if (error instanceof FoodDataError && error.reason === 'provider_invalid_response') return 'OpenAI returned an unusable meal estimate. Try a clearer photo.';
+  if (error instanceof FoodDataError && error.status === 503) return 'Photo analysis is configured, but the provider is temporarily unavailable.';
   if (error instanceof FoodDataError && error.status === 413) return 'The prepared photo is too large. Try a closer photo.';
   if (error instanceof FoodDataError && error.status === 429) return 'You have reached the hourly photo-analysis limit. Review an earlier meal or try again later.';
   if (error instanceof FoodDataError && error.status === 401) return 'Sign in again before analyzing a meal photo.';
@@ -89,7 +97,7 @@ export function MealPhotoLogger({ date, meal, client, onAdd, onClose }: Props) {
       const result = await client.analyzeMealPhoto(imageDataUrl);
       setAnalysis(result); setItems(result.items.map((item) => ({ ...item, selected: true }))); setMessage('Review every item, portion, and macro before adding this meal.');
     } catch (error) {
-      setMessage(errorMessage(error));
+      setMessage(mealPhotoErrorMessage(error));
     } finally { setStatus('idle'); }
   }
 

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { FoodProvider } from './foodProvider.js';
-import { OpenAiMealPhotoAnalyzer, parseDetectedMeal } from './mealPhotoAnalyzer.js';
+import { MealPhotoAnalysisError, OpenAiMealPhotoAnalyzer, parseDetectedMeal } from './mealPhotoAnalyzer.js';
 
 const detected = {
   items: [{ name: 'grilled chicken breast', portionDescription: 'one sliced breast', estimatedGrams: 150, confidence: 0.86, caloriesKcal: 250, proteinG: 45, carbsG: 0, fatG: 6 }],
@@ -36,5 +36,23 @@ describe('meal photo analysis', () => {
     const foodProvider: FoodProvider = { search: async () => { throw new Error('offline'); }, barcode: async () => undefined };
     const analyzer = new OpenAiMealPhotoAnalyzer({ apiKey: 'secret', model: 'vision-test', foodProvider, request });
     await expect(analyzer.analyze('data:image/jpeg;base64,YWJj')).resolves.toMatchObject({ items: [{ nutritionSource: 'ai-estimate', caloriesKcal: 250 }] });
+  });
+
+  it.each([
+    [401, 'provider_authentication_failed'],
+    [403, 'provider_access_denied'],
+    [404, 'provider_model_unavailable'],
+    [429, 'provider_quota_or_rate_limit'],
+    [500, 'provider_unavailable'],
+  ] as const)('classifies provider HTTP %s without exposing its response body', async (status, reason) => {
+    const request = vi.fn(async () => new Response('provider secret detail', { status }));
+    const analyzer = new OpenAiMealPhotoAnalyzer({ apiKey: 'secret', model: 'vision-test', request });
+    await expect(analyzer.analyze('data:image/jpeg;base64,YWJj')).rejects.toEqual(new MealPhotoAnalysisError(reason, status));
+  });
+
+  it('classifies malformed successful responses', async () => {
+    const request = vi.fn(async () => Response.json({ output: [] }));
+    const analyzer = new OpenAiMealPhotoAnalyzer({ apiKey: 'secret', model: 'vision-test', request });
+    await expect(analyzer.analyze('data:image/jpeg;base64,YWJj')).rejects.toEqual(new MealPhotoAnalysisError('provider_invalid_response'));
   });
 });

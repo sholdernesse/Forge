@@ -5,7 +5,7 @@ import { MemoryDashboardRepository } from './memoryRepository.js';
 import type { FoodProvider } from './foodProvider.js';
 import type { DashboardAuditEvent } from './audit.js';
 import { createAuditRecorder } from './audit.js';
-import type { MealPhotoAnalyzer } from './mealPhotoAnalyzer.js';
+import { MealPhotoAnalysisError, type MealPhotoAnalyzer } from './mealPhotoAnalyzer.js';
 
 const validState = {
   history: [],
@@ -128,6 +128,17 @@ describe('dashboard API', () => {
     const response = await handle(new Request('http://api.test/v1/foods/photo-analysis', { method: 'POST', headers: { authorization: 'Bearer test-token', 'content-type': 'application/json' }, body: JSON.stringify({ imageDataUrl: validMealPhoto }) }));
     expect(response.status).toBe(429);
     expect(analyze).not.toHaveBeenCalled();
+  });
+
+  it('returns a safe provider failure reason for meal-photo troubleshooting', async () => {
+    const analyze = vi.fn(async () => { throw new MealPhotoAnalysisError('provider_quota_or_rate_limit', 429); });
+    const log = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const { handle } = setup(undefined, undefined, { analyze });
+    const response = await handle(new Request('http://api.test/v1/foods/photo-analysis', { method: 'POST', headers: { authorization: 'Bearer test-token', 'content-type': 'application/json' }, body: JSON.stringify({ imageDataUrl: validMealPhoto }) }));
+    expect(response.status).toBe(503);
+    await expect(response.json()).resolves.toEqual({ error: 'meal_photo_analysis_failed', reason: 'provider_quota_or_rate_limit' });
+    expect(log).toHaveBeenCalledWith(expect.stringContaining('provider_quota_or_rate_limit'));
+    log.mockRestore();
   });
 
   it('audits accepted, conflicting, and rejected dashboard writes without state or subject data', async () => {

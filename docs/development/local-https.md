@@ -55,6 +55,8 @@ https://localhost:4173/api/health
 
 The response must include `"mealPhotoAnalysis":true`. A `false` value means capture will work but analysis will remain unavailable.
 
+If analysis returns `503`, Forge reports a safe provider reason in the app and API terminal without printing the API key or provider response body. The message distinguishes an invalid key, denied model access, unavailable model, exhausted quota/rate limit, timeout, network failure, and invalid structured response. The local example uses `gpt-6-luna` because meal recognition is a focused, repeatable task; change `OPENAI_VISION_MODEL` only to a vision-capable Responses API model enabled for the API project.
+
 ## 5. Start Forge over HTTPS
 
 ```powershell

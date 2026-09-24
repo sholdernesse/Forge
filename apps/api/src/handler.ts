@@ -1,6 +1,6 @@
 import { RevisionConflictError, type AuthVerifier, type DashboardRepository } from './types.js';
 import type { FoodProvider } from './foodProvider.js';
-import type { MealPhotoAnalyzer } from './mealPhotoAnalyzer.js';
+import { mealPhotoFailureReason, type MealPhotoAnalyzer } from './mealPhotoAnalyzer.js';
 import type { RequestRateLimiter } from './rateLimit.js';
 import type { AuditRecorder, DashboardAuditOutcome, DashboardAuditReason } from './audit.js';
 
@@ -118,8 +118,10 @@ export function createApiHandler(dependencies: ApiDependencies) {
       if (dependencies.mealPhotoRateLimiter && !dependencies.mealPhotoRateLimiter.allow(user.id)) return response({ error: 'meal_photo_rate_limited' }, 429, corsOrigin);
       try {
         return response({ analysis: await dependencies.mealPhotoAnalyzer.analyze(body.imageDataUrl) }, 200, corsOrigin);
-      } catch {
-        return response({ error: 'meal_photo_analysis_failed' }, 503, corsOrigin);
+      } catch (error) {
+        const reason = mealPhotoFailureReason(error);
+        console.error(JSON.stringify({ timestamp: new Date().toISOString(), level: 'error', event: 'meal_photo_analysis.failed', reason }));
+        return response({ error: 'meal_photo_analysis_failed', reason }, 503, corsOrigin);
       }
     }
 

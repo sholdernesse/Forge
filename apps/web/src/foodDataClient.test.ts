@@ -33,6 +33,11 @@ describe('food data client', () => {
     expect(request).toHaveBeenCalledWith('/api/v1/foods/photo-analysis', { method: 'POST', headers: { authorization: 'Bearer token', 'content-type': 'application/json' }, body: JSON.stringify({ imageDataUrl: 'data:image/jpeg;base64,YWJj' }) });
   });
 
+  it('preserves a safe meal-photo provider failure reason', async () => {
+    const client = new FoodDataClient({ baseUrl: '/api', accessToken: async () => 'token' }, async () => Response.json({ error: 'meal_photo_analysis_failed', reason: 'provider_quota_or_rate_limit' }, { status: 503 }));
+    await expect(client.analyzeMealPhoto('data:image/jpeg;base64,YWJj')).rejects.toEqual(new FoodDataError(503, 'provider_quota_or_rate_limit'));
+  });
+
   it('checks meal-photo capability before opening the camera workflow', async () => {
     const available = new FoodDataClient({ baseUrl: '/api', accessToken: async () => 'token' }, async () => Response.json({ capabilities: { mealPhotoAnalysis: true } }));
     const unavailable = new FoodDataClient({ baseUrl: '/api', accessToken: async () => 'token' }, async () => Response.json({ capabilities: { mealPhotoAnalysis: false } }));

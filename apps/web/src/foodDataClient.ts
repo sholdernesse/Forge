@@ -7,7 +7,7 @@ interface FoodDataConfig {
 }
 
 export class FoodDataError extends Error {
-  constructor(readonly status: number) {
+  constructor(readonly status: number, readonly reason?: string) {
     super(`Food lookup failed (${status})`);
     this.name = 'FoodDataError';
   }
@@ -170,7 +170,14 @@ export class FoodDataClient {
   private async post(path: string, body: unknown): Promise<unknown> {
     const token = await this.config.accessToken();
     const response = await this.request(`${this.config.baseUrl}${path}`, { method: 'POST', headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' }, body: JSON.stringify(body) });
-    if (!response.ok) throw new FoodDataError(response.status);
+    if (!response.ok) {
+      let reason: string | undefined;
+      try {
+        const payload = await response.json() as { reason?: unknown; error?: unknown };
+        reason = typeof payload.reason === 'string' ? payload.reason : typeof payload.error === 'string' ? payload.error : undefined;
+      } catch { /* An error response is not required to include JSON. */ }
+      throw new FoodDataError(response.status, reason);
+    }
     return response.json();
   }
 }
