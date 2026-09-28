@@ -2,6 +2,7 @@ import type { DigitalTwin } from '@forge/digital-twin';
 import { addWarmupSet, type WorkoutExercise, type WorkoutSession } from './workoutSession.js';
 import { weeklyVolume, type TrainingSessionRecord } from './volumeLedger.js';
 import { applyDeload, assessDeload, assessTrainingFeedback, type ScheduleIntent } from './schedulePolicy.js';
+import { applyGlp1TrainingSupport, glp1TrainingGuidance, type Glp1SupportProfile } from './glp1Support.js';
 
 export interface TrainingPreferences {
   equipment: Array<'bodyweight' | 'barbell' | 'dumbbells' | 'bands' | 'rack' | 'treadmill'>;
@@ -50,15 +51,18 @@ function finalizeStrengthPlan(session: WorkoutSession, deload: ReturnType<typeof
   return fitPreferredDuration(includePrimaryWarmup(applyDeload(session, deload)), preferences.preferredSessionMinutes);
 }
 
-export function generateTrainingPlan(twin: DigitalTwin, preferences: TrainingPreferences, sessionHistory: TrainingSessionRecord[] = [], scheduleIntent: ScheduleIntent = 'adaptive', plannedDeload = false): WorkoutSession {
+export function generateTrainingPlan(twin: DigitalTwin, preferences: TrainingPreferences, sessionHistory: TrainingSessionRecord[] = [], scheduleIntent: ScheduleIntent = 'adaptive', plannedDeload = false, glp1Support?: Glp1SupportProfile): WorkoutSession {
   const date = twin.asOfDate;
   const readiness = twin.recovery.readiness;
   const weeklyTarget = twin.goals.weeklyTrainingTarget ?? 4;
   const weeklyComplete = twin.training.sessionsLast7Days >= weeklyTarget;
   const feedback = assessTrainingFeedback(sessionHistory, date);
+  const glp1Guidance = glp1TrainingGuidance(glp1Support);
 
-  if (readiness < 55 || weeklyComplete || scheduleIntent === 'rest' || feedback.action === 'recovery') {
-    const cause = scheduleIntent === 'rest'
+  if (glp1Guidance.mode === 'recovery' || readiness < 55 || weeklyComplete || scheduleIntent === 'rest' || feedback.action === 'recovery') {
+    const cause = glp1Guidance.mode === 'recovery'
+      ? `${glp1Guidance.detail} Forge selected only comfortable light movement today.`
+      : scheduleIntent === 'rest'
       ? 'You designated today as a rest day. Forge retained light movement to support recovery.'
       : feedback.action === 'recovery'
       ? `${feedback.reasons.join(' ')} Forge selected low-intensity movement and recommends reassessing before loaded training.`
@@ -123,11 +127,11 @@ export function generateTrainingPlan(twin: DigitalTwin, preferences: TrainingPre
       repExercise('reverse-snow-angel', 'Reverse snow angel', 'Slow sweep · no shrugging', 3, 10, 0, 45),
       repExercise('shoulder-tap', 'Plank shoulder tap', 'Stable hips · alternate sides', 3, 10, 0, 45),
     ];
-    return finalizeStrengthPlan({
+    return applyGlp1TrainingSupport(finalizeStrengthPlan({
       id: `${date}-adaptive-upper`, date, title: 'Upper strength + delts', status: 'not-started', planType: 'upper-strength', intensity: readiness >= 82 ? 'high' : 'moderate',
       planReason: `Readiness is ${readiness}. Upper-body volume is further from its weekly target; this session uses your available ${equipmentLabel} setup.`,
       exercises,
-    }, deload, preferences);
+    }, deload, preferences), glp1Support);
   }
 
   const backSensitive = preferences.constraints.includes('lower-back-sensitive');
@@ -158,9 +162,9 @@ export function generateTrainingPlan(twin: DigitalTwin, preferences: TrainingPre
     repExercise('standing-calf-raise', 'Standing calf raise', 'Two-second peak contraction', 3, 15, 0, 45),
     repExercise('dead-bugs', 'Dead bugs', 'Each side · slow exhale', 3, 10, 0, 45),
   ];
-  return finalizeStrengthPlan({
+  return applyGlp1TrainingSupport(finalizeStrengthPlan({
     id: `${date}-adaptive-lower`, date, title: 'Lower body + core', status: 'not-started', planType: 'lower-strength', intensity: readiness >= 82 ? 'high' : 'moderate',
     planReason: `Readiness is ${readiness}. Lower-body work is due; this session uses your available ${equipmentLabel} setup and limits unsupported spinal loading.`,
     exercises,
-  }, deload, preferences);
+  }, deload, preferences), glp1Support);
 }

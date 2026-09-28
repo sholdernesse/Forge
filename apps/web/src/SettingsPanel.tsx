@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { CircleDollarSign, Download, RefreshCw, RotateCcw, Settings, ShieldCheck, Trash2, X } from 'lucide-react';
+import { CircleDollarSign, Download, HeartPulse, RefreshCw, RotateCcw, Settings, ShieldCheck, Trash2, X } from 'lucide-react';
 import { useAccessibleDialog } from './useAccessibleDialog.js';
 
-interface Props { onClose(): void; onGeneratePlan(): void; onReset(): void; onExport(): void; onDelete(): Promise<void>; onOpenBudget(): void; canDeleteCloud: boolean; showOperationsBudget: boolean; }
+interface Props { onClose(): void; onGeneratePlan(): void; onReset(): void; onExport(): void; onDelete(): Promise<void>; onOpenBudget(): void; onOpenGlp1Support(): void; glp1SupportEnabled: boolean; canDeleteCloud: boolean; showOperationsBudget: boolean; }
 
-export function SettingsPanel({ onClose, onGeneratePlan, onReset, onExport, onDelete, onOpenBudget, canDeleteCloud, showOperationsBudget }: Props) {
+export function SettingsPanel({ onClose, onGeneratePlan, onReset, onExport, onDelete, onOpenBudget, onOpenGlp1Support, glp1SupportEnabled, canDeleteCloud, showOperationsBudget }: Props) {
   const [confirmReset, setConfirmReset] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleteText, setDeleteText] = useState('');
@@ -16,6 +16,8 @@ export function SettingsPanel({ onClose, onGeneratePlan, onReset, onExport, onDe
       <header><div className="settings-icon"><Settings size={21} /></div><div><span className="section-label">DATA & PLAN CONTROLS</span><h2 id="settings-title">Forge settings</h2></div><button className="icon-button" onClick={onClose} aria-label="Close settings"><X size={20} /></button></header>
       <div className="settings-action"><RefreshCw size={21} /><span><b>Generate a new plan</b><small>Re-run today’s adaptive planner and discard workout completion state. Your check-ins, food, and history remain.</small></span><button onClick={() => { onGeneratePlan(); onClose(); }}>Generate</button></div>
       <div className="settings-safety"><ShieldCheck size={18} /><span>Active workouts are normally locked. Generating a new plan is an explicit override.</span></div>
+      <div className="settings-section-label"><span>PERSONALIZATION</span><small>Optional support that changes how Forge builds your plan.</small></div>
+      <div className="settings-action glp1"><HeartPulse size={21} /><span><b>GLP-1 support {glp1SupportEnabled && <em>Active</em>}</b><small>Track prescribed dose, current side effects, and safely adapt workout volume, intensity, recovery, hydration, and protein priorities.</small></span><button onClick={() => { onClose(); onOpenGlp1Support(); }}>{glp1SupportEnabled ? 'Review' : 'Set up'}</button></div>
       <div className="settings-action"><Download size={21} /><span><b>Export my Forge data</b><small>Download a portable JSON copy of check-ins, training, nutrition, hydration, preferences, and Coach history.</small></span><button onClick={onExport}>Export</button></div>
       {showOperationsBudget && <div className="settings-action operations"><CircleDollarSign size={21} /><span><b>Forge operating budget</b><small>Track Azure runway, OpenAI credits, monthly guardrails, actual expenses, and the 3/6/9/12-month cash target.</small></span><button onClick={() => { onClose(); onOpenBudget(); }}>Track costs</button></div>}
       <div className="settings-action danger"><RotateCcw size={21} /><span><b>Reset this device</b><small>Remove browser-local check-ins, workouts, food logs, favorites, and schedule choices. A signed-in cloud copy is not deleted.</small></span>{confirmReset ? <button onClick={onReset}>Yes, reset local data</button> : <button onClick={() => setConfirmReset(true)}>Reset</button>}</div>

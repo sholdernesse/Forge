@@ -16,6 +16,7 @@ import { createTodayWorkout } from './workoutSession.js';
 import { demoSessionHistory } from './volumeLedger.js';
 import { demoFoodEntries } from './foodLog.js';
 import type { OnboardingProfile } from './onboarding.js';
+import { defaultGlp1Support } from './glp1Support.js';
 
 class MemoryStorage implements DashboardStorage {
   private readonly values = new Map<string, string>();
@@ -50,6 +51,16 @@ describe('dashboard storage', () => {
       hydrationEntries: [...hydrationEntries, { id: 'bad', date: 'today', amountMl: 9_000, createdAt: 'never' }],
     }));
     expect(loadDashboardState(storage, fallback).hydrationEntries).toEqual(hydrationEntries);
+  });
+
+  it('round trips valid GLP-1 personalization and ignores malformed medication data', () => {
+    const storage = new MemoryStorage();
+    const glp1Support = { ...defaultGlp1Support(new Date('2026-09-28T12:00:00.000Z')), enabled: true, prescribedDose: '0.5 mg', sideEffects: ['nausea' as const], severity: 'mild' as const };
+    saveDashboardState(storage, { ...fallback, glp1Support });
+    expect(loadDashboardState(storage, fallback).glp1Support).toEqual(glp1Support);
+
+    storage.setItem(DASHBOARD_STORAGE_KEY, JSON.stringify({ version: 13, updatedAt: '2026-09-28T12:00:00.000Z', ...fallback, glp1Support: { ...glp1Support, medication: 'unapproved-compound', prescribedDose: 'x'.repeat(500) } }));
+    expect(loadDashboardState(storage, fallback).glp1Support).toBeUndefined();
   });
 
   it('round trips a valid onboarding profile and ignores malformed setup data', () => {

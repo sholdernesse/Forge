@@ -47,8 +47,10 @@ import { addHydration, hydrationContext, hydrationTotal, undoLatestHydration, ty
 import { FoodDataClient, foodDataConfig } from './foodDataClient.js';
 import { forgeAccountDataFilename, forgeAccountDataJson } from './accountDataExport.js';
 import { operatingBudgetEnabled } from './operatingBudget.js';
+import type { Glp1SupportProfile } from './glp1Support.js';
 
 const OperatingBudgetPanel = lazy(async () => ({ default: (await import('./OperatingBudgetPanel.js')).OperatingBudgetPanel }));
+const Glp1SupportPanel = lazy(async () => ({ default: (await import('./Glp1SupportPanel.js')).Glp1SupportPanel }));
 
 const defaultCheckIn: CheckIn = { sleepScore: 77, sleepHours: 7, soreness: 4, stress: 3, weightKg: 75.8 };
 
@@ -169,10 +171,12 @@ export function App() {
   const [savedMeals, setSavedMeals] = useState<SavedMeal[]>(initialState.savedMeals ?? []);
   const [coachMessages, setCoachMessages] = useState<CoachMessage[]>(initialState.coachMessages ?? []);
   const [hydrationEntries, setHydrationEntries] = useState<HydrationEntry[]>(initialState.hydrationEntries ?? []);
+  const [glp1Support, setGlp1Support] = useState<Glp1SupportProfile | undefined>(initialState.glp1Support);
   const [onboardingProfile, setOnboardingProfile] = useState<OnboardingProfile | undefined>(initialState.onboardingProfile);
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [operatingBudgetOpen, setOperatingBudgetOpen] = useState(false);
+  const [glp1SupportOpen, setGlp1SupportOpen] = useState(false);
   const [coachOpen, setCoachOpen] = useState(false);
   const [movementLibraryOpen, setMovementLibraryOpen] = useState(false);
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('local');
@@ -189,10 +193,11 @@ export function App() {
   const reflectionDialogRef = useAccessibleDialog(() => setReflectionOpen(false), reflectionOpen);
   const checkInDialogRef = useAccessibleDialog(() => setCheckInOpen(false), checkInOpen);
 
-  function saveCurrentDashboardState(state: Parameters<typeof saveDashboardState>[1], nextOnboarding = onboardingProfile) {
+  function saveCurrentDashboardState(state: Parameters<typeof saveDashboardState>[1], nextOnboarding = onboardingProfile, nextGlp1Support = glp1Support) {
     saveDashboardState(window.localStorage, {
       hydrationEntries,
       ...state,
+      ...(nextGlp1Support ? { glp1Support: nextGlp1Support } : {}),
       ...(nextOnboarding ? { onboardingProfile: nextOnboarding } : {}),
     });
   }
@@ -210,6 +215,7 @@ export function App() {
       savedMeals,
       coachMessages,
       hydrationEntries,
+      ...(glp1Support ? { glp1Support } : {}),
       ...(savedAt ? { savedAt } : {}),
       ...(onboardingProfile ? { onboardingProfile } : {}),
     };
@@ -236,7 +242,7 @@ export function App() {
 
   const { twin, brief } = evaluation;
   const planDeload = useMemo(() => onboardingProfile ? plannedDeloadWeek(onboardingProfile, TODAY) : false, [onboardingProfile, TODAY]);
-  const generatedPlan = useMemo(() => generateTrainingPlan(twin, trainingPreferences, sessionHistory, scheduleOverrides[TODAY], planDeload), [twin, trainingPreferences, sessionHistory, scheduleOverrides, planDeload]);
+  const generatedPlan = useMemo(() => generateTrainingPlan(twin, trainingPreferences, sessionHistory, scheduleOverrides[TODAY], planDeload, glp1Support), [twin, trainingPreferences, sessionHistory, scheduleOverrides, planDeload, glp1Support]);
   const deload = useMemo(() => assessDeload(twin, planDeload), [twin, planDeload]);
   const today = history.find((day) => day.date === TODAY)!;
   const nutritionTargets = useMemo(() => calculateNutritionTargets(twin, workout), [twin, workout]);
@@ -317,6 +323,7 @@ export function App() {
       setSavedMeals(next.savedMeals ?? []);
       setCoachMessages(next.coachMessages ?? []);
       setHydrationEntries(next.hydrationEntries ?? []);
+      setGlp1Support(next.glp1Support);
       setOnboardingProfile(next.onboardingProfile);
       cacheDashboardState(window.localStorage, { ...next, history: nextHistory }, remote.updatedAt);
     };
@@ -661,6 +668,13 @@ export function App() {
     saveCurrentDashboardState( { history, checkIn, workoutSession: workout, exerciseHistory, sessionHistory, scheduleOverrides, foodEntries, favoriteFoodIds, savedMeals, coachMessages: nextMessages, ...(savedAt ? { savedAt } : {}) });
   }
 
+  function saveGlp1Support(nextSupport: Glp1SupportProfile) {
+    setGlp1Support(nextSupport);
+    saveCurrentDashboardState(currentDashboardState(), onboardingProfile, nextSupport);
+    setSaved(true);
+    window.setTimeout(() => setSaved(false), 2600);
+  }
+
   function handleCoachAction(action: CoachActionType) {
     setCoachOpen(false);
     if (action === 'open-workout') openWorkout();
@@ -914,8 +928,9 @@ export function App() {
       {onboardingOpen && <OnboardingFlow onComplete={completeOnboarding} onClose={() => setOnboardingOpen(false)} />}
       {workoutOpen && <WorkoutPlayer session={workout} exerciseHistory={exerciseHistory} {...(currentWorkoutFocus ? { carryForward: currentWorkoutFocus } : {})} onChange={persistWorkout} onClose={() => setWorkoutOpen(false)} onFinish={finishWorkout} />}
       {foodLoggerOpen && <FoodLogger date={TODAY} entries={foodEntries} favoriteFoodIds={favoriteFoodIds} savedMeals={savedMeals} choicePriority={athleteGoals.primary === 'muscle-gain' || athleteGoals.primary === 'performance' ? 'protein' : athleteGoals.primary === 'fat-loss' ? 'calorie-efficiency' : 'balanced'} {...(foodDataClient ? { foodDataClient } : {})} onChange={updateFoodEntries} onPreferencesChange={updateFoodPreferences} onClose={() => setFoodLoggerOpen(false)} />}
-      {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} onGeneratePlan={generateNewPlan} onReset={resetPrototype} onExport={exportForgeData} onDelete={deleteForgeData} onOpenBudget={() => setOperatingBudgetOpen(true)} canDeleteCloud={auth.status === 'signed-in' || auth.status === 'development'} showOperationsBudget={showOperationsBudget} />}
+      {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} onGeneratePlan={generateNewPlan} onReset={resetPrototype} onExport={exportForgeData} onDelete={deleteForgeData} onOpenBudget={() => setOperatingBudgetOpen(true)} onOpenGlp1Support={() => setGlp1SupportOpen(true)} glp1SupportEnabled={Boolean(glp1Support?.enabled)} canDeleteCloud={auth.status === 'signed-in' || auth.status === 'development'} showOperationsBudget={showOperationsBudget} />}
       {operatingBudgetOpen && <Suspense fallback={<div className="workout-backdrop"><div className="budget-loading" role="status">Loading operating budget…</div></div>}><OperatingBudgetPanel onClose={() => setOperatingBudgetOpen(false)} /></Suspense>}
+      {glp1SupportOpen && <Suspense fallback={<div className="workout-backdrop"><div className="budget-loading" role="status">Loading GLP-1 support…</div></div>}><Glp1SupportPanel {...(glp1Support ? { profile: glp1Support } : {})} onSave={saveGlp1Support} onClose={() => setGlp1SupportOpen(false)} /></Suspense>}
       {coachOpen && <CoachPanel twin={twin} messages={coachMessages} onMessagesChange={updateCoachMessages} onAction={handleCoachAction} onClose={() => setCoachOpen(false)} />}
       {movementLibraryOpen && <MovementLibrary onClose={() => setMovementLibraryOpen(false)} />}
 

@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { SettingsPanel } from './SettingsPanel.js';
 
 describe('Forge data controls', () => {
-  const callbacks = { onClose: () => undefined, onGeneratePlan: () => undefined, onReset: () => undefined, onExport: () => undefined, onDelete: async () => undefined, onOpenBudget: () => undefined };
+  const callbacks = { onClose: () => undefined, onGeneratePlan: () => undefined, onReset: () => undefined, onExport: () => undefined, onDelete: async () => undefined, onOpenBudget: () => undefined, onOpenGlp1Support: () => undefined, glp1SupportEnabled: false };
 
   it('offers a portable export and describes the deletion boundary', () => {
     const html = renderToStaticMarkup(<SettingsPanel {...callbacks} canDeleteCloud showOperationsBudget />);
@@ -11,6 +11,7 @@ describe('Forge data controls', () => {
     expect(html).toContain('Delete synchronized Forge data');
     expect(html).toContain('cloud dashboard');
     expect(html).toContain('Forge operating budget');
+    expect(html).toContain('GLP-1 support');
   });
 
   it('disables cloud deletion when no authenticated sync session exists', () => {
