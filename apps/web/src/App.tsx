@@ -48,6 +48,7 @@ import { FoodDataClient, foodDataConfig } from './foodDataClient.js';
 import { forgeAccountDataFilename, forgeAccountDataJson } from './accountDataExport.js';
 import { operatingBudgetEnabled } from './operatingBudget.js';
 import type { Glp1SupportProfile } from './glp1Support.js';
+import { applyAppearance, loadAppearancePreference, saveAppearancePreference, type AppearancePreference } from './appearance.js';
 
 const OperatingBudgetPanel = lazy(async () => ({ default: (await import('./OperatingBudgetPanel.js')).OperatingBudgetPanel }));
 const Glp1SupportPanel = lazy(async () => ({ default: (await import('./Glp1SupportPanel.js')).Glp1SupportPanel }));
@@ -175,6 +176,7 @@ export function App() {
   const [onboardingProfile, setOnboardingProfile] = useState<OnboardingProfile | undefined>(initialState.onboardingProfile);
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [appearancePreference, setAppearancePreference] = useState<AppearancePreference>(() => loadAppearancePreference(window.localStorage));
   const [operatingBudgetOpen, setOperatingBudgetOpen] = useState(false);
   const [glp1SupportOpen, setGlp1SupportOpen] = useState(false);
   const [coachOpen, setCoachOpen] = useState(false);
@@ -192,6 +194,16 @@ export function App() {
   const showOperationsBudget = operatingBudgetEnabled(environment);
   const reflectionDialogRef = useAccessibleDialog(() => setReflectionOpen(false), reflectionOpen);
   const checkInDialogRef = useAccessibleDialog(() => setCheckInOpen(false), checkInOpen);
+
+  useEffect(() => {
+    const media = window.matchMedia('(prefers-color-scheme: dark)');
+    const refresh = () => applyAppearance(appearancePreference, document.documentElement, media.matches);
+    saveAppearancePreference(window.localStorage, appearancePreference);
+    refresh();
+    if (appearancePreference !== 'system') return;
+    media.addEventListener('change', refresh);
+    return () => media.removeEventListener('change', refresh);
+  }, [appearancePreference]);
 
   function saveCurrentDashboardState(state: Parameters<typeof saveDashboardState>[1], nextOnboarding = onboardingProfile, nextGlp1Support = glp1Support) {
     saveDashboardState(window.localStorage, {
@@ -928,7 +940,7 @@ export function App() {
       {onboardingOpen && <OnboardingFlow onComplete={completeOnboarding} onClose={() => setOnboardingOpen(false)} />}
       {workoutOpen && <WorkoutPlayer session={workout} exerciseHistory={exerciseHistory} {...(currentWorkoutFocus ? { carryForward: currentWorkoutFocus } : {})} onChange={persistWorkout} onClose={() => setWorkoutOpen(false)} onFinish={finishWorkout} />}
       {foodLoggerOpen && <FoodLogger date={TODAY} entries={foodEntries} favoriteFoodIds={favoriteFoodIds} savedMeals={savedMeals} choicePriority={athleteGoals.primary === 'muscle-gain' || athleteGoals.primary === 'performance' ? 'protein' : athleteGoals.primary === 'fat-loss' ? 'calorie-efficiency' : 'balanced'} {...(foodDataClient ? { foodDataClient } : {})} onChange={updateFoodEntries} onPreferencesChange={updateFoodPreferences} onClose={() => setFoodLoggerOpen(false)} />}
-      {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} onGeneratePlan={generateNewPlan} onReset={resetPrototype} onExport={exportForgeData} onDelete={deleteForgeData} onOpenBudget={() => setOperatingBudgetOpen(true)} onOpenGlp1Support={() => setGlp1SupportOpen(true)} glp1SupportEnabled={Boolean(glp1Support?.enabled)} canDeleteCloud={auth.status === 'signed-in' || auth.status === 'development'} showOperationsBudget={showOperationsBudget} />}
+      {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} onGeneratePlan={generateNewPlan} onReset={resetPrototype} onExport={exportForgeData} onDelete={deleteForgeData} onOpenBudget={() => setOperatingBudgetOpen(true)} onOpenGlp1Support={() => setGlp1SupportOpen(true)} glp1SupportEnabled={Boolean(glp1Support?.enabled)} appearancePreference={appearancePreference} onAppearanceChange={setAppearancePreference} canDeleteCloud={auth.status === 'signed-in' || auth.status === 'development'} showOperationsBudget={showOperationsBudget} />}
       {operatingBudgetOpen && <Suspense fallback={<div className="workout-backdrop"><div className="budget-loading" role="status">Loading operating budget…</div></div>}><OperatingBudgetPanel onClose={() => setOperatingBudgetOpen(false)} /></Suspense>}
       {glp1SupportOpen && <Suspense fallback={<div className="workout-backdrop"><div className="budget-loading" role="status">Loading GLP-1 support…</div></div>}><Glp1SupportPanel {...(glp1Support ? { profile: glp1Support } : {})} onSave={saveGlp1Support} onClose={() => setGlp1SupportOpen(false)} /></Suspense>}
       {coachOpen && <CoachPanel twin={twin} messages={coachMessages} onMessagesChange={updateCoachMessages} onAction={handleCoachAction} onClose={() => setCoachOpen(false)} />}

@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { CircleDollarSign, Download, HeartPulse, RefreshCw, RotateCcw, Settings, ShieldCheck, Trash2, X } from 'lucide-react';
+import { CircleDollarSign, Download, HeartPulse, Monitor, Moon, RefreshCw, RotateCcw, Settings, ShieldCheck, Sun, Trash2, X } from 'lucide-react';
 import { useAccessibleDialog } from './useAccessibleDialog.js';
+import type { AppearancePreference } from './appearance.js';
 
-interface Props { onClose(): void; onGeneratePlan(): void; onReset(): void; onExport(): void; onDelete(): Promise<void>; onOpenBudget(): void; onOpenGlp1Support(): void; glp1SupportEnabled: boolean; canDeleteCloud: boolean; showOperationsBudget: boolean; }
+interface Props { onClose(): void; onGeneratePlan(): void; onReset(): void; onExport(): void; onDelete(): Promise<void>; onOpenBudget(): void; onOpenGlp1Support(): void; glp1SupportEnabled: boolean; appearancePreference: AppearancePreference; onAppearanceChange(preference: AppearancePreference): void; canDeleteCloud: boolean; showOperationsBudget: boolean; }
 
-export function SettingsPanel({ onClose, onGeneratePlan, onReset, onExport, onDelete, onOpenBudget, onOpenGlp1Support, glp1SupportEnabled, canDeleteCloud, showOperationsBudget }: Props) {
+export function SettingsPanel({ onClose, onGeneratePlan, onReset, onExport, onDelete, onOpenBudget, onOpenGlp1Support, glp1SupportEnabled, appearancePreference, onAppearanceChange, canDeleteCloud, showOperationsBudget }: Props) {
   const [confirmReset, setConfirmReset] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleteText, setDeleteText] = useState('');
@@ -17,6 +18,11 @@ export function SettingsPanel({ onClose, onGeneratePlan, onReset, onExport, onDe
       <div className="settings-action"><RefreshCw size={21} /><span><b>Generate a new plan</b><small>Re-run today’s adaptive planner and discard workout completion state. Your check-ins, food, and history remain.</small></span><button onClick={() => { onGeneratePlan(); onClose(); }}>Generate</button></div>
       <div className="settings-safety"><ShieldCheck size={18} /><span>Active workouts are normally locked. Generating a new plan is an explicit override.</span></div>
       <div className="settings-section-label"><span>PERSONALIZATION</span><small>Optional support that changes how Forge builds your plan.</small></div>
+      <div className="settings-appearance"><div><Sun size={21} /><span><b>Appearance</b><small>Choose the Forge palette for this device.</small></span></div><div className="appearance-options" role="group" aria-label="Appearance theme">
+        <button type="button" aria-pressed={appearancePreference === 'dark'} className={appearancePreference === 'dark' ? 'active' : ''} onClick={() => onAppearanceChange('dark')}><Moon size={16} /> Dark</button>
+        <button type="button" aria-pressed={appearancePreference === 'light-gradient'} className={appearancePreference === 'light-gradient' ? 'active' : ''} onClick={() => onAppearanceChange('light-gradient')}><Sun size={16} /> Light Gradient</button>
+        <button type="button" aria-pressed={appearancePreference === 'system'} className={appearancePreference === 'system' ? 'active' : ''} onClick={() => onAppearanceChange('system')}><Monitor size={16} /> System</button>
+      </div></div>
       <div className="settings-action glp1"><HeartPulse size={21} /><span><b>GLP-1 support {glp1SupportEnabled && <em>Active</em>}</b><small>Track prescribed dose, current side effects, and safely adapt workout volume, intensity, recovery, hydration, and protein priorities.</small></span><button onClick={() => { onClose(); onOpenGlp1Support(); }}>{glp1SupportEnabled ? 'Review' : 'Set up'}</button></div>
       <div className="settings-action"><Download size={21} /><span><b>Export my Forge data</b><small>Download a portable JSON copy of check-ins, training, nutrition, hydration, preferences, and Coach history.</small></span><button onClick={onExport}>Export</button></div>
       {showOperationsBudget && <div className="settings-action operations"><CircleDollarSign size={21} /><span><b>Forge operating budget</b><small>Track Azure runway, OpenAI credits, monthly guardrails, actual expenses, and the 3/6/9/12-month cash target.</small></span><button onClick={() => { onClose(); onOpenBudget(); }}>Track costs</button></div>}

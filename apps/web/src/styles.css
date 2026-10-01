@@ -420,6 +420,7 @@ h1 { font-size: clamp(28px, 3vw, 40px); letter-spacing: -.04em; margin-top: 5px;
 .settings-confirm button:disabled, .settings-action button:disabled { cursor: not-allowed; opacity: .45; }
 .settings-action.operations { border-color: #735f2b; background: #211d10; color: #ffd56e; }
 .settings-action.operations button { border-color: #806c35; background: #3b3218; color: #ffe08a; }
+.settings-appearance{display:grid;gap:13px;margin:16px 22px;padding:16px;border:1px solid #2c4c42;border-radius:12px;background:linear-gradient(120deg,#0d211a,#10251e)}.settings-appearance>div:first-child{display:grid;grid-template-columns:30px 1fr;gap:14px;align-items:center;color:#76fba5}.settings-appearance>div:first-child span{display:grid;gap:5px}.settings-appearance b{color:#dff1e6;font-size:13px}.settings-appearance small{color:#78958a;font-size:10px}.appearance-options{display:grid;grid-template-columns:.8fr 1.4fr .9fr;gap:7px}.appearance-options button{display:flex;align-items:center;justify-content:center;gap:6px;min-height:39px;border:1px solid #29483d;border-radius:9px;background:#0a1b16;color:#78958a;font-size:9px;font-weight:900}.appearance-options button.active{border-color:#76fba5;background:#193d2e;color:#91ffb9;box-shadow:0 0 0 1px #76fba522}
 .settings-section-label{display:grid;gap:3px;margin:20px 22px 4px;padding-top:16px;border-top:1px solid #19372d}.settings-section-label span{color:#76fba5;font-size:9px;font-weight:900;letter-spacing:.08em}.settings-section-label small{color:#607f73;font-size:9px}.settings-action.glp1{border-color:#3d5868;background:#0d1c23;color:#80cfff}.settings-action.glp1 button{border-color:#41677b;background:#163343;color:#9bddff}.settings-action.glp1 em{margin-left:6px;padding:3px 6px;border-radius:99px;background:#173d31;color:#79eba3;font-size:7px;font-style:normal;text-transform:uppercase;letter-spacing:.06em}
 .glp1-panel{width:min(880px,100%);max-height:calc(100dvh - 48px);overflow:auto;border:1px solid #315447;border-radius:20px;background:#081611;box-shadow:0 30px 90px #000b}.glp1-panel>header{position:sticky;top:0;z-index:3;display:grid;grid-template-columns:44px 1fr auto;gap:14px;align-items:center;padding:20px 24px;border-bottom:1px solid #203d33;background:#081611f5;backdrop-filter:blur(16px)}.glp1-panel>header h2{margin:4px 0 2px}.glp1-panel>header p{margin:0;color:#78958a;font-size:10px}.glp1-icon{width:40px;height:40px;display:grid;place-items:center;border-radius:11px;background:#153343;color:#8dd9ff}.glp1-panel .icon-button{width:38px;height:38px;display:grid;place-items:center;border:1px solid #29493d;border-radius:10px;background:#10251e;color:#9db7ad}.glp1-enable{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:18px 24px;padding:17px;border:1px solid #2b5260;border-radius:13px;background:#0c2025}.glp1-enable>span{display:grid;gap:4px}.glp1-enable b{color:#dff3ff;font-size:14px}.glp1-enable small{color:#78949e;font-size:9px}.glp1-switch{position:relative}.glp1-switch input{position:absolute;opacity:0}.glp1-switch span{display:block;width:46px;height:25px;border-radius:99px;background:#263b3f;box-shadow:inset 0 0 0 1px #405a60;transition:.2s}.glp1-switch span::after{content:'';display:block;width:19px;height:19px;margin:3px;border-radius:50%;background:#849a9e;transition:.2s}.glp1-switch input:checked+span{background:#225c3d;box-shadow:inset 0 0 0 1px #57bd7d}.glp1-switch input:checked+span::after{transform:translateX(21px);background:#78fba5}.glp1-switch input:focus-visible+span{outline:2px solid #8dd9ff;outline-offset:3px}.glp1-section{margin:0 24px 18px;padding:18px;border:1px solid #203d33;border-radius:14px;background:#0b1c17}.glp1-section h3{margin:4px 0;font-size:16px}.glp1-section>div>p{margin:5px 0 0;color:#6e887e;font-size:9px}.glp1-fields{display:grid;grid-template-columns:1.5fr 1fr .7fr .8fr;gap:9px;margin-top:15px}.glp1-fields label,.glp1-severity,.glp1-notes{display:grid;gap:6px;color:#849d93;font-size:9px;font-weight:700}.glp1-fields input,.glp1-fields select,.glp1-severity select,.glp1-notes textarea{width:100%;box-sizing:border-box;border:1px solid #29483d;border-radius:9px;outline:0;background:#10251e;color:#e0f2e7;padding:10px;font:inherit}.glp1-fields input:focus,.glp1-fields select:focus,.glp1-severity select:focus,.glp1-notes textarea:focus{border-color:#69dc96}.glp1-check{display:flex;gap:8px;align-items:center;margin-top:12px;color:#91aa9f;font-size:9px}.glp1-check input{accent-color:#76fba5}.glp1-dose-safety{display:flex;gap:9px;align-items:flex-start;margin-top:14px;padding:11px;border:1px solid #66582b;border-radius:9px;background:#251f10;color:#c9b86f;font-size:9px;line-height:1.5}.glp1-dose-safety svg{flex:0 0 auto}.glp1-symptoms{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}.glp1-symptoms button{padding:7px 9px;border:1px solid #29483d;border-radius:99px;background:#10251e;color:#78958a;font-size:9px;font-weight:800}.glp1-symptoms button.active{border-color:#4d8bae;background:#173847;color:#a8e3ff}.glp1-severity{margin-top:14px}.glp1-notes{margin-top:12px}.glp1-notes textarea{min-height:72px;resize:vertical}.glp1-guidance{display:grid;gap:9px;margin:0 24px 18px}.glp1-guidance>div{display:grid;grid-template-columns:24px 1fr;gap:9px;padding:13px;border:1px solid #2b4d41;border-radius:11px;background:#0c211a;color:#75e7a0}.glp1-guidance span{display:grid;gap:4px}.glp1-guidance b{color:#dceee4;font-size:11px}.glp1-guidance small{color:#78958a;font-size:9px;line-height:1.5}.glp1-guidance.conservative>div:first-child{border-color:#6d5d2c;background:#211d10;color:#e1c86f}.glp1-guidance.recovery>div:first-child{border-color:#754a3f;background:#241712;color:#ff9b84}.glp1-guidance>p{display:grid;grid-template-columns:22px 1fr;gap:9px;margin:0;padding:13px;border:1px solid #754a3f;border-radius:11px;background:#2a1814;color:#f0a08c;font-size:9px;line-height:1.55}.glp1-panel>footer{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 24px 22px}.glp1-panel>footer p{max-width:570px;margin:0;color:#607f73;font-size:8px;line-height:1.5}.glp1-panel>footer button{display:flex;align-items:center;gap:7px;border:0;border-radius:9px;background:#76fba5;color:#06160f;padding:11px 14px;font-size:9px;font-weight:900;white-space:nowrap}
 .budget-loading{padding:18px 22px;border:1px solid #315447;border-radius:12px;background:#0b1c17;color:#9fe3b7;font-size:11px;font-weight:800}
@@ -435,6 +436,7 @@ h1 { font-size: clamp(28px, 3vw, 40px); letter-spacing: -.04em; margin-top: 5px;
 @media(max-width:720px){.topbar-settings{display:grid}}
 @media(max-width:720px){.sync-conflict{grid-template-columns:auto 1fr}.sync-conflict>div{min-width:0}.sync-conflict button{width:100%}.sync-conflict button:first-of-type{grid-column:1/2}.sync-conflict button:last-of-type{grid-column:2/3}}
 @media(max-width:600px){.settings-panel{width:100%;height:100dvh;max-height:none;border:0;border-radius:0}.settings-action{grid-template-columns:30px 1fr}.settings-action button{grid-column:1/-1;width:100%}}
+@media(max-width:420px){.appearance-options{grid-template-columns:1fr}.appearance-options button{justify-content:flex-start;padding-inline:12px}}
 @media(max-width:720px){.glp1-panel{width:100%;height:100dvh;max-height:none;border:0;border-radius:0}.glp1-panel>header{padding:15px 16px}.glp1-enable,.glp1-section,.glp1-guidance{margin-inline:14px}.glp1-fields{grid-template-columns:1fr 1fr}.glp1-panel>footer{align-items:stretch;flex-direction:column;padding-inline:14px}.glp1-panel>footer button{justify-content:center}}
 @media(max-width:460px){.glp1-fields{grid-template-columns:1fr}}
 @media(max-width:760px){.operating-budget-panel{width:100%;height:100dvh;max-height:none;border:0;border-radius:0}.operating-budget-panel>header{padding:15px 16px}.budget-summary{grid-template-columns:1fr 1fr;padding:14px}.budget-controls,.budget-forecast,.expense-entry{margin-inline:14px}.budget-fields{grid-template-columns:1fr 1fr}.budget-table{overflow-x:auto}.budget-table>div{min-width:650px}.expense-form{grid-template-columns:1fr 1fr}.expense-note{grid-column:1/-1}.expense-form button{grid-column:1/-1;justify-content:center}.operating-budget-panel>footer{padding-inline:14px}}
@@ -1166,4 +1168,123 @@ h1 { font-size: clamp(28px, 3vw, 40px); letter-spacing: -.04em; margin-top: 5px;
     grid-column: 2;
     justify-self: start;
   }
+}
+
+/* Forge Light Gradient — warm pearl, mint and sky surfaces with forest text. */
+html[data-theme="light-gradient"] {
+  color-scheme: light;
+  background: #f4faf7;
+  color: #14241e;
+}
+html[data-theme="light-gradient"] body {
+  background:
+    radial-gradient(circle at 78% 2%, rgba(177, 218, 255, .5), transparent 34%),
+    radial-gradient(circle at 18% 28%, rgba(182, 247, 215, .42), transparent 31%),
+    linear-gradient(145deg, #fbfcf7 0%, #f1fbf6 45%, #eef8ff 100%);
+  color: #14241e;
+  background-attachment: fixed;
+}
+html[data-theme="light-gradient"] :is(h1,h2,h3,h4,strong,b) { color: #14241e; }
+html[data-theme="light-gradient"] :is(.section-label,.public-document-meta,.movement-library-summary,.strength-timeline time) { color: #087b50; }
+html[data-theme="light-gradient"] :is(.topbar p,.panel-copy,.save-status,.profile-chip span,.app-footer,.public-document p,.public-document li,.drawer-heading p,.settings-action small,.settings-appearance small,.coach-card>p,.metric-strip p,.metric-strip small,.workout-list small,.workout-list>div>span,.budget-summary small,.budget-summary span,.glp1-panel>header p,.operating-budget-panel>header p) { color: #60776e; }
+
+html[data-theme="light-gradient"] .sidebar {
+  border-color: rgba(117, 159, 142, .28);
+  background: rgba(252, 254, 251, .82);
+  box-shadow: 14px 0 45px rgba(76, 117, 100, .08);
+}
+html[data-theme="light-gradient"] :is(.brand,.profile-chip strong,.public-document-brand) { color: #10211a; }
+html[data-theme="light-gradient"] :is(.brand-mark,.public-document-brand span) { border-color: #0e9c62; color: #078650; box-shadow: inset 0 0 16px rgba(14,156,98,.08); }
+html[data-theme="light-gradient"] :is(.sidebar a,.sidebar-settings,.sidebar nav>button) { color: #506b61; }
+html[data-theme="light-gradient"] :is(.sidebar a:hover,.sidebar a.active,.sidebar-settings:hover,.sidebar nav>button:hover) { background: rgba(198, 245, 220, .62); color: #0b6846; }
+html[data-theme="light-gradient"] .sidebar a.active { box-shadow: inset 3px 0 #13a967; }
+html[data-theme="light-gradient"] .profile-chip { border-color: #d5e6df; color: #49675b; }
+
+html[data-theme="light-gradient"] :is(.hero-card,.panel,.metric-strip) {
+  border-color: rgba(126, 164, 149, .3);
+  background: linear-gradient(145deg, rgba(255,255,255,.93), rgba(246,252,249,.86));
+  box-shadow: 0 16px 45px rgba(66, 108, 92, .1);
+}
+html[data-theme="light-gradient"] .coach-card { background: radial-gradient(circle at 90% 10%, rgba(88, 213, 145, .16), transparent 38%), linear-gradient(145deg,rgba(250,255,252,.98),rgba(235,249,242,.94)); }
+html[data-theme="light-gradient"] .coach-card::after { border-color: rgba(17,151,91,.12); }
+html[data-theme="light-gradient"] .coach-orb { background:#16a565;color:#fff;box-shadow:0 8px 24px rgba(22,165,101,.18); }
+html[data-theme="light-gradient"] :is(.coach-action,.workout-list>div,.macro-targets>div,.recent-meals button,.micronutrient-coverage,.nutrition-week-story,.strength-list>button,.strength-timeline>span,.training-trend-summary,.training-trend-metrics span,.week-bar-track,.week-strip>button,.body-composition-target,.nutrition-breakdown) {
+  border-color: #d3e4dc;
+  background: rgba(249,252,250,.9);
+  color: #233b31;
+}
+html[data-theme="light-gradient"] :is(.coach-action,.workout-list strong,.macro-targets strong,.recent-meals button,.strength-list b,.strength-timeline b,.training-trend-metrics b) { color: #21372e; }
+html[data-theme="light-gradient"] .plan-rationale { border-color:#b9dccb;background:linear-gradient(120deg,rgba(218,248,232,.9),rgba(235,248,255,.88));color:#087b50; }
+html[data-theme="light-gradient"] .plan-rationale b { color:#17372a; }
+html[data-theme="light-gradient"] .plan-rationale small { color:#587469; }
+html[data-theme="light-gradient"] .ring-track { stroke:#dcebe4; }
+html[data-theme="light-gradient"] .ring-value { stroke:#13a967; }
+html[data-theme="light-gradient"] .readiness-ring span { color:#617a70; }
+html[data-theme="light-gradient"] .metric-strip>div { border-color:#d8e7e1; }
+html[data-theme="light-gradient"] .progress { background:#e0ece7; }
+html[data-theme="light-gradient"] .metric-icon.orange{color:#b7601c;background:#fff0df}html[data-theme="light-gradient"] .metric-icon.blue{color:#277db4;background:#e7f5ff}html[data-theme="light-gradient"] .metric-icon.violet{color:#6651b4;background:#f0ecff}html[data-theme="light-gradient"] .metric-icon.lime{color:#087b50;background:#def7e8}
+html[data-theme="light-gradient"] :is(.primary-action,.coach-action button,.log-food-button,.save-checkin,.next-block-proposal button) { border-color:#0b9259;background:linear-gradient(135deg,#087a4a,#17bd73);color:#fff;box-shadow:0 8px 20px rgba(12,143,86,.16); }
+html[data-theme="light-gradient"] .hydration-quick-log { border-color:#bfdaea;background:rgba(232,247,255,.82); }
+html[data-theme="light-gradient"] .hydration-quick-log button { border-color:#8fc6e0;background:#e5f6ff;color:#176687; }
+
+html[data-theme="light-gradient"] :is(.topbar-settings,.icon-button,.drawer-heading button,.coach-header-actions button,.strength-detail header button,.movement-library>header button,.onboarding-flow>header>button,.week-browser>button) { border-color:#c8dcd3;background:rgba(255,255,255,.78);color:#48675a; }
+html[data-theme="light-gradient"] :is(.auth-button,.public-document-contact,.movement-library-button) { border-color:#82c3a4;background:#e1f6ea;color:#087348; }
+html[data-theme="light-gradient"] .auth-button.signed-in { background:#f5faf7;color:#456257; }
+html[data-theme="light-gradient"] :is(.app-footer,.public-document-shell>header,.public-document-shell>footer,.public-document section) { border-color:#d4e4dd; }
+html[data-theme="light-gradient"] :is(.app-footer a,.public-document-shell a,.public-document a) { color:#087a50; }
+
+html[data-theme="light-gradient"] :is(.workout-backdrop,.form-guide-backdrop,.movement-library-backdrop,.drawer-backdrop) { background:rgba(32,61,50,.34); }
+html[data-theme="light-gradient"] :is(.workout-player,.food-logger,.meal-photo-logger,.form-guide,.movement-library,.settings-panel,.glp1-panel,.operating-budget-panel,.coach-panel,.drawer,.onboarding-flow) {
+  border-color:#c4d9d0;
+  background:linear-gradient(145deg,rgba(255,255,255,.98),rgba(244,251,247,.98));
+  color:#14241e;
+  box-shadow:0 28px 80px rgba(46,82,68,.2);
+}
+html[data-theme="light-gradient"] :is(.workout-player-header,.food-header,.meal-photo-logger>header,.form-guide>header,.movement-library>header,.operating-budget-panel>header,.glp1-panel>header,.onboarding-flow>header,.workout-footer,.onboarding-flow>footer) {
+  border-color:#d3e3dc;
+  background:rgba(251,254,252,.94);
+}
+html[data-theme="light-gradient"] :is(.exercise-card,.workout-feedback,.coach-context,.coach-welcome button,.coach-evidence,.user-question p,.coach-answer p,.strength-detail,.movement-library-grid>button,.settings-action,.glp1-section,.glp1-enable,.glp1-guidance>div,.budget-summary article,.budget-controls,.budget-forecast,.expense-entry,.expense-list>div,.onboarding-review-item,.onboarding-approval>div,.starting-block-weeks>div) {
+  border-color:#d0e2da;
+  background:rgba(248,252,250,.92);
+  color:#28453a;
+}
+html[data-theme="light-gradient"] :is(.exercise-heading strong,.workout-next-step b,.coach-context b,.coach-welcome button,.coach-answer p,.coach-evidence b,.movement-library-copy b,.settings-action b,.settings-appearance b,.glp1-enable b,.glp1-guidance b,.budget-summary strong,.budget-table b,.budget-table strong,.expense-list b,.expense-list strong,.onboarding-review-item b) { color:#1b342a; }
+html[data-theme="light-gradient"] :is(.stepper input,.load-input,.coach-compose input,.search-box,.search-box input,.meal-tabs button,.quick-foods button,.serving-stepper input,.custom-food input,.custom-food select,.meal-photo-fields input,.meal-photo-fields select,.settings-confirm input,.glp1-fields input,.glp1-fields select,.glp1-severity select,.glp1-notes textarea,.budget-fields input,.expense-form input,.expense-form select,.movement-library-controls>label,.movement-library-controls input,.onboarding-fields input,.onboarding-options button) {
+  border-color:#c8dcd3;
+  background:#fff;
+  color:#18352a;
+}
+html[data-theme="light-gradient"] :is(input::placeholder,textarea::placeholder) { color:#82978f; }
+html[data-theme="light-gradient"] :is(.stepper button,.serving-stepper button,.set-check,.exercise-number) { border-color:#c8ddd4;background:#edf6f1;color:#527166; }
+html[data-theme="light-gradient"] .set-row.done { background:rgba(37,177,104,.06); }
+html[data-theme="light-gradient"] :is(.workout-progress,.onboarding-progress,.micronutrient-coverage>div i) { background:#dbeae3; }
+html[data-theme="light-gradient"] :is(.movement-library-controls button,.glp1-symptoms button,.budget-thresholds b) { border-color:#cbded5;background:#f5faf7;color:#526f64; }
+html[data-theme="light-gradient"] :is(.movement-library-controls button.active,.glp1-symptoms button.active,.onboarding-options button.selected,.meal-tabs button.active) { border-color:#46a879;background:#def5e8;color:#08764a; }
+
+html[data-theme="light-gradient"] .settings-section-label { border-color:#d4e4dd; }
+html[data-theme="light-gradient"] .settings-appearance { border-color:#c8ded5;background:linear-gradient(120deg,rgba(231,248,239,.94),rgba(234,247,255,.88)); }
+html[data-theme="light-gradient"] .settings-appearance>div:first-child { color:#087c50; }
+html[data-theme="light-gradient"] .appearance-options button { border-color:#cadcd5;background:rgba(255,255,255,.82);color:#526c62; }
+html[data-theme="light-gradient"] .appearance-options button.active { border-color:#169960;background:#dff6e9;color:#087448;box-shadow:0 5px 14px rgba(22,153,96,.12); }
+html[data-theme="light-gradient"] .settings-action.glp1 { border-color:#bfd9e7;background:#eef8fd;color:#26769a; }
+html[data-theme="light-gradient"] .settings-action.operations { border-color:#e1d2a7;background:#fff9e8;color:#9b711b; }
+html[data-theme="light-gradient"] :is(.settings-action.danger,.settings-confirm,.glp1-guidance.recovery>div:first-child,.glp1-guidance>p,.budget-summary .budget-warning,.budget-summary .budget-critical) { border-color:#ecc8bd;background:#fff2ee;color:#b44f37; }
+html[data-theme="light-gradient"] :is(.settings-action.danger button,.expense-list button) { border-color:#e5b9ad;background:#ffe8e2;color:#a94531; }
+html[data-theme="light-gradient"] :is(.settings-safety,.glp1-dose-safety,.guide-safety,.deload-alert,.nutrition-adjustment,.nutrition-week-story.opportunity) { border-color:#e0d2a7;background:#fff9e7;color:#8a6a20; }
+html[data-theme="light-gradient"] .glp1-guidance.conservative>div:first-child { border-color:#e0d2a7;background:#fff9e7;color:#8a6a20; }
+html[data-theme="light-gradient"] :is(.budget-table,.budget-table>div) { border-color:#d3e4dc;color:#536f64; }
+html[data-theme="light-gradient"] .budget-table-header { background:#edf6f1;color:#617a70!important; }
+html[data-theme="light-gradient"] .budget-table strong { color:#087b50; }
+html[data-theme="light-gradient"] .budget-icon { background:#fff1c9;color:#9a711f; }
+html[data-theme="light-gradient"] .glp1-icon { background:#e4f5fd;color:#277a9d; }
+
+html[data-theme="light-gradient"] .mobile-nav { border-color:#c8ddd4;background:rgba(252,254,252,.92);box-shadow:0 -10px 30px rgba(64,104,88,.1); }
+html[data-theme="light-gradient"] .mobile-nav a,
+html[data-theme="light-gradient"] .mobile-nav .mobile-coach { color:#5e796e; }
+html[data-theme="light-gradient"] .mobile-nav a.active { color:#087b50; }
+
+@media(prefers-reduced-motion:no-preference) {
+  html[data-theme="light-gradient"] body,
+  html[data-theme="light-gradient"] :is(.sidebar,.hero-card,.panel,.metric-strip,.settings-panel,.workout-player,.food-logger,.coach-panel) { transition:background-color .2s ease,border-color .2s ease,color .2s ease,box-shadow .2s ease; }
 }
