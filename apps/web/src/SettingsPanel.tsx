@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { CircleDollarSign, Download, HeartPulse, Monitor, Moon, RefreshCw, RotateCcw, Settings, ShieldCheck, Sun, Trash2, X } from 'lucide-react';
+import { CircleDollarSign, Download, Globe2, HeartPulse, Monitor, Moon, RefreshCw, RotateCcw, Settings, ShieldCheck, Sun, Trash2, X } from 'lucide-react';
 import { useAccessibleDialog } from './useAccessibleDialog.js';
 import type { AppearancePreference } from './appearance.js';
+import type { UnitPreference } from './region.js';
 
-interface Props { onClose(): void; onGeneratePlan(): void; onReset(): void; onExport(): void; onDelete(): Promise<void>; onOpenBudget(): void; onOpenGlp1Support(): void; glp1SupportEnabled: boolean; appearancePreference: AppearancePreference; onAppearanceChange(preference: AppearancePreference): void; canDeleteCloud: boolean; showOperationsBudget: boolean; }
+interface Props { onClose(): void; onGeneratePlan(): void; onReset(): void; onExport(): void; onDelete(): Promise<void>; onOpenBudget(): void; onOpenGlp1Support(): void; glp1SupportEnabled: boolean; appearancePreference: AppearancePreference; onAppearanceChange(preference: AppearancePreference): void; unitPreference: UnitPreference; onUnitPreferenceChange(preference: UnitPreference): void; canDeleteCloud: boolean; showOperationsBudget: boolean; }
 
-export function SettingsPanel({ onClose, onGeneratePlan, onReset, onExport, onDelete, onOpenBudget, onOpenGlp1Support, glp1SupportEnabled, appearancePreference, onAppearanceChange, canDeleteCloud, showOperationsBudget }: Props) {
+export function SettingsPanel({ onClose, onGeneratePlan, onReset, onExport, onDelete, onOpenBudget, onOpenGlp1Support, glp1SupportEnabled, appearancePreference, onAppearanceChange, unitPreference, onUnitPreferenceChange, canDeleteCloud, showOperationsBudget }: Props) {
   const [confirmReset, setConfirmReset] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleteText, setDeleteText] = useState('');
@@ -23,6 +24,11 @@ export function SettingsPanel({ onClose, onGeneratePlan, onReset, onExport, onDe
         <button type="button" aria-pressed={appearancePreference === 'light-gradient'} className={appearancePreference === 'light-gradient' ? 'active' : ''} onClick={() => onAppearanceChange('light-gradient')}><Sun size={16} /> Light Gradient</button>
         <button type="button" aria-pressed={appearancePreference === 'system'} className={appearancePreference === 'system' ? 'active' : ''} onClick={() => onAppearanceChange('system')}><Monitor size={16} /> System</button>
       </div></div>
+      <div className="settings-region"><div><Globe2 size={21} /><span><b>Units &amp; region</b><small>Choose how body weight and weight trends appear on this device.</small></span></div><div className="unit-options" role="group" aria-label="Body weight units">
+        <button type="button" aria-pressed={unitPreference === 'system'} className={unitPreference === 'system' ? 'active' : ''} onClick={() => onUnitPreferenceChange('system')}><Monitor size={16} /> System</button>
+        <button type="button" aria-pressed={unitPreference === 'us'} className={unitPreference === 'us' ? 'active' : ''} onClick={() => onUnitPreferenceChange('us')}>U.S. (lb)</button>
+        <button type="button" aria-pressed={unitPreference === 'metric'} className={unitPreference === 'metric' ? 'active' : ''} onClick={() => onUnitPreferenceChange('metric')}>Metric (kg)</button>
+      </div><small className="settings-region-note">Workout equipment loads remain in the units they were logged with.</small></div>
       <div className="settings-action glp1"><HeartPulse size={21} /><span><b>GLP-1 support {glp1SupportEnabled && <em>Active</em>}</b><small>Track prescribed dose, current side effects, and safely adapt workout volume, intensity, recovery, hydration, and protein priorities.</small></span><button onClick={() => { onClose(); onOpenGlp1Support(); }}>{glp1SupportEnabled ? 'Review' : 'Set up'}</button></div>
       <div className="settings-action"><Download size={21} /><span><b>Export my Forge data</b><small>Download a portable JSON copy of check-ins, training, nutrition, hydration, preferences, and Coach history.</small></span><button onClick={onExport}>Export</button></div>
       {showOperationsBudget && <div className="settings-action operations"><CircleDollarSign size={21} /><span><b>Forge operating budget</b><small>Track Azure runway, OpenAI credits, monthly guardrails, actual expenses, and the 3/6/9/12-month cash target.</small></span><button onClick={() => { onClose(); onOpenBudget(); }}>Track costs</button></div>}

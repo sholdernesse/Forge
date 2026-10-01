@@ -49,6 +49,7 @@ import { forgeAccountDataFilename, forgeAccountDataJson } from './accountDataExp
 import { operatingBudgetEnabled } from './operatingBudget.js';
 import type { Glp1SupportProfile } from './glp1Support.js';
 import { applyAppearance, loadAppearancePreference, saveAppearancePreference, type AppearancePreference } from './appearance.js';
+import { formatWeight, loadUnitPreference, resolveWeightUnit, saveUnitPreference, weightInputBounds, weightValueFromKg, weightValueToKg, type UnitPreference } from './region.js';
 
 const OperatingBudgetPanel = lazy(async () => ({ default: (await import('./OperatingBudgetPanel.js')).OperatingBudgetPanel }));
 const Glp1SupportPanel = lazy(async () => ({ default: (await import('./Glp1SupportPanel.js')).Glp1SupportPanel }));
@@ -177,6 +178,7 @@ export function App() {
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [appearancePreference, setAppearancePreference] = useState<AppearancePreference>(() => loadAppearancePreference(window.localStorage));
+  const [unitPreference, setUnitPreference] = useState<UnitPreference>(() => loadUnitPreference(window.localStorage));
   const [operatingBudgetOpen, setOperatingBudgetOpen] = useState(false);
   const [glp1SupportOpen, setGlp1SupportOpen] = useState(false);
   const [coachOpen, setCoachOpen] = useState(false);
@@ -204,6 +206,8 @@ export function App() {
     media.addEventListener('change', refresh);
     return () => media.removeEventListener('change', refresh);
   }, [appearancePreference]);
+
+  useEffect(() => { saveUnitPreference(window.localStorage, unitPreference); }, [unitPreference]);
 
   function saveCurrentDashboardState(state: Parameters<typeof saveDashboardState>[1], nextOnboarding = onboardingProfile, nextGlp1Support = glp1Support) {
     saveDashboardState(window.localStorage, {
@@ -257,12 +261,14 @@ export function App() {
   const generatedPlan = useMemo(() => generateTrainingPlan(twin, trainingPreferences, sessionHistory, scheduleOverrides[TODAY], planDeload, glp1Support), [twin, trainingPreferences, sessionHistory, scheduleOverrides, planDeload, glp1Support]);
   const deload = useMemo(() => assessDeload(twin, planDeload), [twin, planDeload]);
   const today = history.find((day) => day.date === TODAY)!;
-  const nutritionTargets = useMemo(() => calculateNutritionTargets(twin, workout), [twin, workout]);
+  const weightUnit = resolveWeightUnit(unitPreference, navigator.language);
+  const checkInWeightBounds = weightInputBounds(weightUnit);
+  const nutritionTargets = useMemo(() => calculateNutritionTargets(twin, workout, weightUnit), [twin, workout, weightUnit]);
   const targetProtein = nutritionTargets.proteinG;
   const calorieTarget = nutritionTargets.caloriesKcal;
   const nutrientCoverage = useMemo(() => micronutrientCoverage(foodEntries, TODAY), [foodEntries, TODAY]);
   const nutritionStory = useMemo(() => weeklyNutritionStory(foodEntries, TODAY), [foodEntries, TODAY]);
-  const weightStory = weightProgressStory(history, athleteGoals.primary, TODAY);
+  const weightStory = weightProgressStory(history, athleteGoals.primary, TODAY, weightUnit);
   const timeline = performanceTimeline(history, sessionHistory, TODAY);
   const strengthLeaders = strongestMovements(exerciseHistory).slice(0, 3);
   const strengthInsight = strengthProgressInsight(exerciseHistory, sessionHistory, athleteGoals.weeklyTrainingTarget ?? 4, TODAY);
@@ -805,7 +811,7 @@ export function App() {
 
           <article className="panel trend-panel" id="progress">
             <div className="panel-heading"><div><span className="section-label">RECENT PROGRESS</span><h3>{weightStory.headline}</h3></div><TrendingDown size={22} className="trend-icon" /></div>
-            <div className="trend-summary"><strong>{weightStory.latest === undefined ? 'No weight yet' : `${weightStory.latest.toFixed(1)} kg`}</strong><span>{weightStory.summary}</span></div>
+            <div className="trend-summary"><strong>{weightStory.latest === undefined ? 'No weight yet' : formatWeight(weightStory.latest, weightUnit)}</strong><span>{weightStory.summary}</span></div>
             {weightStory.measurements.length > 1 && <Sparkline values={weightStory.measurements} />}
             <div className="goal-row"><Target size={18} /><span><b>Goal context</b><small>{weightStory.trajectory}</small></span><strong>{weightStory.measurements.length > 1 ? 'Review' : 'Collect'}</strong></div>
             <details className="performance-timeline"><summary><span><Activity size={16} /><b>View performance timeline</b></span><small>{timeline.length ? `${timeline.length} recent events` : 'No events yet'}</small></summary>{timeline.length ? <div>{timeline.map((entry) => <article className={entry.tone} key={`${entry.date}-${entry.title}`}><time dateTime={entry.date}>{new Date(`${entry.date}T12:00:00Z`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })}</time><section><b>{entry.title}</b><p>{entry.detail}</p><div>{entry.signals.map((signal) => <span key={signal}>{signal}</span>)}</div></section></article>)}</div> : <p className="timeline-empty">Complete a workout, reflection, or nutrition log to begin the timeline.</p>}<footer>Events share a sequence in time. Forge does not assume that one event caused another.</footer></details>
@@ -927,7 +933,7 @@ export function App() {
       {checkInOpen && <div className="drawer-backdrop" onMouseDown={() => setCheckInOpen(false)}>
         <aside ref={checkInDialogRef} className="drawer" role="dialog" aria-modal="true" aria-labelledby="checkin-title" tabIndex={-1} onMouseDown={(event) => event.stopPropagation()}>
           <div className="drawer-heading"><div><span className="section-label">DAILY SIGNALS</span><h2 id="checkin-title">Morning check-in</h2><p>These inputs update your Digital Twin and today’s guidance.</p></div><button onClick={() => setCheckInOpen(false)} aria-label="Close check-in"><X size={20} /></button></div>
-          <label>Body weight (kg) <output>{checkInDraft.weightKg.toFixed(1)} kg</output><input type="number" min="30" max="300" step="0.1" inputMode="decimal" value={checkInDraft.weightKg} onChange={(e) => setCheckInDraft({ ...checkInDraft, weightKg: Number(e.target.value) })} /></label>
+          <label>Body weight ({weightUnit}) <output>{formatWeight(checkInDraft.weightKg, weightUnit)}</output><input type="number" min={checkInWeightBounds.min} max={checkInWeightBounds.max} step={checkInWeightBounds.step} inputMode="decimal" value={weightValueFromKg(checkInDraft.weightKg, weightUnit).toFixed(1)} onChange={(e) => setCheckInDraft({ ...checkInDraft, weightKg: weightValueToKg(Number(e.target.value), weightUnit) })} /></label>
           <label>Sleep quality <output>{checkInDraft.sleepScore}/100</output><input type="range" min="0" max="100" value={checkInDraft.sleepScore} onChange={(e) => setCheckInDraft({ ...checkInDraft, sleepScore: Number(e.target.value) })} /></label>
           <label>Hours slept <output>{checkInDraft.sleepHours.toFixed(1)}h</output><input type="range" min="0" max="12" step="0.1" value={checkInDraft.sleepHours} onChange={(e) => setCheckInDraft({ ...checkInDraft, sleepHours: Number(e.target.value) })} /></label>
           <label>Soreness <output>{checkInDraft.soreness}/10</output><input type="range" min="0" max="10" value={checkInDraft.soreness} onChange={(e) => setCheckInDraft({ ...checkInDraft, soreness: Number(e.target.value) })} /></label>
@@ -937,10 +943,10 @@ export function App() {
         </aside>
       </div>}
 
-      {onboardingOpen && <OnboardingFlow onComplete={completeOnboarding} onClose={() => setOnboardingOpen(false)} />}
+      {onboardingOpen && <OnboardingFlow onComplete={completeOnboarding} onClose={() => setOnboardingOpen(false)} weightUnit={weightUnit} />}
       {workoutOpen && <WorkoutPlayer session={workout} exerciseHistory={exerciseHistory} {...(currentWorkoutFocus ? { carryForward: currentWorkoutFocus } : {})} onChange={persistWorkout} onClose={() => setWorkoutOpen(false)} onFinish={finishWorkout} />}
       {foodLoggerOpen && <FoodLogger date={TODAY} entries={foodEntries} favoriteFoodIds={favoriteFoodIds} savedMeals={savedMeals} choicePriority={athleteGoals.primary === 'muscle-gain' || athleteGoals.primary === 'performance' ? 'protein' : athleteGoals.primary === 'fat-loss' ? 'calorie-efficiency' : 'balanced'} {...(foodDataClient ? { foodDataClient } : {})} onChange={updateFoodEntries} onPreferencesChange={updateFoodPreferences} onClose={() => setFoodLoggerOpen(false)} />}
-      {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} onGeneratePlan={generateNewPlan} onReset={resetPrototype} onExport={exportForgeData} onDelete={deleteForgeData} onOpenBudget={() => setOperatingBudgetOpen(true)} onOpenGlp1Support={() => setGlp1SupportOpen(true)} glp1SupportEnabled={Boolean(glp1Support?.enabled)} appearancePreference={appearancePreference} onAppearanceChange={setAppearancePreference} canDeleteCloud={auth.status === 'signed-in' || auth.status === 'development'} showOperationsBudget={showOperationsBudget} />}
+      {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} onGeneratePlan={generateNewPlan} onReset={resetPrototype} onExport={exportForgeData} onDelete={deleteForgeData} onOpenBudget={() => setOperatingBudgetOpen(true)} onOpenGlp1Support={() => setGlp1SupportOpen(true)} glp1SupportEnabled={Boolean(glp1Support?.enabled)} appearancePreference={appearancePreference} onAppearanceChange={setAppearancePreference} unitPreference={unitPreference} onUnitPreferenceChange={setUnitPreference} canDeleteCloud={auth.status === 'signed-in' || auth.status === 'development'} showOperationsBudget={showOperationsBudget} />}
       {operatingBudgetOpen && <Suspense fallback={<div className="workout-backdrop"><div className="budget-loading" role="status">Loading operating budget…</div></div>}><OperatingBudgetPanel onClose={() => setOperatingBudgetOpen(false)} /></Suspense>}
       {glp1SupportOpen && <Suspense fallback={<div className="workout-backdrop"><div className="budget-loading" role="status">Loading GLP-1 support…</div></div>}><Glp1SupportPanel {...(glp1Support ? { profile: glp1Support } : {})} onSave={saveGlp1Support} onClose={() => setGlp1SupportOpen(false)} /></Suspense>}
       {coachOpen && <CoachPanel twin={twin} messages={coachMessages} onMessagesChange={updateCoachMessages} onAction={handleCoachAction} onClose={() => setCoachOpen(false)} />}

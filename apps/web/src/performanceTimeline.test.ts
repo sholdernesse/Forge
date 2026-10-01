@@ -15,6 +15,11 @@ describe('performance progress story', () => {
     expect(story.trajectory).toContain('fat-loss direction');
   });
 
+  it('formats the measured direction in the selected regional unit', () => {
+    const story = weightProgressStory([{ date: '2026-08-20', weightKg: 79 }, { date: '2026-08-30', weightKg: 78.4 }], 'fat-loss', '2026-08-30', 'lb');
+    expect(story.summary).toContain('Down 1.3 lb');
+  });
+
   it('combines same-day training, movement quality, nutrition, and sleep into one event', () => {
     const timeline = performanceTimeline([{ date: '2026-08-29', proteinG: 150, sleepHours: 7.5 }], [{ workoutId: 'w1', date: '2026-08-29', title: 'Upper strength', durationMinutes: 48, muscleSets: { chest: 4 }, movementQuality: 'controlled', discomfort: 'none' }], '2026-08-30');
     expect(timeline).toHaveLength(1);

@@ -38,6 +38,13 @@ describe('onboarding plan review', () => {
     expect(review.userApprovalRequired).toContain('primary goal');
   });
 
+  it('shows the starting weight in pounds when U.S. units are selected', () => {
+    expect(buildOnboardingReview(answers, 'lb').summary).toContainEqual({
+      label: 'Starting baseline',
+      value: '36 years · 175 cm · 172.0 lb',
+    });
+  });
+
   it('keeps weekly examples simple across supported training frequencies', () => {
     expect(weeklyStructureFor(2)).toContain('2 full-body');
     expect(weeklyStructureFor(3)).toContain('3 alternating');

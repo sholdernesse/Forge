@@ -4,10 +4,12 @@ import { isOnboardingProfile, type ExperienceLevel, type JourneyGoal, type Nutri
 import { buildOnboardingReview, type OnboardingAnswers } from './onboardingReview.js';
 import type { TrainingPreferences } from './trainingPlanner.js';
 import { useAccessibleDialog } from './useAccessibleDialog.js';
+import { weightInputBounds, weightValueFromKg, weightValueToKg, type WeightUnit } from './region.js';
 
 interface OnboardingFlowProps {
   onComplete(profile: OnboardingProfile): void;
   onClose(): void;
+  weightUnit?: WeightUnit;
 }
 
 const goalOptions: Array<{ value: JourneyGoal; label: string; detail: string }> = [
@@ -33,7 +35,7 @@ function toggle<T>(values: T[], value: T): T[] {
   return values.includes(value) ? values.filter((item) => item !== value) : [...values, value];
 }
 
-export function OnboardingFlow({ onComplete, onClose }: OnboardingFlowProps) {
+export function OnboardingFlow({ onComplete, onClose, weightUnit = 'kg' }: OnboardingFlowProps) {
   const [step, setStep] = useState(0);
   const [primaryGoal, setPrimaryGoal] = useState<JourneyGoal | null>(null);
   const [experience, setExperience] = useState<ExperienceLevel>('new');
@@ -46,15 +48,17 @@ export function OnboardingFlow({ onComplete, onClose }: OnboardingFlowProps) {
   const [age, setAge] = useState('');
   const [sex, setSex] = useState<OnboardingProfile['sex']>('unspecified');
   const [heightCm, setHeightCm] = useState('');
-  const [weightKg, setWeightKg] = useState('');
+  const [weightInput, setWeightInput] = useState('');
   const dialogRef = useAccessibleDialog(onClose);
   const stepHeadingRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => { stepHeadingRef.current?.focus(); }, [step]);
 
+  const weightKg = weightValueToKg(Number(weightInput), weightUnit);
+  const weightBounds = weightInputBounds(weightUnit);
   const baselineValid = Number(age) >= 18 && Number(age) <= 100
     && Number(heightCm) >= 120 && Number(heightCm) <= 230
-    && Number(weightKg) >= 30 && Number(weightKg) <= 300;
+    && weightKg >= 30 && weightKg <= 300;
 
   function currentAnswers(): OnboardingAnswers | null {
     if (!primaryGoal || !baselineValid || equipment.length === 0) return null;
@@ -71,12 +75,12 @@ export function OnboardingFlow({ onComplete, onClose }: OnboardingFlowProps) {
       age: Number(age),
       sex,
       heightCm: Number(heightCm),
-      weightKg: Number(weightKg),
+      weightKg,
     };
   }
 
   const answers = currentAnswers();
-  const review = answers ? buildOnboardingReview(answers) : null;
+  const review = answers ? buildOnboardingReview(answers, weightUnit) : null;
 
   function finish() {
     const approvedAnswers = currentAnswers();
@@ -130,7 +134,7 @@ export function OnboardingFlow({ onComplete, onClose }: OnboardingFlowProps) {
           <label>Age<input type="number" min="18" max="100" inputMode="numeric" value={age} onChange={(event) => setAge(event.target.value)} placeholder="Age" /></label>
           <label>Sex used for estimates<select value={sex} onChange={(event) => setSex(event.target.value as OnboardingProfile['sex'])}><option value="unspecified">Prefer not to specify</option><option value="female">Female</option><option value="male">Male</option><option value="intersex">Intersex</option></select></label>
           <label>Height (cm)<input type="number" min="120" max="230" inputMode="decimal" value={heightCm} onChange={(event) => setHeightCm(event.target.value)} placeholder="e.g. 173" /></label>
-          <label>Current weight (kg)<input type="number" min="30" max="300" step="0.1" inputMode="decimal" value={weightKg} onChange={(event) => setWeightKg(event.target.value)} placeholder="e.g. 75.8" /></label>
+          <label>Current weight ({weightUnit})<input type="number" min={weightBounds.min} max={weightBounds.max} step={weightBounds.step} inputMode="decimal" value={weightInput} onChange={(event) => setWeightInput(event.target.value)} placeholder={`e.g. ${weightValueFromKg(75.8, weightUnit).toFixed(1)}`} /></label>
           <label className="nutrition-choice">Nutrition support<select value={nutritionApproach} onChange={(event) => setNutritionApproach(event.target.value as NutritionApproach)}><option value="simple-guidance">Simple guidance (recommended)</option><option value="track-macros">Track calories + macros</option><option value="not-now">Not right now</option></select></label>
         </div>
         <div className="onboarding-boundary"><b>What happens next</b><span>Forge creates a starting plan from these answers, then asks for today’s sleep, soreness, and stress before adapting it.</span></div>

@@ -1,4 +1,5 @@
 import type { OnboardingProfile } from './onboarding.js';
+import { formatWeight, type WeightUnit } from './region.js';
 
 export type OnboardingAnswers = Omit<OnboardingProfile, 'completedAt'>;
 
@@ -58,7 +59,7 @@ export function weeklyStructureFor(days: number): string {
   return `${days} adaptive training days, with recovery work replacing intensity when your signals call for it.`;
 }
 
-export function buildOnboardingReview(answers: OnboardingAnswers): OnboardingPlanReview {
+export function buildOnboardingReview(answers: OnboardingAnswers, weightUnit: WeightUnit = 'kg'): OnboardingPlanReview {
   const considerations = answers.constraints.length > 0
     ? answers.constraints.map((item) => constraintLabels[item]).join(', ')
     : 'No movement considerations selected';
@@ -71,7 +72,7 @@ export function buildOnboardingReview(answers: OnboardingAnswers): OnboardingPla
       { label: 'Training setup', value: `${locationLabels[answers.location]} · ${answers.equipment.map((item) => equipmentLabels[item]).join(', ')}` },
       { label: 'Movement considerations', value: considerations },
       { label: 'Nutrition support', value: nutritionLabels[answers.nutritionApproach] },
-      { label: 'Starting baseline', value: `${answers.age} years · ${answers.heightCm} cm · ${answers.weightKg} kg` },
+      { label: 'Starting baseline', value: `${answers.age} years · ${answers.heightCm} cm · ${formatWeight(answers.weightKg, weightUnit, answers.weightKg % 1 === 0 && weightUnit === 'kg' ? 0 : 1)}` },
     ],
     weeklyStructure: weeklyStructureFor(answers.weeklyTrainingDays),
     forgeCanAdapt: 'Forge can adjust today’s intensity, exercise selection, and recovery work using your check-ins and training history.',

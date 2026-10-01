@@ -74,4 +74,9 @@ describe('adaptive nutrition planner', () => {
     expect(targets.bodyComposition.status).toBe('on-track');
     expect(targets.bodyComposition.rangeLabel).toContain('kg/week');
   });
+
+  it('formats body-composition rates in the selected regional unit', () => {
+    const targets = calculateNutritionTargets(twin(), createTodayWorkout('2026-08-12'), 'lb');
+    expect(targets.bodyComposition.rangeLabel).toContain('lb/week');
+  });
 });

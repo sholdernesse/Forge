@@ -1,5 +1,6 @@
 import type { DailySnapshot, DigitalTwin } from '@forge/digital-twin';
 import type { WorkoutSession } from './workoutSession.js';
+import { formatWeightRate, type WeightUnit } from './region.js';
 
 export interface NutritionTargets {
   caloriesKcal: number;
@@ -35,7 +36,7 @@ interface NutritionCalibration {
   loggedDays: number;
 }
 
-function bodyCompositionTarget(goal: DigitalTwin['goals']['primary'], weightKg: number, trendKgPerWeek?: number): BodyCompositionTarget {
+function bodyCompositionTarget(goal: DigitalTwin['goals']['primary'], weightKg: number, trendKgPerWeek?: number, weightUnit: WeightUnit = 'kg'): BodyCompositionTarget {
   const ranges = {
     'fat-loss': { min: -weightKg * 0.0075, max: -weightKg * 0.0025, label: 'Gradual fat loss' },
     recomposition: { min: -weightKg * 0.0025, max: weightKg * 0.0015, label: 'Recomposition' },
@@ -44,8 +45,7 @@ function bodyCompositionTarget(goal: DigitalTwin['goals']['primary'], weightKg: 
     maintenance: { min: -weightKg * 0.0015, max: weightKg * 0.0015, label: 'Weight maintenance' },
   } satisfies Record<DigitalTwin['goals']['primary'], { min: number; max: number; label: string }>;
   const target = ranges[goal];
-  const signed = (value: number) => `${value > 0 ? '+' : ''}${value.toFixed(2)}`;
-  const rangeLabel = `${signed(target.min)} to ${signed(target.max)} kg/week`;
+  const rangeLabel = `${formatWeightRate(target.min, weightUnit)} to ${formatWeightRate(target.max, weightUnit)}`;
   if (trendKgPerWeek === undefined) return { label: target.label, rangeLabel, status: 'calibrating', statusLabel: 'Building a reliable trend' };
   if (trendKgPerWeek >= target.min && trendKgPerWeek <= target.max) return { label: target.label, rangeLabel, status: 'on-track', statusLabel: 'Current trend is in range' };
   const stableGoal = goal === 'maintenance' || goal === 'performance';
@@ -77,7 +77,7 @@ function nutritionCalibration(history: DailySnapshot[]): NutritionCalibration {
   };
 }
 
-export function calculateNutritionTargets(twin: DigitalTwin, workout: WorkoutSession): NutritionTargets {
+export function calculateNutritionTargets(twin: DigitalTwin, workout: WorkoutSession, weightUnit: WeightUnit = 'kg'): NutritionTargets {
   const profile = twin.profile;
   const weight = profile.weightKg ?? twin.history.at(-1)?.weightKg ?? 75;
   const height = profile.heightCm ?? 173;
@@ -110,7 +110,7 @@ export function calculateNutritionTargets(twin: DigitalTwin, workout: WorkoutSes
     : trend !== undefined && calibration.loggedDays >= 10
       ? 'medium'
       : 'low';
-  const direction = trend === undefined ? 'Longer weight trend is still calibrating.' : `Longer weight trend is ${trend > 0 ? '+' : ''}${trend} kg/week.`;
+  const direction = trend === undefined ? 'Longer weight trend is still calibrating.' : `Longer weight trend is ${formatWeightRate(trend, weightUnit)}.`;
   const demand = workout.planType === 'recovery' ? 'Recovery-day demand is lower.' : `${workout.intensity ?? 'moderate'} training demand adds fuel.`;
   const adjustmentBreakdown: CalorieAdjustment[] = [
     { label: 'Goal baseline', kcal: baseGoalAdjustment, explanation: `Supports the selected ${twin.goals.primary.replace('-', ' ')} goal.` },
@@ -129,7 +129,7 @@ export function calculateNutritionTargets(twin: DigitalTwin, workout: WorkoutSes
     confidence,
     reason: `${direction} ${demand}`,
     safeguards,
-    bodyComposition: bodyCompositionTarget(twin.goals.primary, weight, trend),
+    bodyComposition: bodyCompositionTarget(twin.goals.primary, weight, trend, weightUnit),
     adjustmentBreakdown,
   };
 }

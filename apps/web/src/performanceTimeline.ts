@@ -1,5 +1,6 @@
 import type { DailySnapshot, PrimaryGoal } from '@forge/digital-twin';
 import type { TrainingSessionRecord } from './volumeLedger.js';
+import { formatWeight, type WeightUnit } from './region.js';
 
 export interface WeightProgressStory {
   measurements: number[];
@@ -26,7 +27,7 @@ const goalLabels: Record<PrimaryGoal, string> = {
   maintenance: 'maintenance direction',
 };
 
-export function weightProgressStory(history: DailySnapshot[], goal: PrimaryGoal, today: string): WeightProgressStory {
+export function weightProgressStory(history: DailySnapshot[], goal: PrimaryGoal, today: string, weightUnit: WeightUnit = 'kg'): WeightProgressStory {
   const measurements = history
     .filter((day) => day.date <= today && typeof day.weightKg === 'number' && Number.isFinite(day.weightKg))
     .sort((left, right) => left.date.localeCompare(right.date))
@@ -41,7 +42,7 @@ export function weightProgressStory(history: DailySnapshot[], goal: PrimaryGoal,
     trajectory: 'Not enough data',
   };
   const change = Math.round((latest - measurements[0]!) * 10) / 10;
-  const direction = Math.abs(change) < 0.2 ? 'holding steady' : change < 0 ? `down ${Math.abs(change).toFixed(1)} kg` : `up ${change.toFixed(1)} kg`;
+  const direction = Math.abs(change) < 0.2 ? 'holding steady' : change < 0 ? `down ${formatWeight(Math.abs(change), weightUnit)}` : `up ${formatWeight(change, weightUnit)}`;
   return {
     measurements,
     latest,
