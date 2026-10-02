@@ -462,15 +462,6 @@ h1 { font-size: clamp(28px, 3vw, 40px); letter-spacing: -.04em; margin-top: 5px;
 /* Sprint 4.30: end-of-day reflection */
 .movement-library-controls{display:block}
 
-.reflection-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  border: 1px solid rgba(167, 139, 250, 0.38);
-  background: rgba(124, 58, 237, 0.12);
-  color: #ddd6fe;
-}
-.reflection-button:hover { background: rgba(124, 58, 237, 0.22); }
 .reflection-drawer label small {
   display: block;
   margin-top: 0.25rem;
@@ -500,11 +491,6 @@ h1 { font-size: clamp(28px, 3vw, 40px); letter-spacing: -.04em; margin-top: 5px;
   outline: 2px solid rgba(167, 139, 250, 0.55);
   outline-offset: 2px;
 }
-@media (max-width: 760px) {
-  .reflection-button { width: 100%; justify-content: center; }
-}
-
-
 /* Sprint 4.31: reflection history story */
 .reflection-icon { color: #a78bfa; }
 .reflection-latest {
@@ -1051,7 +1037,7 @@ h1 { font-size: clamp(28px, 3vw, 40px); letter-spacing: -.04em; margin-top: 5px;
   .onboarding-fields .nutrition-choice { grid-column: auto; }
 }
 
-.needs-setup .reflection-button:disabled, .needs-setup .checkin-button:disabled, .needs-setup .mobile-nav button:disabled { cursor: not-allowed; opacity: 0.35; }
+.needs-setup .checkin-button:disabled, .needs-setup .mobile-nav button:disabled { cursor: not-allowed; opacity: 0.35; }
 
 
 /* Sprint 4.45: accessible modal and check-in controls */
@@ -1092,12 +1078,6 @@ h1 { font-size: clamp(28px, 3vw, 40px); letter-spacing: -.04em; margin-top: 5px;
     flex-basis: 100%;
   }
   .topbar-actions .auth-button { max-width: min(11rem, 100%); }
-  .topbar-actions .reflection-button {
-    width: auto;
-    min-width: 0;
-    flex: 1;
-    justify-content: center;
-  }
   .topbar .checkin-button { flex: 0 0 2.625rem; }
 }
 

@@ -742,7 +742,6 @@ export function App() {
             <span className={`save-status sync-${syncStatus}`}>{syncStatus === 'offline' ? <CloudOff size={15} /> : syncStatus === 'conflict' ? <ShieldAlert size={15} /> : syncStatus === 'local' ? <Save size={15} /> : <Cloud size={15} />} {syncStatus === 'syncing' ? 'Syncing…' : syncStatus === 'connecting' ? 'Connecting…' : syncStatus === 'reconnecting' ? 'Reconnecting · saved locally' : syncStatus === 'synced' ? 'Synced across devices' : syncStatus === 'conflict' ? 'Sync needs attention' : syncStatus === 'offline' ? 'Offline · saved locally' : savedAt ? 'Saved on this device' : demoMode ? 'Demo data' : 'Ready to set up'}</span>
             {auth.status === 'signed-out' ? <button className="auth-button" onClick={() => void auth.signIn()}>Sign in</button> : auth.status === 'signed-in' ? <button className="auth-button signed-in" onClick={() => void auth.signOut()} title="Sign out">{auth.name ?? auth.username ?? 'Account'}</button> : null}
             <button className="topbar-settings" onClick={() => setSettingsOpen(true)} aria-label="Open Forge settings"><Settings size={18} /></button>
-            <button className="reflection-button" disabled={firstRun} onClick={openReflection}><HeartPulse size={18} /> Evening reflection</button>
             <button className="checkin-button" disabled={firstRun} onClick={openCheckIn}><Plus size={18} /> Morning check-in</button>
           </div>
         </header>
