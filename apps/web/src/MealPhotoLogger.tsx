@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Camera, Check, ImagePlus, LoaderCircle, Sparkles, Trash2, X } from 'lucide-react';
+import { AlertTriangle, Camera, Check, Database, ImagePlus, LoaderCircle, Pencil, Sparkles, Trash2, Utensils, X } from 'lucide-react';
 import type { FoodEntry, MealType } from './foodLog.js';
 import { createFoodEntry } from './foodLog.js';
 import { FoodDataClient, FoodDataError, type MealPhotoAnalysis, type MealPhotoItem } from './foodDataClient.js';
@@ -61,6 +61,12 @@ export function entriesFromMealPhoto(items: DraftItem[], date: string, meal: Mea
   }, `${date}-${meal}-photo-${now}-${index}`));
 }
 
+export function mealPhotoConfidence(confidence: number) {
+  if (confidence >= .8) return { label: 'High confidence', tone: 'high' as const };
+  if (confidence >= .55) return { label: 'Medium confidence', tone: 'medium' as const };
+  return { label: 'Needs review', tone: 'low' as const };
+}
+
 export function mealPhotoErrorMessage(error: unknown) {
   if (error instanceof FoodDataError && error.reason === 'provider_authentication_failed') return 'OpenAI rejected the API key. Check OPENAI_API_KEY in .env.local, then restart Forge.';
   if (error instanceof FoodDataError && error.reason === 'provider_access_denied') return 'This API project cannot use the configured vision model. Check the project permissions or choose an enabled model.';
@@ -87,6 +93,9 @@ export function MealPhotoLogger({ date, meal, client, onAdd, onClose }: Props) {
   const [message, setMessage] = useState('Take a clear overhead or angled photo with the full plate visible.');
   const selected = items.filter((item) => item.selected);
   const totals = selected.reduce((sum, item) => ({ calories: sum.calories + item.caloriesKcal, protein: sum.protein + item.proteinG, carbs: sum.carbs + item.carbsG, fat: sum.fat + item.fatG }), { calories: 0, protein: 0, carbs: 0, fat: 0 });
+  const averageConfidence = selected.length ? selected.reduce((sum, item) => sum + item.confidence, 0) / selected.length : 0;
+  const confidence = mealPhotoConfidence(averageConfidence);
+  const usdaMatches = selected.filter((item) => item.nutritionSource === 'usda').length;
 
   async function analyze(file?: File) {
     if (!file) return;
@@ -95,7 +104,7 @@ export function MealPhotoLogger({ date, meal, client, onAdd, onClose }: Props) {
       const imageDataUrl = await prepareMealPhoto(file);
       setPreview(imageDataUrl); setStatus('analyzing'); setMessage('Identifying foods and estimating visible portions…');
       const result = await client.analyzeMealPhoto(imageDataUrl);
-      setAnalysis(result); setItems(result.items.map((item) => ({ ...item, selected: true }))); setMessage('Review every item, portion, and macro before adding this meal.');
+      setAnalysis(result); setItems(result.items.map((item) => ({ ...item, selected: true }))); setMessage('Your estimate is ready. Confirm the foods and portions before adding it.');
     } catch (error) {
       setMessage(mealPhotoErrorMessage(error));
     } finally { setStatus('idle'); }
@@ -117,19 +126,28 @@ export function MealPhotoLogger({ date, meal, client, onAdd, onClose }: Props) {
     {!preview ? <button className="meal-photo-capture" onClick={() => inputRef.current?.click()}><Camera size={24} /><span><b>Take or choose a photo</b><small>The image is resized, metadata is removed, and the photo itself is not saved to your Forge history.</small></span></button> : <div className="meal-photo-preview"><img src={preview} alt="Meal selected for nutrition analysis" /><button onClick={() => inputRef.current?.click()}><ImagePlus size={16} /> Replace photo</button></div>}
     <p className={`meal-photo-message ${status !== 'idle' ? 'working' : ''}`}>{status !== 'idle' && <LoaderCircle size={16} />} {message}</p>
     {items.length > 0 && <>
+      <section className="meal-photo-summary" aria-label="Estimated meal summary">
+        <div className="meal-photo-summary-heading"><span><Utensils size={16} /> MEAL ESTIMATE</span><b className={`confidence-badge ${confidence.tone}`}>{confidence.label}</b></div>
+        <div className="meal-photo-calorie-total"><strong>{Math.round(totals.calories).toLocaleString()}</strong><span>estimated calories<small>{selected.length} {selected.length === 1 ? 'food' : 'foods'} selected</small></span></div>
+        <div className="meal-photo-macros"><div><span>Protein</span><b>{Math.round(totals.protein)}g</b></div><div><span>Carbs</span><b>{Math.round(totals.carbs)}g</b></div><div><span>Fat</span><b>{Math.round(totals.fat)}g</b></div></div>
+        <p><Database size={14} /> {usdaMatches ? `${usdaMatches} of ${selected.length} selected ${selected.length === 1 ? 'item uses' : 'items use'} a USDA nutrition match.` : 'Nutrition values are visual estimates and should be reviewed.'}</p>
+      </section>
+      <div className="meal-photo-list-heading"><div><span>Detected foods</span><small>Uncheck anything that is not part of the meal.</small></div><b>{selected.length}/{items.length} included</b></div>
       <section className="meal-photo-items">{items.map((item, index) => <article className={item.selected ? '' : 'excluded'} key={`${item.name}-${index}`}>
         <label className="meal-photo-select"><input type="checkbox" checked={item.selected} onChange={(event) => update(index, 'selected', event.target.checked)} /><span><Check size={13} /></span></label>
-        <div className="meal-photo-fields"><input aria-label={`Food ${index + 1} name`} value={item.name} onChange={(event) => update(index, 'name', event.target.value)} /><small>{item.portionDescription} · {Math.round(item.confidence * 100)}% visual confidence · {item.nutritionSource === 'usda' ? `USDA match${item.referenceFoodName ? `: ${item.referenceFoodName}` : ''}` : 'AI estimate—verify carefully'}</small><div>
-          <label>Grams<input type="number" min="1" value={item.estimatedGrams} onChange={(event) => update(index, 'estimatedGrams', event.target.value)} /></label>
-          <label>Calories<input type="number" min="0" value={item.caloriesKcal} onChange={(event) => update(index, 'caloriesKcal', event.target.value)} /></label>
-          <label>Protein<input type="number" min="0" step="0.1" value={item.proteinG} onChange={(event) => update(index, 'proteinG', event.target.value)} /></label>
-          <label>Carbs<input type="number" min="0" step="0.1" value={item.carbsG} onChange={(event) => update(index, 'carbsG', event.target.value)} /></label>
-          <label>Fat<input type="number" min="0" step="0.1" value={item.fatG} onChange={(event) => update(index, 'fatG', event.target.value)} /></label>
-        </div></div>
+        <div className="meal-photo-fields">
+          <div className="meal-photo-food-title"><input aria-label={`Food ${index + 1} name`} value={item.name} onChange={(event) => update(index, 'name', event.target.value)} /><strong>{Math.round(item.caloriesKcal)} kcal</strong></div>
+          <div className="meal-photo-badges"><span className={`confidence-badge ${mealPhotoConfidence(item.confidence).tone}`}>{mealPhotoConfidence(item.confidence).label}</span><span className={`source-badge ${item.nutritionSource}`}>{item.nutritionSource === 'usda' ? 'USDA matched' : 'Visual estimate'}</span></div>
+          <p>{item.portionDescription} · approximately {Math.round(item.estimatedGrams)}g</p>
+          <div className="meal-photo-item-macros"><span><b>{Math.round(item.proteinG)}g</b> protein</span><span><b>{Math.round(item.carbsG)}g</b> carbs</span><span><b>{Math.round(item.fatG)}g</b> fat</span></div>
+          <details className="meal-photo-edit"><summary><Pencil size={13} /> Edit nutrition details</summary><div>
+            <label>Serving (g)<input type="number" min="1" value={item.estimatedGrams} onChange={(event) => update(index, 'estimatedGrams', event.target.value)} /></label><label>Calories<input type="number" min="0" value={item.caloriesKcal} onChange={(event) => update(index, 'caloriesKcal', event.target.value)} /></label><label>Protein (g)<input type="number" min="0" step="0.1" value={item.proteinG} onChange={(event) => update(index, 'proteinG', event.target.value)} /></label><label>Carbs (g)<input type="number" min="0" step="0.1" value={item.carbsG} onChange={(event) => update(index, 'carbsG', event.target.value)} /></label><label>Fat (g)<input type="number" min="0" step="0.1" value={item.fatG} onChange={(event) => update(index, 'fatG', event.target.value)} /></label>
+          </div></details>
+        </div>
         <button className="meal-photo-remove" onClick={() => setItems((current) => current.filter((_, itemIndex) => itemIndex !== index))} aria-label={`Remove ${item.name}`}><Trash2 size={15} /></button>
       </article>)}</section>
-      {(analysis?.assumptions.length || analysis?.warnings.length) ? <details className="meal-photo-notes"><summary>Assumptions and uncertainty</summary><ul>{[...(analysis?.assumptions ?? []), ...(analysis?.warnings ?? [])].map((note) => <li key={note}>{note}</li>)}</ul></details> : null}
-      <footer className="meal-photo-review"><div><span>{selected.length} items selected</span><b>{Math.round(totals.calories)} kcal · P {Math.round(totals.protein)} · C {Math.round(totals.carbs)} · F {Math.round(totals.fat)}</b><small>Photo estimates can miss oils, sauces, ingredients, and exact weights.</small></div><button disabled={!selected.length} onClick={addMeal}><Sparkles size={16} /> Add reviewed meal</button></footer>
+      {(analysis?.assumptions.length || analysis?.warnings.length) ? <details className="meal-photo-notes"><summary><AlertTriangle size={15} /> What to double-check <span>{(analysis?.assumptions.length ?? 0) + (analysis?.warnings.length ?? 0)}</span></summary><div>{analysis?.warnings.length ? <section><b>Before you log</b><ul>{analysis.warnings.map((note) => <li key={note}>{note}</li>)}</ul></section> : null}{analysis?.assumptions.length ? <section><b>How this was estimated</b><ul>{analysis.assumptions.map((note) => <li key={note}>{note}</li>)}</ul></section> : null}</div></details> : null}
+      <footer className="meal-photo-review"><div><span>READY TO ADD · {selected.length} {selected.length === 1 ? 'ITEM' : 'ITEMS'}</span><b>{Math.round(totals.calories)} kcal <i>·</i> {Math.round(totals.protein)}g protein <i>·</i> {Math.round(totals.carbs)}g carbs <i>·</i> {Math.round(totals.fat)}g fat</b><small>Confirm hidden oils, sauces, and portion sizes for the most useful estimate.</small></div><button disabled={!selected.length} onClick={addMeal}><Sparkles size={16} /> Add meal to log</button></footer>
     </>}
   </section></div>;
 }

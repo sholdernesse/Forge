@@ -1,8 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { constrainedPhotoDimensions, entriesFromMealPhoto, mealPhotoErrorMessage } from './MealPhotoLogger.js';
+import { constrainedPhotoDimensions, entriesFromMealPhoto, mealPhotoConfidence, mealPhotoErrorMessage } from './MealPhotoLogger.js';
 import { FoodDataError } from './foodDataClient.js';
 
 describe('meal photo logging', () => {
+  it('turns visual confidence into clear review guidance', () => {
+    expect(mealPhotoConfidence(.91)).toEqual({ label: 'High confidence', tone: 'high' });
+    expect(mealPhotoConfidence(.67)).toEqual({ label: 'Medium confidence', tone: 'medium' });
+    expect(mealPhotoConfidence(.4)).toEqual({ label: 'Needs review', tone: 'low' });
+  });
+
   it('turns provider diagnostics into actionable setup guidance', () => {
     expect(mealPhotoErrorMessage(new FoodDataError(503, 'provider_authentication_failed'))).toContain('OPENAI_API_KEY');
     expect(mealPhotoErrorMessage(new FoodDataError(503, 'provider_quota_or_rate_limit'))).toContain('billing');
