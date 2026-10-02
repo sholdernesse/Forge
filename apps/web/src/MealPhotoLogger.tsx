@@ -67,6 +67,15 @@ export function mealPhotoConfidence(confidence: number) {
   return { label: 'Needs review', tone: 'low' as const };
 }
 
+export function combinedMacroBreakdown(proteinG: number, carbsG: number, fatG: number) {
+  const calories = { protein: Math.max(0, proteinG) * 4, carbs: Math.max(0, carbsG) * 4, fat: Math.max(0, fatG) * 9 };
+  const total = calories.protein + calories.carbs + calories.fat;
+  if (!total) return { protein: 0, carbs: 0, fat: 0 };
+  const protein = Math.round(calories.protein / total * 100);
+  const carbs = Math.round(calories.carbs / total * 100);
+  return { protein, carbs, fat: Math.max(0, 100 - protein - carbs) };
+}
+
 export function mealPhotoErrorMessage(error: unknown) {
   if (error instanceof FoodDataError && error.reason === 'provider_authentication_failed') return 'OpenAI rejected the API key. Check OPENAI_API_KEY in .env.local, then restart Forge.';
   if (error instanceof FoodDataError && error.reason === 'provider_access_denied') return 'This API project cannot use the configured vision model. Check the project permissions or choose an enabled model.';
@@ -96,6 +105,7 @@ export function MealPhotoLogger({ date, meal, client, onAdd, onClose }: Props) {
   const averageConfidence = selected.length ? selected.reduce((sum, item) => sum + item.confidence, 0) / selected.length : 0;
   const confidence = mealPhotoConfidence(averageConfidence);
   const usdaMatches = selected.filter((item) => item.nutritionSource === 'usda').length;
+  const macroBreakdown = combinedMacroBreakdown(totals.protein, totals.carbs, totals.fat);
 
   async function analyze(file?: File) {
     if (!file) return;
@@ -130,6 +140,11 @@ export function MealPhotoLogger({ date, meal, client, onAdd, onClose }: Props) {
         <div className="meal-photo-summary-heading"><span><Utensils size={16} /> MEAL ESTIMATE</span><b className={`confidence-badge ${confidence.tone}`}>{confidence.label}</b></div>
         <div className="meal-photo-calorie-total"><strong>{Math.round(totals.calories).toLocaleString()}</strong><span>estimated calories<small>{selected.length} {selected.length === 1 ? 'food' : 'foods'} selected</small></span></div>
         <div className="meal-photo-macros"><div><span>Protein</span><b>{Math.round(totals.protein)}g</b></div><div><span>Carbs</span><b>{Math.round(totals.carbs)}g</b></div><div><span>Fat</span><b>{Math.round(totals.fat)}g</b></div></div>
+        <div className="meal-photo-combined">
+          <div><span>Combined macro breakdown</span><small>Share of macro calories across all selected foods</small></div>
+          <div className="meal-photo-macro-bar" aria-label={`${macroBreakdown.protein}% protein, ${macroBreakdown.carbs}% carbs, ${macroBreakdown.fat}% fat`}><i className="protein" style={{ width: `${macroBreakdown.protein}%` }} /><i className="carbs" style={{ width: `${macroBreakdown.carbs}%` }} /><i className="fat" style={{ width: `${macroBreakdown.fat}%` }} /></div>
+          <div className="meal-photo-macro-legend"><span><i className="protein" />Protein <b>{macroBreakdown.protein}%</b></span><span><i className="carbs" />Carbs <b>{macroBreakdown.carbs}%</b></span><span><i className="fat" />Fat <b>{macroBreakdown.fat}%</b></span></div>
+        </div>
         <p><Database size={14} /> {usdaMatches ? `${usdaMatches} of ${selected.length} selected ${selected.length === 1 ? 'item uses' : 'items use'} a USDA nutrition match.` : 'Nutrition values are visual estimates and should be reviewed.'}</p>
       </section>
       <div className="meal-photo-list-heading"><div><span>Detected foods</span><small>Uncheck anything that is not part of the meal.</small></div><b>{selected.length}/{items.length} included</b></div>

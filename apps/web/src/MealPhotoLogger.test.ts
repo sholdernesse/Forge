@@ -1,8 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { constrainedPhotoDimensions, entriesFromMealPhoto, mealPhotoConfidence, mealPhotoErrorMessage } from './MealPhotoLogger.js';
+import { combinedMacroBreakdown, constrainedPhotoDimensions, entriesFromMealPhoto, mealPhotoConfidence, mealPhotoErrorMessage } from './MealPhotoLogger.js';
 import { FoodDataError } from './foodDataClient.js';
 
 describe('meal photo logging', () => {
+  it('combines selected-food macros into calorie-based percentages', () => {
+    expect(combinedMacroBreakdown(40, 50, 20)).toEqual({ protein: 30, carbs: 37, fat: 33 });
+    expect(combinedMacroBreakdown(0, 0, 0)).toEqual({ protein: 0, carbs: 0, fat: 0 });
+  });
+
   it('turns visual confidence into clear review guidance', () => {
     expect(mealPhotoConfidence(.91)).toEqual({ label: 'High confidence', tone: 'high' });
     expect(mealPhotoConfidence(.67)).toEqual({ label: 'Medium confidence', tone: 'medium' });
