@@ -45,7 +45,7 @@ Copy-Item .env.example .env.local
 notepad .env.local
 ```
 
-Set `OPENAI_API_KEY` and `OPENAI_VISION_MODEL` in `.env.local`. Keep the key only in this ignored file; do not place it in `apps/web`, commit it, or paste it into browser configuration. `USDA_FOODDATA_API_KEY=DEMO_KEY` is sufficient for limited local acceptance, while a dedicated USDA key avoids demo limits.
+Set `OPENAI_API_KEY` and `OPENAI_VISION_MODEL` in `.env.local`. Keep the key only in this ignored file; do not place it in `apps/web`, commit it, or paste it into browser configuration. Meal-photo requests wait up to 90 seconds by default; set `OPENAI_MEAL_PHOTO_TIMEOUT_MS` between `30000` and `120000` only when the provider needs a different bounded window. `USDA_FOODDATA_API_KEY=DEMO_KEY` is sufficient for limited local acceptance, while a dedicated USDA key avoids demo limits.
 
 `corepack pnpm dev:https` loads the root `.env.local` before starting the API. Restart the command after changing any value. Confirm the provider is visible to Forge at:
 

@@ -69,6 +69,15 @@ interface OpenAiMealPhotoOptions {
   foodProvider?: FoodProvider;
   endpoint?: string;
   request?: typeof fetch;
+  timeoutMs?: number;
+}
+
+const defaultMealPhotoTimeoutMs = 90_000;
+
+export function mealPhotoTimeoutFromEnvironment(value: string | undefined): number {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) return defaultMealPhotoTimeoutMs;
+  return Math.min(120_000, Math.max(30_000, Math.round(parsed)));
 }
 
 const mealSchema = {
@@ -185,7 +194,7 @@ export class OpenAiMealPhotoAnalyzer implements MealPhotoAnalyzer {
           ],
           text: { format: { type: 'json_schema', name: 'forge_meal_photo_analysis', strict: true, schema: mealSchema } },
         }),
-        signal: AbortSignal.timeout(30_000),
+        signal: AbortSignal.timeout(this.options.timeoutMs ?? defaultMealPhotoTimeoutMs),
       });
     } catch (error) {
       const errorName = error instanceof Error ? error.name : '';
@@ -231,5 +240,5 @@ export function mealPhotoAnalyzerFromEnvironment(environment: NodeJS.ProcessEnv,
   const apiKey = environment.OPENAI_API_KEY?.trim();
   const model = environment.OPENAI_VISION_MODEL?.trim();
   if (!apiKey || !model) return undefined;
-  return new OpenAiMealPhotoAnalyzer({ apiKey, model, ...(foodProvider ? { foodProvider } : {}) });
+  return new OpenAiMealPhotoAnalyzer({ apiKey, model, timeoutMs: mealPhotoTimeoutFromEnvironment(environment.OPENAI_MEAL_PHOTO_TIMEOUT_MS), ...(foodProvider ? { foodProvider } : {}) });
 }

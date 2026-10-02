@@ -67,7 +67,7 @@ export function mealPhotoErrorMessage(error: unknown) {
   if (error instanceof FoodDataError && error.reason === 'provider_model_unavailable') return 'OPENAI_VISION_MODEL is unavailable to this API project. Try gpt-6-luna, then restart Forge.';
   if (error instanceof FoodDataError && error.reason === 'provider_quota_or_rate_limit') return 'The OpenAI API project has no available quota or is rate limited. Add API billing or wait, then try again.';
   if (error instanceof FoodDataError && error.reason === 'provider_request_rejected') return 'OpenAI rejected the photo-analysis request. Check the API terminal for the failure category.';
-  if (error instanceof FoodDataError && error.reason === 'provider_timeout') return 'OpenAI did not finish the analysis within 30 seconds. Try the photo again.';
+  if (error instanceof FoodDataError && error.reason === 'provider_timeout') return 'OpenAI did not finish the analysis within Forge’s configured time limit. Try a clearer photo or increase OPENAI_MEAL_PHOTO_TIMEOUT_MS.';
   if (error instanceof FoodDataError && error.reason === 'provider_unreachable') return 'Forge could not reach OpenAI. Check the computer network or firewall and try again.';
   if (error instanceof FoodDataError && error.reason === 'provider_invalid_response') return 'OpenAI returned an unusable meal estimate. Try a clearer photo.';
   if (error instanceof FoodDataError && error.status === 503) return 'Photo analysis is configured, but the provider is temporarily unavailable.';

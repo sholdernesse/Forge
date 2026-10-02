@@ -32,7 +32,7 @@ Authenticated food search uses USDA FoodData Central when `USDA_FOODDATA_API_KEY
 
 If USDA is not configured, the web app continues to use its local foods. Provider outages also leave local search and manual nutrition-label entry available.
 
-Meal-photo analysis additionally requires server-only `OPENAI_API_KEY` and `OPENAI_VISION_MODEL` values. The browser never receives the API key. Results are estimates that remain editable and are not added to the nutrition log until the user explicitly approves them.
+Meal-photo analysis additionally requires server-only `OPENAI_API_KEY` and `OPENAI_VISION_MODEL` values. `OPENAI_MEAL_PHOTO_TIMEOUT_MS` optionally controls the provider wait between 30 and 120 seconds and defaults to 90 seconds. The browser never receives the API key. Results are estimates that remain editable and are not added to the nutrition log until the user explicitly approves them.
 
 For local HTTPS development, place these values in the repository-root `.env.local`. The `dev:https` launcher loads that ignored file before starting the API. Check `/health` and require `capabilities.mealPhotoAnalysis` to be `true` before testing a plate photo.
 

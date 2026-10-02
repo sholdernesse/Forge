@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { FoodProvider } from './foodProvider.js';
-import { MealPhotoAnalysisError, OpenAiMealPhotoAnalyzer, parseDetectedMeal } from './mealPhotoAnalyzer.js';
+import { MealPhotoAnalysisError, OpenAiMealPhotoAnalyzer, mealPhotoTimeoutFromEnvironment, parseDetectedMeal } from './mealPhotoAnalyzer.js';
 
 const detected = {
   items: [{ name: 'grilled chicken breast', portionDescription: 'one sliced breast', estimatedGrams: 150, confidence: 0.86, caloriesKcal: 250, proteinG: 45, carbsG: 0, fatG: 6 }],
@@ -9,6 +9,14 @@ const detected = {
 };
 
 describe('meal photo analysis', () => {
+  it('uses a patient bounded timeout for image analysis', () => {
+    expect(mealPhotoTimeoutFromEnvironment(undefined)).toBe(90_000);
+    expect(mealPhotoTimeoutFromEnvironment('45000')).toBe(45_000);
+    expect(mealPhotoTimeoutFromEnvironment('1000')).toBe(30_000);
+    expect(mealPhotoTimeoutFromEnvironment('999999')).toBe(120_000);
+    expect(mealPhotoTimeoutFromEnvironment('invalid')).toBe(90_000);
+  });
+
   it('rejects unsafe or unbounded structured output', () => {
     expect(() => parseDetectedMeal(detected)).not.toThrow();
     expect(() => parseDetectedMeal({ ...detected, items: [{ ...detected.items[0], estimatedGrams: 50_000 }] })).toThrow(/Invalid meal item/);
