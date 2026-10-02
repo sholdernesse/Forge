@@ -6,7 +6,7 @@ Canonical plan: [Forge Product Plan](./PRODUCT-PLAN.md).
 - `decisions/` — architecture decision records
 - `sprints/` — sprint scope and acceptance notes
 
-Current delivery: [Sprint 4.97 — Assisted Meal Photo Logging](./sprints/sprint-4.97.md).
+Current documented delivery: [Sprint 4.98 — Founder Operating Budget](./sprints/sprint-4.98.md). Subsequent RC1 personalization hardening includes GLP-1 support, appearance preferences, and regional weight units.
 
 Deployment: [Microsoft Entra External ID for Forge](./deployment/entra-external-id.md).
 

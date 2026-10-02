@@ -22,7 +22,7 @@ docker build \
   --build-arg VITE_ENTRA_AUTHORITY=https://<tenant>.ciamlogin.com/<tenant>.onmicrosoft.com \
   --build-arg VITE_ENTRA_API_SCOPE=api://<forge-api-client-id>/access_as_user \
   --build-arg VITE_ENTRA_REDIRECT_URI=https://<forge-hostname> \
-  --build-arg VITE_FORGE_SUPPORT_EMAIL=support@<forge-domain> \
+  --build-arg VITE_FORGE_SUPPORT_EMAIL=support@gnosislab.io \
   --build-arg VITE_FORGE_RELEASE_SHA=<full-40-character-commit> \
   --tag forge-web:local .
 ```

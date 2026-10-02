@@ -4,7 +4,7 @@ Forge's public trust pages are served by the same web image at `/privacy`, `/ter
 
 ## Required configuration
 
-Set `VITE_FORGE_SUPPORT_EMAIL` as a GitHub environment variable for each deployed environment. Use a verified mailbox that is actively monitored for account access, privacy, export, deletion, and security reports. The Azure deployment workflow stops before provisioning or publishing when this value is absent.
+Forge's approved public contact is `support@gnosislab.io`. Set `VITE_FORGE_SUPPORT_EMAIL=support@gnosislab.io` as a GitHub repository or environment variable for every deployed environment. The mailbox must remain actively monitored for account access, privacy, export, deletion, and security reports. The Azure deployment workflow stops before provisioning or publishing when this value is absent.
 
 Because Vite embeds `VITE_*` values during the image build, changing the support address requires a new web image and deployment.
 

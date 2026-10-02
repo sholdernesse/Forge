@@ -4,7 +4,7 @@
 
 **Current checkpoint:** Sprint 4.97 on PR #2
 **Product stage:** Release Candidate 1 hardening and physical acceptance
-**Last reviewed:** September 21, 2026
+**Last reviewed:** October 2, 2026
 
 ## 1. North star
 
@@ -163,7 +163,7 @@ PR #2 should deliver a coherent, testable Forge web candidate with:
 2. **Record authorized recovery evidence**
    - PostgreSQL restore and Render standby exercises remain operational gates when infrastructure is authorized.
 3. **Complete release-owner review**
-   - Configure and verify `VITE_FORGE_SUPPORT_EMAIL`.
+   - `VITE_FORGE_SUPPORT_EMAIL` is configured as `support@gnosislab.io`; verify delivery and monitoring with a deployed mail-link test before release approval.
    - Approve the public beta privacy notice and terms before inviting users; obtain jurisdiction-specific legal review before a general-availability launch.
 
 ## 9. Prioritized roadmap
