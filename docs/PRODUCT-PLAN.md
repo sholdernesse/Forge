@@ -163,6 +163,8 @@ PR #2 should deliver a coherent, testable Forge web candidate with:
 2. **Record authorized recovery evidence**
    - PostgreSQL restore and Render standby exercises remain operational gates when infrastructure is authorized.
 3. **Complete release-owner review**
+   - Review the [insurance and signup consent release gate](./legal/insurance-and-consent-release-gate.md); obtain broker quotes and counsel approval for the [draft fitness participation agreement](./legal/fitness-participation-consent.DRAFT.md).
+   - Implement server-recorded, versioned, account-scoped acceptance before personal onboarding or health-data use. This remains a public-beta release blocker; the current public Terms and Privacy pages do not capture a separate signed fitness acknowledgment.
    - `VITE_FORGE_SUPPORT_EMAIL` is configured as `support@gnosislab.io`; verify delivery and monitoring with a deployed mail-link test before release approval.
    - Approve the public beta privacy notice and terms before inviting users; obtain jurisdiction-specific legal review before a general-availability launch.
 
