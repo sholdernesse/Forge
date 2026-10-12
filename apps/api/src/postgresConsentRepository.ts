@@ -13,7 +13,7 @@ export class PostgresConsentRepository implements ConsentRepository {
     const result = await this.pool.query<{ id: string; record: ConsentRecord }>(
       `SELECT id::text AS id, record FROM consent_events
        WHERE user_id = $1 AND ($2::bigint IS NULL OR id < $2::bigint)
-       ORDER BY id DESC LIMIT 21`, [userId, before ?? null]);
+       ORDER BY consent_events.id DESC LIMIT 21`, [userId, before ?? null]);
     const events = result.rows.slice(0, 20).map(row => ({ ...row.record, eventId: row.id }));
     return { events, nextCursor: result.rows.length > 20 ? events.at(-1)!.eventId : null };
   }

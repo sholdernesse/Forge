@@ -67,6 +67,7 @@ test('PostgreSQL migration, durable account consent and historical receipts', { 
     await repository.append('bob', record);
     const first = await repository.history('alice');
     assert.equal(first.events.length, 20);
+    assert.ok(first.events.every((event, index) => index === 0 || BigInt(event.eventId) < BigInt(first.events[index - 1].eventId)), 'PostgreSQL must order numeric IDs, not their text aliases');
     await repository.append('alice', record);
     const second = await repository.history('alice', first.nextCursor);
     assert.equal(second.events.length, 7);
