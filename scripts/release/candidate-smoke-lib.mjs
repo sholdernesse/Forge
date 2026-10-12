@@ -64,8 +64,10 @@ export async function smokeCandidate({ deploymentUrl, expectedCommit = '', fetch
   const healthPayload = await health.json();
   requireCondition(healthPayload.status === 'ok', '/health did not report status ok');
   requireCondition(healthPayload.capabilities?.mealPhotoAnalysis === true, '/health reports meal-photo analysis is not configured');
+  requireCondition(healthPayload.capabilities?.consentEnforced === true, '/health reports signup consent is not enforced');
+  requireCondition(healthPayload.capabilities?.consentPolicyApproved === true, '/health reports consent policy is not approved');
   validateSecurityHeaders(health, '/health');
-  checks.push('API health and meal-photo capability');
+  checks.push('API health, meal-photo capability, and approved consent gate');
 
   const configResponse = await request(fetchImpl, baseUrl, '/release-config.json');
   requireCondition(configResponse.status === 200, `/release-config.json returned ${configResponse.status}`);
@@ -77,7 +79,7 @@ export async function smokeCandidate({ deploymentUrl, expectedCommit = '', fetch
   checks.push('release identity and support contact');
 
   let shell = '';
-  for (const path of ['/', '/privacy', '/terms', '/support', '/__forge_release_smoke__']) {
+  for (const path of ['/', '/privacy', '/terms', '/support', '/agreements', '/__forge_release_smoke__']) {
     const response = await request(fetchImpl, baseUrl, path);
     requireCondition(response.status === 200, `${path} returned ${response.status}`);
     requireCondition((response.headers.get('content-type') ?? '').includes('text/html'), `${path} is not HTML`);

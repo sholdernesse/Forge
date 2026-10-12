@@ -1,3 +1,5 @@
+import { consentRequired } from './consent.js';
+import { PostgresConsentRepository } from './postgresConsentRepository.js';
 import { createServer } from 'node:http';
 import { Readable } from 'node:stream';
 import { authVerifierFromEnvironment } from './auth.js';
@@ -23,7 +25,10 @@ const dashboards = new PostgresDashboardRepository({
   ssl: process.env.DATABASE_SSL === 'disable' ? false : { rejectUnauthorized: false },
   max: Number(process.env.DATABASE_POOL_SIZE ?? 10),
 });
+const consents = new PostgresConsentRepository({ connectionString,
+  ssl: process.env.DATABASE_SSL === 'disable' ? false : { rejectUnauthorized: false }, max: 2 });
 const handle = createApiHandler({
+  consent: { required: consentRequired(process.env), repository: consents },
   auth: authVerifierFromEnvironment(process.env),
   dashboards,
   foodProvider,
@@ -71,6 +76,7 @@ server.listen(port, () => console.log(`Forge API listening on http://localhost:$
 async function shutdown() {
   server.close();
   await dashboards.close();
+  await consents.close();
 }
 
 process.on('SIGINT', () => void shutdown());

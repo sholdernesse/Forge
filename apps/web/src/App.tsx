@@ -1,3 +1,4 @@
+import { ConsentGate } from './ConsentGate.js';
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { CoachService, type CoachActionType } from '@forge/coach';
 import { buildDigitalTwin, type DailySnapshot, type Recommendation } from '@forge/digital-twin';
@@ -136,6 +137,10 @@ interface SyncConflictActions {
 export function App() {
   const environment = (import.meta as ImportMeta & { env: Record<string, unknown> }).env;
   const auth = useForgeAuth(environment);
+  return <ConsentGate key={auth.accountId ?? auth.status} auth={auth} environment={environment}><PersonalApp auth={auth} environment={environment} /></ConsentGate>;
+}
+
+function PersonalApp({ auth, environment }: { auth: ReturnType<typeof useForgeAuth>; environment: Record<string, unknown> }) {
   const [sessionNow] = useState(() => new Date());
   const TODAY = localDateKey(sessionNow);
   const NOW = sessionNow.toISOString();

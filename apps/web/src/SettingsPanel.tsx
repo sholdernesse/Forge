@@ -18,6 +18,7 @@ export function SettingsPanel({ onClose, onGeneratePlan, onReset, onExport, onDe
       <header><div className="settings-icon"><Settings size={21} /></div><div><span className="section-label">DATA & PLAN CONTROLS</span><h2 id="settings-title">Forge settings</h2></div><button className="icon-button" onClick={onClose} aria-label="Close settings"><X size={20} /></button></header>
       <div className="settings-action"><RefreshCw size={21} /><span><b>Generate a new plan</b><small>Re-run today’s adaptive planner and discard workout completion state. Your check-ins, food, and history remain.</small></span><button onClick={() => { onGeneratePlan(); onClose(); }}>Generate</button></div>
       <div className="settings-safety"><ShieldCheck size={18} /><span>Active workouts are normally locked. Generating a new plan is an explicit override.</span></div>
+      <p><a href="/agreements">Review or withdraw your Forge agreements</a></p>
       <div className="settings-section-label"><span>PERSONALIZATION</span><small>Optional support that changes how Forge builds your plan.</small></div>
       <div className="settings-appearance"><div><Sun size={21} /><span><b>Appearance</b><small>Choose the Forge palette for this device.</small></span></div><div className="appearance-options" role="group" aria-label="Appearance theme">
         <button type="button" aria-pressed={appearancePreference === 'dark'} className={appearancePreference === 'dark' ? 'active' : ''} onClick={() => onAppearanceChange('dark')}><Moon size={16} /> Dark</button>

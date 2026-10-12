@@ -1,0 +1,30 @@
+# Signup consent milestone — October 12, 2026
+
+## Implemented on the release branch
+
+- An authenticated first-use gate runs before the personal app mounts. It presents distinct unchecked Terms, fitness-risk acknowledgment, and health-data use choices with full versioned text.
+- The API validates the current content digest and all required choices. Server-generated UTC timestamps, authenticated account identity, locale, acceptance method, and exact document copies are stored in append-only PostgreSQL events, separately from dashboard snapshots.
+- Dashboard reads/writes and food/photo endpoints enforce acceptance on every request. New devices obtain account acceptance from the server. Text changes invalidate older acceptance; browser storage cannot grant consent.
+- Failed/offline verification blocks personal use. Sign-out and public documents remain available. Dashboard deletion remains available without acceptance.
+- `/agreements` displays the current receipt and allows withdrawal. Withdrawal blocks personal API use; focus/visibility recovery rechecks the browser gate. Settings links to this page.
+- The deployment smoke gate rejects candidates without enforced consent and approved text.
+
+## Draft text remains a release blocker
+
+`apps/api/src/consent.ts` is the canonical versioned policy. Its approval status is deliberately **false**. No environment flag can approve draft agreements, and consent cannot be disabled in production. The proposed legal liability release in `fitness-participation-consent.DRAFT.md` is **not** active wording; the implemented draft fitness acknowledgment does not waive legal rights.
+
+The release owner must confirm the operating entity, verified contact, jurisdictions, adult-only policy, processing recipients, withdrawal/retention terms, and any licensed professional scope. Counsel must approve final language and align public Terms/Privacy with the exact documents presented. After editing, use a new version and set approval only in the reviewed policy commit. Insurance quotes remain a risk-management recommendation rather than a blanket statutory requirement for this app.
+
+## Migration and development review
+
+Run the normal API migration command before starting the updated server. It now applies both `001_dashboard_snapshots.sql` and idempotent `002_consent_events.sql`.
+
+For a local draft preview, set API `FORGE_CONSENT_REQUIRED=true` and web `VITE_FORGE_CONSENT_PREVIEW=true`. Draft documents are readable but cannot be signed. Normal local development bypasses the browser gate unless preview is enabled. Production always requires consent and remains blocked while policy approval is false.
+
+Acceptance events are not removed by dashboard deletion. Final retention, full identity-account deletion, consent receipt history/export, and jurisdiction-specific disclosures must be approved before release. The initial receipt view exposes the current acceptance; archival history remains available in the database for authorized legal/support handling. Never add medical answers or photos to consent logs.
+
+## Validation and remaining evidence
+
+Automated checks cover unauthenticated access, missing/incomplete consent, exact documents, server time, account isolation, another-client access, stale versions, policy edits, withdrawal, unavailable storage, unapproved policy, production configuration, response validation, failed writes, and unchecked signup markup. Production TypeScript/build checks and candidate-smoke unit tests run locally.
+
+The physical desktop/mobile checklist now includes these scenarios. No deployed candidate was exercised in this milestone. PostgreSQL migration/restore, physical phone readability and interaction, real identity login, actual OpenAI meal-photo calls, mail delivery, and recovery/failover remain outstanding; local tests do not replace that evidence.

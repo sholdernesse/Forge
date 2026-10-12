@@ -16,6 +16,7 @@ export interface ForgeAuthConfig {
 
 export interface ForgeAuthSnapshot {
   status: ForgeAuthStatus;
+  accountId?: string;
   name?: string;
   username?: string;
 }
@@ -64,7 +65,7 @@ export class ForgeAuthClient {
 
   snapshot(): ForgeAuthSnapshot {
     return this.account
-      ? { status: 'signed-in', ...(this.account.name ? { name: this.account.name } : {}), ...(this.account.username ? { username: this.account.username } : {}) }
+      ? { status: 'signed-in', accountId: this.account.homeAccountId, ...(this.account.name ? { name: this.account.name } : {}), ...(this.account.username ? { username: this.account.username } : {}) }
       : { status: 'signed-out' };
   }
 

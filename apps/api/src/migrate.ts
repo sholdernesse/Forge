@@ -11,10 +11,11 @@ const pool = new Pool({
 });
 
 try {
-  const migrationUrl = new URL('../migrations/001_dashboard_snapshots.sql', import.meta.url);
-  const sql = await readFile(fileURLToPath(migrationUrl), 'utf8');
-  await pool.query(sql);
-  console.log('Applied 001_dashboard_snapshots.sql');
+  for (const name of ['001_dashboard_snapshots.sql', '002_consent_events.sql']) {
+    const migrationUrl = new URL(`../migrations/${name}`, import.meta.url);
+    await pool.query(await readFile(fileURLToPath(migrationUrl), 'utf8'));
+    console.log(`Applied ${name}`);
+  }
 } finally {
   await pool.end();
 }

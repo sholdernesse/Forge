@@ -38,3 +38,13 @@ This checklist is the remaining human acceptance gate for PR #2. It must be run 
 Record evidence links, defects, and the final `PASS`, `FAIL`, or `BLOCKED` decision in the PR. Any failure affecting authentication, account isolation, revision protection, or data durability blocks release. Delete test health data after evidence is retained.
 
 The repository-level acceptance tests cover authenticated hydration, stale-revision rejection, and subject isolation. They should pass immediately before and after this physical run.
+
+## Versioned signup consent (October 12 milestone)
+
+- [ ] Apply migration 002 and deploy approved policy text to the candidate; record its digest. Draft text must return a blocked release state, never a successful signature.
+- [ ] A new account must review separate unchecked Terms, fitness acknowledgment, and health-data consent before personal onboarding, sync, food lookup, or photo analysis. Test readable full text and keyboard operation on desktop and phone.
+- [ ] Decline/sign out: no personal dashboard or health-data entry mounts. Failed writes and offline startup must never show successful acceptance.
+- [ ] Accept on desktop, then sign in with the same account on the phone; verify durable acceptance and exact version receipt at /agreements. A different account must still be gated.
+- [ ] Revise the policy version/text: stale submissions must fail and personal API requests must require the new version.
+- [ ] Withdraw through /agreements; personal API access must stop. Recheck the second device on focus. Deleting synchronized dashboard data must remain available without consent.
+- [ ] Confirm public Terms/Privacy match approved acceptance text, actual operator, recipients, retention and withdrawal controls.

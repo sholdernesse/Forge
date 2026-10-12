@@ -1,3 +1,4 @@
+import { consentPolicy, policyDigest, hasCurrentConsent, type ConsentRepository, type ConsentPolicy } from './consent.js';
 import { RevisionConflictError, type AuthVerifier, type DashboardRepository } from './types.js';
 import type { FoodProvider } from './foodProvider.js';
 import { mealPhotoFailureReason, type MealPhotoAnalyzer } from './mealPhotoAnalyzer.js';
@@ -15,6 +16,7 @@ export interface ApiDependencies {
   mealPhotoAnalyzer?: MealPhotoAnalyzer;
   mealPhotoRateLimiter?: RequestRateLimiter;
   audit?: AuditRecorder;
+  consent?: { required: boolean; repository: ConsentRepository; policy?: ConsentPolicy };
 }
 
 function response(body: unknown, status: number, origin?: string): Response {
@@ -77,11 +79,50 @@ export function createApiHandler(dependencies: ApiDependencies) {
       } });
     }
 
-    if (url.pathname === '/health' && request.method === 'GET') return response({ status: 'ok', capabilities: { mealPhotoAnalysis: Boolean(dependencies.mealPhotoAnalyzer) } }, 200, corsOrigin);
+    if (url.pathname === '/health' && request.method === 'GET') return response({ status: 'ok', capabilities: { mealPhotoAnalysis: Boolean(dependencies.mealPhotoAnalyzer), consentEnforced: dependencies.consent?.required === true, consentPolicyApproved: (dependencies.consent?.policy ?? consentPolicy).approved } }, 200, corsOrigin);
     const user = await dependencies.auth.verify(request.headers.get('authorization'));
     if (!user) return response({ error: 'unauthorized' }, 401, corsOrigin);
     const requestId = request.headers.get('x-request-id') ?? 'direct-request';
     const auditDashboardWrite = (outcome: DashboardAuditOutcome, reason: DashboardAuditReason) => dependencies.audit?.dashboardWrite({ requestId, actorId: user.id, outcome, reason });
+
+    const consent = dependencies.consent;
+    const policy = consent?.policy ?? consentPolicy;
+    if (url.pathname === '/v1/consent') {
+      if (!consent) return response({ error: 'consent_not_configured' }, 503, corsOrigin);
+      if (request.method === 'GET') {
+        const record = await consent.repository.latest(user.id);
+        return response({ required: consent.required, approved: policy.approved, digest: policyDigest(policy), documents: policy.documents,
+          accepted: hasCurrentConsent(record, policy), record }, 200, corsOrigin);
+      }
+      if (request.method === 'POST') {
+        if (!policy.approved) return response({ error: 'consent_policy_not_approved' }, 503, corsOrigin);
+        if (Number(request.headers.get('content-length') ?? 0) > 4096) return response({ error: 'payload_too_large' }, 413, corsOrigin);
+        const text = await request.text();
+        if (Buffer.byteLength(text) > 4096) return response({ error: 'payload_too_large' }, 413, corsOrigin);
+        let body: { digest?: unknown; accepted?: unknown; locale?: unknown };
+        try { body = JSON.parse(text); } catch { return response({ error: 'invalid_json' }, 400, corsOrigin); }
+        if (!body || body.digest !== policyDigest(policy)) return response({ error: 'consent_version_changed' }, 409, corsOrigin);
+        if (!Array.isArray(body.accepted) || body.accepted.length !== policy.documents.length
+          || !policy.documents.every(doc => (body.accepted as unknown[]).includes(doc.id))) return response({ error: 'consent_incomplete' }, 400, corsOrigin);
+        if (typeof body.locale !== 'string' || !/^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})*$/.test(body.locale) || body.locale.length > 35) return response({ error: 'invalid_locale' }, 400, corsOrigin);
+        await consent.repository.append(user.id, { digest: policyDigest(policy), accepted: true, recordedAt: new Date().toISOString(),
+          documents: policy.documents, locale: body.locale, method: 'checkbox-and-button' });
+        return response({ accepted: true }, 200, corsOrigin);
+      }
+      if (request.method === 'DELETE') {
+        const previous = await consent.repository.latest(user.id);
+        await consent.repository.append(user.id, { digest: previous?.digest ?? policyDigest(policy), accepted: false, recordedAt: new Date().toISOString(),
+          documents: previous?.documents ?? [], locale: previous?.locale ?? 'und', method: 'withdrawal' });
+        return response({ accepted: false }, 200, corsOrigin);
+      }
+      return response({ error: 'method_not_allowed' }, 405, corsOrigin);
+    }
+    // Deletion remains available even if consent is declined or withdrawn.
+    const protectedPath = url.pathname === '/v1/dashboard' || url.pathname.startsWith('/v1/foods/');
+    if (consent?.required && protectedPath && !(url.pathname === '/v1/dashboard' && request.method === 'DELETE')) {
+      if (!policy.approved) return response({ error: 'consent_policy_not_approved' }, 503, corsOrigin);
+      if (!hasCurrentConsent(await consent.repository.latest(user.id), policy)) return response({ error: 'consent_required' }, 403, corsOrigin);
+    }
 
     if (url.pathname === '/v1/foods/search' && request.method === 'GET') {
       const query = (url.searchParams.get('q') ?? '').trim();
