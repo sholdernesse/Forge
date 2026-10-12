@@ -8,6 +8,20 @@ on:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: forge_test
+          POSTGRES_USER: forge_test
+          POSTGRES_PASSWORD: isolated-ci-only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U forge_test -d forge_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -22,6 +36,11 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm build
+      - name: Exercise isolated PostgreSQL consent and release smoke
+        env:
+          DATABASE_URL: postgresql://forge_test:isolated-ci-only@127.0.0.1:5432/forge_test
+          FORGE_DATABASE_TESTS: isolated
+        run: node --test scripts/postgres/consent-integration.test.mjs scripts/release/candidate-smoke.test.mjs
       - name: Validate deployment security boundaries
         run: scripts/deployment/validate-security.sh
       - name: Validate recovery and release scripts

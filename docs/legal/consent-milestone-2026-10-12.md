@@ -21,10 +21,10 @@ Run the normal API migration command before starting the updated server. It now 
 
 For a local draft preview, set API `FORGE_CONSENT_REQUIRED=true` and web `VITE_FORGE_CONSENT_PREVIEW=true`. Draft documents are readable but cannot be signed. Normal local development bypasses the browser gate unless preview is enabled. Production always requires consent and remains blocked while policy approval is false.
 
-Acceptance events are not removed by dashboard deletion. Final retention, full identity-account deletion, consent receipt history/export, and jurisdiction-specific disclosures must be approved before release. The initial receipt view exposes the current acceptance; archival history remains available in the database for authorized legal/support handling. Never add medical answers or photos to consent logs.
+Acceptance events are not removed by dashboard deletion. Final retention, full identity-account deletion, and jurisdiction-specific disclosures must be approved before release. Account-scoped receipt history and individual JSON downloads are now available at /agreements, including after withdrawal and policy changes. History is bounded to 20 events per page with stable cursors. Never add medical answers or photos to consent logs.
 
 ## Validation and remaining evidence
 
 Automated checks cover unauthenticated access, missing/incomplete consent, exact documents, server time, account isolation, another-client access, stale versions, policy edits, withdrawal, unavailable storage, unapproved policy, production configuration, response validation, failed writes, and unchecked signup markup. Production TypeScript/build checks and candidate-smoke unit tests run locally.
 
-The physical desktop/mobile checklist now includes these scenarios. No deployed candidate was exercised in this milestone. PostgreSQL migration/restore, physical phone readability and interaction, real identity login, actual OpenAI meal-photo calls, mail delivery, and recovery/failover remain outstanding; local tests do not replace that evidence.
+The physical desktop/mobile checklist now includes these scenarios. An isolated PostgreSQL 16 CI test now exercises idempotent migrations, durable acceptance, withdrawal, account isolation, and historical pagination. No deployed candidate was exercised in this milestone. Production PostgreSQL migration/restore, physical phone readability and interaction, real identity login, actual OpenAI meal-photo calls, mail delivery, and recovery/failover remain outstanding; local tests do not replace that evidence.

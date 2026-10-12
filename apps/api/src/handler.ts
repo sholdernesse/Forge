@@ -87,6 +87,13 @@ export function createApiHandler(dependencies: ApiDependencies) {
 
     const consent = dependencies.consent;
     const policy = consent?.policy ?? consentPolicy;
+    if (url.pathname === '/v1/consent/history') {
+      if (!consent) return response({ error: 'consent_not_configured' }, 503, corsOrigin);
+      if (request.method !== 'GET') return response({ error: 'method_not_allowed' }, 405, corsOrigin);
+      const before = url.searchParams.get('before');
+      if (before !== null && (!/^[1-9][0-9]{0,18}$/.test(before) || BigInt(before) > 9223372036854775807n)) return response({ error: 'invalid_cursor' }, 400, corsOrigin);
+      return response(await consent.repository.history(user.id, before ?? undefined), 200, corsOrigin);
+    }
     if (url.pathname === '/v1/consent') {
       if (!consent) return response({ error: 'consent_not_configured' }, 503, corsOrigin);
       if (request.method === 'GET') {

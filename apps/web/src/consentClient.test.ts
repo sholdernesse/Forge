@@ -18,3 +18,23 @@ describe('consent persistence confirmation', () => {
     await expect(new ConsentClient(config, vi.fn<typeof fetch>().mockResolvedValue(Response.json({ accepted: true }))).status()).rejects.toThrow('verify');
   });
 });
+
+describe('agreement receipt history and export', () => {
+  it('loads older records using the authenticated cursor without resubmitting consent', async () => {
+    const request = vi.fn<typeof fetch>().mockResolvedValue(Response.json({ events: [], nextCursor: null }));
+    const client = new ConsentClient(config, request);
+    expect(await client.history('42')).toEqual({ events: [], nextCursor: null });
+    expect(request.mock.calls[0]?.[0]).toBe('/api/v1/consent/history?before=42');
+    expect(request.mock.calls[0]?.[1]?.headers).toMatchObject({ authorization: 'Bearer account-token' });
+  });
+  it('rejects malformed receipts and broken pagination instead of displaying them', async () => {
+    for (const page of [{ events: [{ accepted: true }], nextCursor: null }, { events: [], nextCursor: '42' }, { events: [], nextCursor: '-1' }]) {
+      const request = vi.fn<typeof fetch>().mockResolvedValue(Response.json(page));
+      await expect(new ConsentClient(config, request).history()).rejects.toThrow('verify');
+    }
+  });
+  it('reports failed history loading without treating it as an empty receipt history', async () => {
+    const request = vi.fn<typeof fetch>().mockResolvedValue(Response.json({}, { status: 503 }));
+    await expect(new ConsentClient(config, request).history()).rejects.toThrow('retry');
+  });
+});

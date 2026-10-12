@@ -3,7 +3,9 @@ import { createHash } from 'node:crypto';
 export interface ConsentDocument { id: string; version: string; title: string; text: string }
 export interface ConsentPolicy { approved: boolean; documents: readonly ConsentDocument[] }
 export interface ConsentRecord { digest: string; accepted: boolean; recordedAt: string; documents: readonly ConsentDocument[]; locale: string; method: 'checkbox-and-button' | 'withdrawal' }
-export interface ConsentRepository { latest(userId: string): Promise<ConsentRecord | null>; append(userId: string, record: ConsentRecord): Promise<void>; close?(): Promise<void> }
+export interface ConsentEvent extends ConsentRecord { eventId: string }
+export interface ConsentHistoryPage { events: ConsentEvent[]; nextCursor: string | null }
+export interface ConsentRepository { history(userId: string, before?: string): Promise<ConsentHistoryPage>; latest(userId: string): Promise<ConsentRecord | null>; append(userId: string, record: ConsentRecord): Promise<void>; close?(): Promise<void> }
 
 // Release owner must replace/review these texts and approve the versioned policy.
 // No environment flag can turn draft wording into approved legal text.
@@ -38,9 +40,24 @@ export function hasCurrentConsent(record: ConsentRecord | null, policy: ConsentP
   return policy.approved && record?.accepted === true && record.digest === policyDigest(policy);
 }
 export class MemoryConsentRepository implements ConsentRepository {
-  private readonly records = new Map<string, ConsentRecord>();
-  async latest(userId: string) { return this.records.get(userId) ?? null; }
-  async append(userId: string, record: ConsentRecord) { this.records.set(userId, structuredClone(record)); }
+  private readonly records = new Map<string, ConsentEvent[]>();
+  private sequence = 0n;
+  async latest(userId: string): Promise<ConsentRecord | null> {
+    const last = this.records.get(userId)?.at(-1);
+    if (!last) return null;
+    const { eventId: _eventId, ...record } = last;
+    return structuredClone(record);
+  }
+  async append(userId: string, record: ConsentRecord) {
+    const events = this.records.get(userId) ?? [];
+    events.push({ ...structuredClone(record), eventId: String(++this.sequence) });
+    this.records.set(userId, events);
+  }
+  async history(userId: string, before?: string): Promise<ConsentHistoryPage> {
+    const events = [...(this.records.get(userId) ?? [])].reverse().filter(event => !before || BigInt(event.eventId) < BigInt(before));
+    const page = events.slice(0, 20);
+    return { events: structuredClone(page), nextCursor: events.length > 20 ? page.at(-1)!.eventId : null };
+  }
 }
 
 export function consentRequired(environment: Record<string, string | undefined>): boolean {

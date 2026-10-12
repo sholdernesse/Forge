@@ -164,7 +164,7 @@ PR #2 should deliver a coherent, testable Forge web candidate with:
    - PostgreSQL restore and Render standby exercises remain operational gates when infrastructure is authorized.
 3. **Complete release-owner review**
    - Review the [insurance and signup consent release gate](./legal/insurance-and-consent-release-gate.md); consider broker quotes as a risk-management recommendation and obtain counsel approval for the [draft fitness participation agreement](./legal/fitness-participation-consent.DRAFT.md).
-   - Server-recorded, versioned, account-scoped consent and the first-use gate are implemented on the release branch. Draft policy prevents production acceptance until text approval; migration and deployed desktop/phone revalidation remain required. See [consent milestone](./legal/consent-milestone-2026-10-12.md).
+   - Server-recorded, versioned, account-scoped consent receipt history/downloads, and the first-use gate are implemented on the release branch. Draft policy prevents production acceptance until text approval; migration and deployed desktop/phone revalidation remain required. See [consent milestone](./legal/consent-milestone-2026-10-12.md).
    - `VITE_FORGE_SUPPORT_EMAIL` is configured as `support@gnosislab.io`; verify delivery and monitoring with a deployed mail-link test before release approval.
    - Approve the public beta privacy notice and terms before inviting users; obtain jurisdiction-specific legal review before a general-availability launch.
 

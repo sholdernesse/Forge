@@ -27,3 +27,5 @@ Database recovery: [PostgreSQL backup and restore](./deployment/postgres-recover
 Recovery evidence: [PostgreSQL recovery drill record](./deployment/postgres-recovery-drill-record.md).
 
 Physical release gate: [desktop/mobile acceptance checklist](./acceptance/physical-desktop-mobile.md).
+
+Signup consent and receipt history: [October 12 consent milestone](./legal/consent-milestone-2026-10-12.md).

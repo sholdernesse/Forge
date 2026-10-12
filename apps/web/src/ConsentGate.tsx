@@ -1,3 +1,4 @@
+import { AgreementHistory } from './AgreementHistory.js';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { ConsentClient, type ConsentStatus } from './consentClient.js';
 import { dashboardSyncConfig } from './dashboardSync.js';
@@ -43,11 +44,15 @@ export function ConsentGate({ auth, environment, children }: { auth: Auth; envir
   }, [client, bypass, auth.status, auth.username, refresh]);
   if (auth.status === 'signed-out') return <div className="public-document-shell"><main className="public-document consent-gate"><h1>Welcome to Forge</h1><p>Sign in to review your agreements and start your personal fitness and nutrition plan.</p><button onClick={() => void auth.signIn()}>Sign in</button><p><a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="/support">Support</a></p></main></div>;
   const manage = window.location.pathname === '/agreements';
-  if (manage && status?.accepted) return <div className="public-document-shell"><main className="public-document consent-gate">
-    <h1>Your Forge agreements</h1><p>Accepted {status.record?.recordedAt}. You can print this page to keep a copy.</p>
-    {(status.record?.documents ?? status.documents).map(document => <section key={document.id}><h2>{document.title} · {document.version}</h2>{document.text.split('\n\n').map((p, i) => <p key={i} style={{ whiteSpace: 'pre-line' }}>{p}</p>)}</section>)}
-    <p>Withdrawing consent stops personal fitness and nutrition use until you accept again. Dashboard deletion remains available through the account service; contact support if you need assistance.</p>
-    <button disabled={busy} onClick={async () => { if (!client) return; setBusy(true); try { await client.withdraw(); setStatus(null); setRefresh(value => value + 1); } catch { setError('Unable to withdraw consent. Please retry.'); } finally { setBusy(false); } }}>Withdraw consent</button>
+  if (manage && status && client) return <div className="public-document-shell"><main className="public-document consent-gate">
+    <h1>Your Forge agreements</h1>
+    <p>{status.accepted ? 'Your current agreements are accepted.' : 'Your current agreements are not accepted. Review them before using personal features.'}</p>
+    {!status.accepted && <p><a href="/">Review current agreements</a></p>}
+    <AgreementHistory key={status.record?.recordedAt ?? 'no-record'} client={client} />
+    {status.accepted && <>
+      <p>Withdrawing consent pauses personal fitness and nutrition use until you accept again. Your agreement history remains available.</p>
+      <button disabled={busy} onClick={async () => { setBusy(true); try { await client.withdraw(); setStatus(null); setRefresh(value => value + 1); } catch { setError('Unable to withdraw consent. Please retry.'); } finally { setBusy(false); } }}>Withdraw consent</button>
+    </>}
     {error && <p role="alert">{error}</p>}<p><a href="/">Return to Forge</a> · <a href="/support">Support</a></p>
   </main></div>;
   if (bypass || (status && (!status.required || status.accepted) && !manage)) return <>{children}</>;
@@ -68,6 +73,7 @@ export function ConsentGate({ auth, environment, children }: { auth: Auth; envir
   return <div className="public-document-shell"><main className="public-document consent-gate">
     {status ? <ConsentForm key={status.digest} status={status} busy={busy} onAccept={ids => void accept(ids)} /> : <p role="status">{error ? 'Personal features are paused.' : 'Checking your Forge agreements…'}</p>}
     {error && <><p role="alert">{error}</p><button onClick={() => setRefresh(value => value + 1)}>Retry</button></>}
+    <p><a href="/agreements">View your agreement history</a></p>
     <p><button disabled={busy || !client} onClick={() => void deleteDashboard()}>Delete synchronized dashboard</button></p>
     <p><button onClick={() => void auth.signOut()}>Sign out</button> · <a href="/support">Support</a></p>
   </main></div>;

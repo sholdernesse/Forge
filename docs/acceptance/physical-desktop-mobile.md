@@ -48,3 +48,6 @@ The repository-level acceptance tests cover authenticated hydration, stale-revis
 - [ ] Revise the policy version/text: stale submissions must fail and personal API requests must require the new version.
 - [ ] Withdraw through /agreements; personal API access must stop. Recheck the second device on focus. Deleting synchronized dashboard data must remain available without consent.
 - [ ] Confirm public Terms/Privacy match approved acceptance text, actual operator, recipients, retention and withdrawal controls.
+
+- [ ] At /agreements, inspect and download the original receipt after a newer version is accepted or consent is withdrawn. Verify exact text, version, timestamp and acceptance/withdrawal label; no other account’s receipt may appear.
+- [ ] With more than 20 events, load older agreements, add a new event on another device, and verify older pagination has no duplicates or missing original records. A failed history request must show a retry state without erasing already loaded receipts.

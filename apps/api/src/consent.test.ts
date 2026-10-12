@@ -62,3 +62,56 @@ describe('account-bound consent gate', () => {
     expect(await repository.latest('alice')).toBeNull();
   });
 });
+
+describe('agreement history access and pagination', () => {
+  it('retains exact earlier versions after withdrawal or a policy change, without granting access', async () => {
+    const { repository, request, accept } = setup();
+    await accept();
+    await request('/v1/consent', 'DELETE');
+    const history = await (await request('/v1/consent/history')).json();
+    expect(history.events.map((e: { accepted: boolean }) => e.accepted)).toEqual([false, true]);
+    expect(history.events[1].documents).toEqual(policy.documents);
+    expect((await request('/v1/dashboard')).status).toBe(403);
+    const changed = createApiHandler({ auth: { verify: async () => ({ id: 'alice' }) }, dashboards: new MemoryDashboardRepository(),
+      consent: { required: true, repository, policy: { approved: false, documents: [] } } });
+    const response = await changed(new Request('https://forge.test/v1/consent/history'));
+    expect(response.status).toBe(200);
+    expect((await response.json()).events[1].documents).toEqual(policy.documents);
+  });
+  it('uses a bounded cursor so new events cannot shift later pages or expose another account', async () => {
+    const { request, accept } = setup();
+    for (let i = 0; i < 25; i++) await accept();
+    await accept('bob');
+    const first = await (await request('/v1/consent/history')).json();
+    expect(first.events).toHaveLength(20);
+    expect(first.nextCursor).toBe(first.events.at(-1).eventId);
+    await accept();
+    const second = await (await request(`/v1/consent/history?before=${first.nextCursor}`)).json();
+    expect(second.events).toHaveLength(5);
+    expect(second.nextCursor).toBeNull();
+    expect(new Set([...first.events, ...second.events].map(e => e.eventId)).size).toBe(25);
+    const bob = await (await request('/v1/consent/history', 'GET', undefined, 'bob')).json();
+    expect(bob.events).toHaveLength(1);
+    const bobViaAliceCursor = await (await request(`/v1/consent/history?before=${first.nextCursor}`, 'GET', undefined, 'bob')).json();
+    expect(bobViaAliceCursor.events).toEqual([]);
+  });
+  it('rejects invalid cursors and unauthenticated history requests', async () => {
+    const { request } = setup();
+    for (const cursor of ['0', '-1', 'abc', '1.2', '9223372036854775808', '1%20OR%201=1', '']) {
+      expect((await request(`/v1/consent/history?before=${cursor}`)).status).toBe(400);
+    }
+    expect((await request('/v1/consent/history', 'GET', undefined, '')).status).toBe(401);
+    expect((await request('/v1/consent/history', 'POST')).status).toBe(405);
+    const response = await request('/v1/consent/history');
+    expect(response.headers.get('cache-control')).toBe('no-store');
+    expect((await response.json()).events).toEqual([]);
+  });
+  it('returns copies so modifying a downloaded receipt cannot change server acceptance', async () => {
+    const { request, repository, accept } = setup();
+    await accept();
+    const page = await repository.history('alice');
+    page.events[0]!.documents[0]!.text = 'changed by caller';
+    expect((await repository.latest('alice'))!.documents).toEqual(policy.documents);
+    expect((await request('/v1/dashboard')).status).toBe(404);
+  });
+});
