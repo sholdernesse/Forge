@@ -1,9 +1,14 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
-import { ConsentForm } from './ConsentGate.js';
+import { ConsentForm, ConsentGate } from './ConsentGate.js';
 import type { ConsentStatus } from './consentClient.js';
 const status: ConsentStatus = { required: true, approved: true, accepted: false, digest: 'current', documents: [{ id: 'terms', version: '1', title: 'Terms', text: 'Full exact terms' }, { id: 'health-data', version: '1', title: 'Health Data', text: 'Full exact consent' }] };
 describe('signup agreement presentation', () => {
+  it('does not mount personal health features for signed-out users', () => {
+    const html = renderToStaticMarkup(<ConsentGate auth={{ status: 'signed-out', accessToken: async () => '', signIn: async () => undefined, signOut: async () => undefined }} environment={{}}><div>PRIVATE HEALTH INPUT</div></ConsentGate>);
+    expect(html).not.toContain('PRIVATE HEALTH INPUT');
+    expect(html).toContain('Sign in');
+  });
   it('starts with distinct unchecked choices and prevents accidental acceptance', () => {
     const html = renderToStaticMarkup(<ConsentForm status={status} busy={false} onAccept={() => undefined} />);
     expect(html.match(/type="checkbox"/g)).toHaveLength(2);

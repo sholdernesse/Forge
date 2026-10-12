@@ -26,13 +26,13 @@ export function ConsentGate({ auth, environment, children }: { auth: Auth; envir
     const config = dashboardSyncConfig(environment, auth.accessToken);
     return config ? new ConsentClient(config) : null;
   }, [environment, auth.accessToken]);
-  const bypass = auth.status === 'signed-out' || (auth.status === 'development' && environment.DEV === true && environment.VITE_FORGE_CONSENT_PREVIEW !== 'true');
+  const bypass = (auth.status === 'development' && environment.DEV === true && environment.VITE_FORGE_CONSENT_PREVIEW !== 'true');
   const [status, setStatus] = useState<ConsentStatus | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [refresh, setRefresh] = useState(0);
   useEffect(() => {
-    if (bypass || auth.status === 'loading') return;
+    if (bypass || auth.status === 'loading' || auth.status === 'signed-out') return;
     let active = true;
     setStatus(null);
     if (!client) { setError('Forge cannot verify your agreements while the account service is unavailable.'); return; }
@@ -41,6 +41,7 @@ export function ConsentGate({ auth, environment, children }: { auth: Auth; envir
     window.addEventListener('focus', recheck); document.addEventListener('visibilitychange', recheck);
     return () => { active = false; window.removeEventListener('focus', recheck); document.removeEventListener('visibilitychange', recheck); };
   }, [client, bypass, auth.status, auth.username, refresh]);
+  if (auth.status === 'signed-out') return <div className="public-document-shell"><main className="public-document consent-gate"><h1>Welcome to Forge</h1><p>Sign in to review your agreements and start your personal fitness and nutrition plan.</p><button onClick={() => void auth.signIn()}>Sign in</button><p><a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="/support">Support</a></p></main></div>;
   const manage = window.location.pathname === '/agreements';
   if (manage && status?.accepted) return <div className="public-document-shell"><main className="public-document consent-gate">
     <h1>Your Forge agreements</h1><p>Accepted {status.record?.recordedAt}. You can print this page to keep a copy.</p>
