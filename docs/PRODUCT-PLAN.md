@@ -123,6 +123,7 @@ See [Sprint 4 architecture](./architecture/sprint-4.md) for package and data-flo
 - Food search, quick foods, favorites, quantities, custom foods, saved meals, meal periods, and removal.
 - Provider-neutral barcode boundary with safe unknown-food behavior.
 - Opt-in meal-photo analysis with metadata-stripped upload, structured food detection, USDA enrichment, visibly labeled AI fallback, editable portions/macros, uncertainty notes, and explicit approval before logging.
+- USDA photo enrichment now requires an unbranded food-name and preparation match; otherwise the visual estimate remains labeled. The interface names visual confidence separately from macro accuracy. Controlled photo-versus-weighed-meal validation is still required before making accuracy claims or treating camera estimates as release-ready.
 - Immediate daily totals and Digital Twin updates.
 - Low-friction daily water logging with bounded quick-add entries and cross-device persistence.
 

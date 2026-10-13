@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { FoodProvider } from './foodProvider.js';
-import { MealPhotoAnalysisError, OpenAiMealPhotoAnalyzer, mealPhotoTimeoutFromEnvironment, parseDetectedMeal } from './mealPhotoAnalyzer.js';
+import { MealPhotoAnalysisError, OpenAiMealPhotoAnalyzer, mealPhotoTimeoutFromEnvironment, parseDetectedMeal, selectMealPhotoReference } from './mealPhotoAnalyzer.js';
 
 const detected = {
   items: [{ name: 'grilled chicken breast', portionDescription: 'one sliced breast', estimatedGrams: 150, confidence: 0.86, caloriesKcal: 250, proteinG: 45, carbsG: 0, fatG: 6 }],
@@ -9,6 +9,14 @@ const detected = {
 };
 
 describe('meal photo analysis', () => {
+  it('uses a matching unbranded reference instead of the first search hit', () => {
+    const reference = { id: 'chicken', source: 'usda', verification: 'government', name: 'Chicken breast, cooked, grilled', serving: '100 g', nutritionBasis: 'per-100g', caloriesKcal: 165, proteinG: 31, carbsG: 0, fatG: 3.6 } as const;
+    const results = [{ ...reference, id: 'fried', name: 'Chicken breast, fried' }, { ...reference, id: 'brand', brand: 'Some brand' }, reference];
+    expect(selectMealPhotoReference('grilled chicken breast', results)?.id).toBe('chicken');
+    expect(selectMealPhotoReference('grilled chicken breast', results.slice(0, 2))).toBeUndefined();
+    expect(selectMealPhotoReference('grilled chicken breast', [{ ...reference, caloriesKcal: 0 }])).toBeUndefined();
+  });
+
   it('uses a patient bounded timeout for image analysis', () => {
     expect(mealPhotoTimeoutFromEnvironment(undefined)).toBe(90_000);
     expect(mealPhotoTimeoutFromEnvironment('45000')).toBe(45_000);
@@ -42,6 +50,16 @@ describe('meal photo analysis', () => {
   it('falls back to clearly labeled AI estimates when food lookup is unavailable', async () => {
     const request = vi.fn(async () => Response.json({ output_text: JSON.stringify(detected) }));
     const foodProvider: FoodProvider = { search: async () => { throw new Error('offline'); }, barcode: async () => undefined };
+    const analyzer = new OpenAiMealPhotoAnalyzer({ apiKey: 'secret', model: 'vision-test', foodProvider, request });
+    await expect(analyzer.analyze('data:image/jpeg;base64,YWJj')).resolves.toMatchObject({ items: [{ nutritionSource: 'ai-estimate', caloriesKcal: 250 }] });
+  });
+
+  it('keeps the labeled visual estimate when USDA has only a different preparation', async () => {
+    const request = vi.fn(async () => Response.json({ output_text: JSON.stringify(detected) }));
+    const foodProvider: FoodProvider = {
+      search: async () => [{ id: 'fried', source: 'usda', verification: 'government', name: 'Chicken breast, fried', serving: '100 g', nutritionBasis: 'per-100g', caloriesKcal: 300, proteinG: 25, carbsG: 8, fatG: 18 }],
+      barcode: async () => undefined,
+    };
     const analyzer = new OpenAiMealPhotoAnalyzer({ apiKey: 'secret', model: 'vision-test', foodProvider, request });
     await expect(analyzer.analyze('data:image/jpeg;base64,YWJj')).resolves.toMatchObject({ items: [{ nutritionSource: 'ai-estimate', caloriesKcal: 250 }] });
   });

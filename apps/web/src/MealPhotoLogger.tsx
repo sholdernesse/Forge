@@ -5,7 +5,7 @@ import { createFoodEntry } from './foodLog.js';
 import { FoodDataClient, FoodDataError, type MealPhotoAnalysis, type MealPhotoItem } from './foodDataClient.js';
 import { useAccessibleDialog } from './useAccessibleDialog.js';
 
-interface DraftItem extends MealPhotoItem { selected: boolean; }
+interface DraftItem extends MealPhotoItem { selected: boolean; edited?: boolean; }
 interface Props { date: string; meal: MealType; client: FoodDataClient; onAdd(entries: FoodEntry[]): void; onClose(): void; }
 
 export function constrainedPhotoDimensions(width: number, height: number, maximum = 1280) {
@@ -61,10 +61,21 @@ export function entriesFromMealPhoto(items: DraftItem[], date: string, meal: Mea
   }, `${date}-${meal}-photo-${now}-${index}`));
 }
 
+export function updateMealPhotoItem(item: DraftItem, field: keyof DraftItem, value: string | boolean): DraftItem {
+  const updated = { ...item, [field]: typeof item[field] === 'number' ? Math.max(0, Number(value)) : value };
+  if (field === 'name' || field === 'caloriesKcal' || field === 'proteinG' || field === 'carbsG' || field === 'fatG') {
+    delete updated.referenceFoodId;
+    delete updated.referenceFoodName;
+    updated.nutritionSource = 'ai-estimate';
+    updated.edited = true;
+  }
+  return updated;
+}
+
 export function mealPhotoConfidence(confidence: number) {
-  if (confidence >= .8) return { label: 'High confidence', tone: 'high' as const };
-  if (confidence >= .55) return { label: 'Medium confidence', tone: 'medium' as const };
-  return { label: 'Needs review', tone: 'low' as const };
+  if (confidence >= .8) return { label: 'High visual confidence', tone: 'high' as const };
+  if (confidence >= .55) return { label: 'Medium visual confidence', tone: 'medium' as const };
+  return { label: 'Low visual confidence', tone: 'low' as const };
 }
 
 export function combinedMacroBreakdown(proteinG: number, carbsG: number, fatG: number) {
@@ -121,7 +132,7 @@ export function MealPhotoLogger({ date, meal, client, onAdd, onClose }: Props) {
   }
 
   function update(index: number, field: keyof DraftItem, value: string | boolean) {
-    setItems((current) => current.map((item, itemIndex) => itemIndex !== index ? item : { ...item, [field]: typeof item[field] === 'number' ? Math.max(0, Number(value)) : value }));
+    setItems((current) => current.map((item, itemIndex) => itemIndex === index ? updateMealPhotoItem(item, field, value) : item));
   }
 
   function addMeal() {
@@ -145,14 +156,14 @@ export function MealPhotoLogger({ date, meal, client, onAdd, onClose }: Props) {
           <div className="meal-photo-macro-bar" aria-label={`${macroBreakdown.protein}% protein, ${macroBreakdown.carbs}% carbs, ${macroBreakdown.fat}% fat`}><i className="protein" style={{ width: `${macroBreakdown.protein}%` }} /><i className="carbs" style={{ width: `${macroBreakdown.carbs}%` }} /><i className="fat" style={{ width: `${macroBreakdown.fat}%` }} /></div>
           <div className="meal-photo-macro-legend"><span><i className="protein" />Protein <b>{macroBreakdown.protein}%</b></span><span><i className="carbs" />Carbs <b>{macroBreakdown.carbs}%</b></span><span><i className="fat" />Fat <b>{macroBreakdown.fat}%</b></span></div>
         </div>
-        <p><Database size={14} /> {usdaMatches ? `${usdaMatches} of ${selected.length} selected ${selected.length === 1 ? 'item uses' : 'items use'} a USDA nutrition match.` : 'Nutrition values are visual estimates and should be reviewed.'}</p>
+        <p><Database size={14} /> {usdaMatches ? `${usdaMatches} of ${selected.length} selected ${selected.length === 1 ? 'item uses' : 'items use'} a USDA nutrition match.` : 'Nutrition values are visual estimates and should be reviewed.'} Visual confidence does not measure macro accuracy.</p>
       </section>
       <div className="meal-photo-list-heading"><div><span>Detected foods</span><small>Uncheck anything that is not part of the meal.</small></div><b>{selected.length}/{items.length} included</b></div>
       <section className="meal-photo-items">{items.map((item, index) => <article className={item.selected ? '' : 'excluded'} key={`${item.name}-${index}`}>
         <label className="meal-photo-select"><input type="checkbox" checked={item.selected} onChange={(event) => update(index, 'selected', event.target.checked)} /><span><Check size={13} /></span></label>
         <div className="meal-photo-fields">
           <div className="meal-photo-food-title"><input aria-label={`Food ${index + 1} name`} value={item.name} onChange={(event) => update(index, 'name', event.target.value)} /><strong>{Math.round(item.caloriesKcal)} kcal</strong></div>
-          <div className="meal-photo-badges"><span className={`confidence-badge ${mealPhotoConfidence(item.confidence).tone}`}>{mealPhotoConfidence(item.confidence).label}</span><span className={`source-badge ${item.nutritionSource}`}>{item.nutritionSource === 'usda' ? 'USDA matched' : 'Visual estimate'}</span></div>
+          <div className="meal-photo-badges"><span className={`confidence-badge ${mealPhotoConfidence(item.confidence).tone}`}>{mealPhotoConfidence(item.confidence).label}</span><span className={`source-badge ${item.nutritionSource}`}>{item.edited ? 'User edited' : item.nutritionSource === 'usda' ? 'USDA matched' : 'Visual estimate'}</span></div>
           <p>{item.portionDescription} · approximately {Math.round(item.estimatedGrams)}g</p>
           <div className="meal-photo-item-macros"><span><b>{Math.round(item.proteinG)}g</b> protein</span><span><b>{Math.round(item.carbsG)}g</b> carbs</span><span><b>{Math.round(item.fatG)}g</b> fat</span></div>
           <details className="meal-photo-edit"><summary><Pencil size={13} /> Edit nutrition details</summary><div>

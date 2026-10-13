@@ -170,6 +170,28 @@ function scaledNutrition(food: FoodSearchResult, grams: number) {
   };
 }
 
+const preparationTerms = new Set(['raw', 'cooked', 'grilled', 'fried', 'baked', 'roasted', 'steamed', 'boiled']);
+
+function foodWords(name: string): string[] {
+  return [...new Set(name.toLowerCase().match(/[a-z]+/g) ?? [])].filter((word) => !['and', 'with', 'the', 'of', 'a'].includes(word));
+}
+
+/** Only substitute reference nutrition when the food and its preparation actually match. */
+export function selectMealPhotoReference(name: string, candidates: FoodSearchResult[]): FoodSearchResult | undefined {
+  const query = foodWords(name);
+  if (!query.length) return undefined;
+  return candidates
+    .filter((food) => {
+      if (food.source !== 'usda' || food.brand || food.caloriesKcal <= 0 || food.proteinG + food.carbsG + food.fatG <= 0) return false;
+      const reference = foodWords(food.name);
+      if (!query.every((word) => reference.includes(word))) return false;
+      const requestedPreparation = query.filter((word) => preparationTerms.has(word));
+      const referencePreparation = reference.filter((word) => preparationTerms.has(word));
+      return !referencePreparation.some((word) => !requestedPreparation.includes(word) && !(word === 'cooked' && requestedPreparation.some((term) => term !== 'raw')));
+    })
+    .sort((left, right) => foodWords(left.name).length - foodWords(right.name).length)[0];
+}
+
 export class OpenAiMealPhotoAnalyzer implements MealPhotoAnalyzer {
   private readonly request: typeof fetch;
   private readonly endpoint: string;
@@ -225,7 +247,7 @@ export class OpenAiMealPhotoAnalyzer implements MealPhotoAnalyzer {
     const enriched = await Promise.all(detected.items.map(async (item): Promise<MealPhotoItem> => {
       if (!this.options.foodProvider) return { ...item, nutritionSource: 'ai-estimate' };
       try {
-        const match = (await this.options.foodProvider.search(item.name))[0];
+        const match = selectMealPhotoReference(item.name, await this.options.foodProvider.search(item.name));
         const nutrition = match ? scaledNutrition(match, item.estimatedGrams) : undefined;
         return match && nutrition ? { ...item, ...nutrition, nutritionSource: 'usda', referenceFoodId: match.id, referenceFoodName: match.name } : { ...item, nutritionSource: 'ai-estimate' };
       } catch {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { combinedMacroBreakdown, constrainedPhotoDimensions, entriesFromMealPhoto, mealPhotoConfidence, mealPhotoErrorMessage } from './MealPhotoLogger.js';
+import { combinedMacroBreakdown, constrainedPhotoDimensions, entriesFromMealPhoto, mealPhotoConfidence, mealPhotoErrorMessage, updateMealPhotoItem } from './MealPhotoLogger.js';
 import { FoodDataError } from './foodDataClient.js';
 
 describe('meal photo logging', () => {
@@ -9,9 +9,9 @@ describe('meal photo logging', () => {
   });
 
   it('turns visual confidence into clear review guidance', () => {
-    expect(mealPhotoConfidence(.91)).toEqual({ label: 'High confidence', tone: 'high' });
-    expect(mealPhotoConfidence(.67)).toEqual({ label: 'Medium confidence', tone: 'medium' });
-    expect(mealPhotoConfidence(.4)).toEqual({ label: 'Needs review', tone: 'low' });
+    expect(mealPhotoConfidence(.91)).toEqual({ label: 'High visual confidence', tone: 'high' });
+    expect(mealPhotoConfidence(.67)).toEqual({ label: 'Medium visual confidence', tone: 'medium' });
+    expect(mealPhotoConfidence(.4)).toEqual({ label: 'Low visual confidence', tone: 'low' });
   });
 
   it('turns provider diagnostics into actionable setup guidance', () => {
@@ -31,5 +31,14 @@ describe('meal photo logging', () => {
       { selected: false, name: 'Oil', portionDescription: 'unknown', estimatedGrams: 10, confidence: .3, caloriesKcal: 90, proteinG: 0, carbsG: 0, fatG: 10, nutritionSource: 'ai-estimate' },
     ], '2026-09-21', 'dinner', 42);
     expect(entries).toEqual([{ id: '2026-09-21-dinner-photo-42-0', date: '2026-09-21', meal: 'dinner', name: 'Chicken', serving: '151 g estimated from photo', caloriesKcal: 248, proteinG: 46.5, carbsG: 0, fatG: 5.5, sourceFoodId: 'usda-1' }]);
+  });
+
+  it('drops USDA attribution when a user corrects the food or nutrition', () => {
+    const original = { selected: true, name: 'Chicken', portionDescription: 'one breast', estimatedGrams: 150, confidence: .9, caloriesKcal: 248, proteinG: 46, carbsG: 0, fatG: 5, nutritionSource: 'usda' as const, referenceFoodId: 'usda-1', referenceFoodName: 'Chicken breast' };
+    const corrected = updateMealPhotoItem(original, 'caloriesKcal', '270');
+    expect(corrected).toMatchObject({ caloriesKcal: 270, nutritionSource: 'ai-estimate', edited: true });
+    expect(corrected.referenceFoodId).toBeUndefined();
+    expect(entriesFromMealPhoto([corrected], '2026-09-21', 'dinner', 42)[0]?.sourceFoodId).toBeUndefined();
+    expect(updateMealPhotoItem(original, 'selected', false)).toMatchObject({ nutritionSource: 'usda', referenceFoodId: 'usda-1' });
   });
 });
