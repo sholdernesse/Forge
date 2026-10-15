@@ -26,6 +26,7 @@ The check blocks release when the deployment serves the wrong commit, lacks a va
 
 - Open `/privacy`, `/terms`, and `/support` on the deployed hostname without signing in.
 - Confirm the automated candidate smoke gate passes for the recorded commit.
+- Complete [known-portion meal-photo validation](../acceptance/meal-photo-accuracy.md) and attach the measured accuracy report to physical acceptance evidence.
 - Confirm every mail link targets the monitored mailbox and send a test message through it.
 - Confirm the application footer links work on desktop and phone.
 - Review the privacy notice against the deployed providers, retention periods, and deletion behavior.

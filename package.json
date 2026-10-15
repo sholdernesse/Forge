@@ -8,6 +8,8 @@
     "dev:https": "node scripts/dev-https.mjs",
     "lint": "turbo lint",
     "test": "turbo test",
+    "test:meal-photo-accuracy": "node --test scripts/nutrition/meal-photo-accuracy.test.mjs",
+    "evaluate:meal-photo": "node scripts/nutrition/meal-photo-accuracy.mjs",
     "typecheck": "turbo typecheck"
   },
   "devDependencies": {
