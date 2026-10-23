@@ -7,18 +7,24 @@ import type { useForgeAuth } from './useForgeAuth.js';
 type Auth = ReturnType<typeof useForgeAuth>;
 export function ConsentForm({ status, busy, onAccept }: { status: ConsentStatus; busy: boolean; onAccept(ids: string[]): void }) {
   const [checked, setChecked] = useState<string[]>([]);
+  const safetyNotice = status.documents.find(document => document.id === 'fitness-risk')?.text
+    .split('\n\n').find(paragraph => paragraph.startsWith('STOP IMMEDIATELY IF YOU FEEL DISCOMFORT.'));
   return <form onSubmit={event => { event.preventDefault(); onAccept(checked); }}>
     <h1>Before you start your Forge plan</h1>
     <p>Review these agreements before entering personal fitness or nutrition information.</p>
     {!status.approved && <p role="status">These agreements are drafts awaiting approval. Personal features are not available yet.</p>}
+    {safetyNotice && <aside aria-label="Stop and seek medical advice">
+      <p><strong>{safetyNotice.split('\n')[0]}</strong></p>
+      <p>{safetyNotice.split('\n').slice(1).join('\n')}</p>
+    </aside>}
     {status.documents.map(document => <section key={document.id}>
       <details><summary>{document.title} · {document.version}</summary>{document.text.split('\n\n').map((paragraph, index) => <p key={index} style={{ whiteSpace: 'pre-line' }}>{paragraph}</p>)}</details>
       <label className="consent-choice"><input type="checkbox" disabled={busy || !status.approved}
         checked={checked.includes(document.id)} onChange={event => setChecked(current => event.target.checked ? [...current, document.id] : current.filter(id => id !== document.id))} />
-        <span>{document.id === 'health-data' ? 'I consent to the health-data use described above.' : `I have read and agree to the ${document.title}.`}</span></label>
+        <span>{document.id === 'health-data' ? 'I consent to the health-data use described above.' : document.id === 'fitness-risk' ? `I have read and agree to the ${document.title}, and understand that it includes a waiver of certain legal claims.` : `I have read and agree to the ${document.title}.`}</span></label>
     </section>)}
     <p><a href="/privacy" target="_blank" rel="noreferrer">Read the Privacy Notice</a></p>
-    <button type="submit" disabled={busy || !status.approved || checked.length !== status.documents.length}>{busy ? 'Saving your agreement…' : 'Agree and continue'}</button>
+    <button type="submit" disabled={busy || !status.approved || checked.length !== status.documents.length}>{busy ? 'Saving your agreement…' : 'Accept and continue'}</button>
   </form>;
 }
 

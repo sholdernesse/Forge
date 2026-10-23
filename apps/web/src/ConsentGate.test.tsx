@@ -15,7 +15,20 @@ describe('signup agreement presentation', () => {
     expect(html).not.toContain('checked=""');
     expect(html).toContain('Full exact terms');
     expect(html).toContain('Full exact consent');
-    expect(html).toMatch(/<button[^>]*disabled=""[^>]*>Agree and continue/);
+    expect(html).toMatch(/<button[^>]*disabled=""[^>]*>Accept and continue/);
+  });
+  it('shows the exact policy safety notice outside collapsed agreements and discloses the waiver', () => {
+    const notice = 'STOP IMMEDIATELY IF YOU FEEL DISCOMFORT.\nStop and seek medical advice from my doctor before resuming.';
+    const html = renderToStaticMarkup(<ConsentForm status={{ ...status, approved: false, documents: [
+      ...status.documents, { id: 'fitness-risk', version: '2-draft', title: 'Release of Liability', text: `Voluntary participation.\n\n${notice}` },
+    ] }} busy={false} onAccept={() => undefined} />);
+    const visibleNotice = html.slice(html.indexOf('<aside'), html.indexOf('</aside>'));
+    expect(visibleNotice).toContain('<strong>STOP IMMEDIATELY IF YOU FEEL DISCOMFORT.</strong>');
+    expect(visibleNotice).toContain('seek medical advice from my doctor before resuming');
+    expect(html.indexOf('<aside')).toBeLessThan(html.indexOf('<details>'));
+    expect(html).toContain('includes a waiver of certain legal claims');
+    expect(html.match(/type="checkbox" disabled=""/g)).toHaveLength(3);
+    expect(html).not.toContain('checked=""');
   });
   it('makes draft text unavailable for signature', () => {
     const html = renderToStaticMarkup(<ConsentForm status={{ ...status, approved: false }} busy={false} onAccept={() => undefined} />);
