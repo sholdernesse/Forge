@@ -162,6 +162,14 @@ PR #2 should deliver a coherent, testable Forge web candidate with:
 - Development startup warns when a terminal API key masks a different root `.env.local` value without printing secrets.
 - The confirmed PowerShell API-key override fix is documented in [local HTTPS troubleshooting](./development/local-https.md).
 
+### International beta direction — October 25
+
+- Owner identifies the operating brand as **gnosislab.io** and wants international exposure and beta feedback. A U.S.-only beta restriction is not approved.
+- The exact contracting legal entity behind that brand remains to be confirmed; do not substitute the domain for a verified legal entity or activate draft agreements.
+- Recommended rollout, pending owner acceptance: international expressions of interest with minimal contact/country data, followed by invitation-based cohorts in countries whose provider availability, privacy disclosures, consent, and support requirements have been checked. Do not interpret this plan as all-country availability.
+- Recommend an adults-only (18+) initial beta; this age scope still needs owner confirmation.
+- Country eligibility and regional units/time zones should support staged international expansion. No country gate, waitlist, invitation system, or legal-policy approval is implemented by this planning update.
+
 ### Remaining release blockers
 
 1. **Complete physical desktop/mobile acceptance**
