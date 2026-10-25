@@ -20,6 +20,8 @@ This checklist is the remaining human acceptance gate for PR #2. It must be run 
 
 ## Nutrition camera workflows
 
+- [x] Owner functional meal-photo review passed for beta testing on October 25, 2026 after reviewing multiple images. See [beta acceptance record](meal-photo-accuracy.md#owner-beta-acceptance--october-25-2026). This records the reported functional result; the detailed device, sync, privacy, barcode, and error-path checks below remain individually tracked.
+
 - [ ] On the phone, photograph a non-sensitive test plate with two or more distinct foods. Confirm Forge previews the prepared image and returns editable items, portions, confidence, nutrition source, assumptions, and warnings.
 - [ ] Correct one portion or macro, exclude one detected item, and add the reviewed meal. Confirm only selected items enter the chosen meal period and daily totals update immediately.
 - [ ] Refresh the phone and desktop. Confirm approved nutrition entries synchronize, while the submitted photograph does not appear in history, exports, browser storage, API logs, or the synchronized dashboard.

@@ -1,6 +1,16 @@
 # Meal-photo accuracy validation
 
-Status: measurement tooling ready; real-plate validation is pending. Unit-test fixtures are synthetic and do not establish model accuracy.
+Status: **functional owner review PASSED; meal-photo analysis ready for beta testing (October 25, 2026).** Quantitative known-portion benchmarking remains pending. Unit-test fixtures are synthetic and do not establish model accuracy.
+
+## Owner beta acceptance — October 25, 2026
+
+- [x] Meal-photo functional review: **PASS — ready for beta testing**, confirmed by Shane Holdernesse.
+- Evidence: owner reported, “i have reviewed multiple images and confirmed this is working as it should can be checked as passed and ready for bet testing in the app”.
+- The API-key rejection was resolved by clearing the inherited PowerShell `OPENAI_API_KEY` and restarting; see [local troubleshooting](../development/local-https.md#fix-openai-key-rejected-after-updating-envlocal).
+- Scope: owner acceptance of the meal-photo feature for beta testing. Exact tested build, device details, image count, weighed portions, and numeric error measurements were not supplied.
+- Quantitative macro-accuracy benchmarking remains a separate follow-up; this functional PASS does not claim measured accuracy thresholds were met or approve unrelated public-release gates.
+
+
 
 ## Collect the evidence
 
@@ -53,4 +63,4 @@ Initial engineering targets use the larger of the relative allowance and absolut
 
 These are proposed internal acceptance targets, not validated clinical tolerances or a consumer accuracy promise. Item checks prevent offsetting errors from concealing incorrect detection. A missed or extra food fails the plate regardless of total calories. A PASS covers only the supplied dataset; a tiny or unrepresentative sample cannot establish release readiness. The release owner must review at least ten varied real plates, failure cases, and unedited versus reviewed results before signing off. No live model request or billable API call is made by this offline evaluator.
 
-Attach reports to the candidate's physical acceptance evidence. Keep meal-photo accuracy pending until actual measurements and reports are available.
+Attach reports to the candidate's physical acceptance evidence. Keep quantitative meal-photo accuracy benchmarking pending until actual measurements and reports are available; the functional beta acceptance above is passed.
