@@ -41,4 +41,34 @@ describe('meal photo logging', () => {
     expect(entriesFromMealPhoto([corrected], '2026-09-21', 'dinner', 42)[0]?.sourceFoodId).toBeUndefined();
     expect(updateMealPhotoItem(original, 'selected', false)).toMatchObject({ nutritionSource: 'usda', referenceFoodId: 'usda-1' });
   });
+  const portion = { selected: true, name: 'Chicken', portionDescription: 'one breast', estimatedGrams: 150, confidence: .9, caloriesKcal: 248, proteinG: 46.5, carbsG: 0, fatG: 5.5, nutritionSource: 'usda' as const, referenceFoodId: 'usda-1', referenceFoodName: 'Chicken breast' };
+
+  it('scales a reviewed serving and saves matching meal totals while retaining its reference', () => {
+    const corrected = updateMealPhotoItem(portion, 'estimatedGrams', '225');
+    expect(corrected).toMatchObject({ estimatedGrams: 225, caloriesKcal: 372, proteinG: 69.8, carbsG: 0, fatG: 8.3, nutritionSource: 'usda', referenceFoodId: 'usda-1', portionEdited: true });
+    expect(entriesFromMealPhoto([corrected], '2026-10-25', 'lunch', 42)[0]).toMatchObject({ serving: '225 g reviewed portion', caloriesKcal: 372, proteinG: 69.8 });
+    expect(portion.estimatedGrams).toBe(150);
+  });
+
+  it('avoids cumulative rounding drift when a portion is adjusted repeatedly', () => {
+    let corrected: ReturnType<typeof updateMealPhotoItem> = portion;
+    for (const grams of ['151', '137', '213', '150']) corrected = updateMealPhotoItem(corrected, 'estimatedGrams', grams);
+    expect(corrected).toMatchObject({ estimatedGrams: 150, caloriesKcal: 248, proteinG: 46.5, fatG: 5.5 });
+  });
+
+  it('uses manual macro corrections as the basis of later portion changes', () => {
+    const larger = updateMealPhotoItem(portion, 'estimatedGrams', '300');
+    const edited = updateMealPhotoItem(larger, 'proteinG', '80');
+    const smaller = updateMealPhotoItem(edited, 'estimatedGrams', '150');
+    expect(smaller).toMatchObject({ caloriesKcal: 248, proteinG: 40, nutritionSource: 'ai-estimate', edited: true });
+    expect(smaller.referenceFoodId).toBeUndefined();
+  });
+
+  it('does not corrupt nutrition from blank, nonfinite, or out-of-range serving edits', () => {
+    for (const value of ['', ' ', 'NaN', 'Infinity', '-1', '0', '2001']) {
+      expect(updateMealPhotoItem(portion, 'estimatedGrams', value)).toBe(portion);
+    }
+    expect(updateMealPhotoItem(portion, 'proteinG', 'NaN')).toBe(portion);
+  });
+
 });

@@ -17,7 +17,7 @@ import { demoTrainingPreferences, generateTrainingPlan } from './trainingPlanner
 import { calendarDateOffset, demoSessionHistory, summarizeWorkout, trainingWeek, weeklyVolume, type TrainingSessionRecord } from './volumeLedger.js';
 import { assessDeload, nextScheduleIntent, type ScheduleOverrides } from './schedulePolicy.js';
 import { calculateNutritionTargets } from './nutritionPlanner.js';
-import { FoodLogger } from './FoodLogger.js';
+import { FoodLoggerLoader } from './FoodLoggerLoader.js';
 import { demoFoodEntries, foodTotals, type FoodEntry, type SavedMeal } from './foodLog.js';
 import { micronutrientCoverage, weeklyNutritionStory } from './micronutrients.js';
 import { demoSavedMeals } from './foodCatalog.js';
@@ -949,7 +949,7 @@ function PersonalApp({ auth, environment }: { auth: ReturnType<typeof useForgeAu
 
       {onboardingOpen && <OnboardingFlow onComplete={completeOnboarding} onClose={() => setOnboardingOpen(false)} weightUnit={weightUnit} />}
       {workoutOpen && <WorkoutPlayer session={workout} exerciseHistory={exerciseHistory} {...(currentWorkoutFocus ? { carryForward: currentWorkoutFocus } : {})} onChange={persistWorkout} onClose={() => setWorkoutOpen(false)} onFinish={finishWorkout} />}
-      {foodLoggerOpen && <FoodLogger date={TODAY} entries={foodEntries} favoriteFoodIds={favoriteFoodIds} savedMeals={savedMeals} choicePriority={athleteGoals.primary === 'muscle-gain' || athleteGoals.primary === 'performance' ? 'protein' : athleteGoals.primary === 'fat-loss' ? 'calorie-efficiency' : 'balanced'} {...(foodDataClient ? { foodDataClient } : {})} onChange={updateFoodEntries} onPreferencesChange={updateFoodPreferences} onClose={() => setFoodLoggerOpen(false)} />}
+      {foodLoggerOpen && <FoodLoggerLoader date={TODAY} entries={foodEntries} favoriteFoodIds={favoriteFoodIds} savedMeals={savedMeals} choicePriority={athleteGoals.primary === 'muscle-gain' || athleteGoals.primary === 'performance' ? 'protein' : athleteGoals.primary === 'fat-loss' ? 'calorie-efficiency' : 'balanced'} {...(foodDataClient ? { foodDataClient } : {})} onChange={updateFoodEntries} onPreferencesChange={updateFoodPreferences} onClose={() => setFoodLoggerOpen(false)} />}
       {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} onGeneratePlan={generateNewPlan} onReset={resetPrototype} onExport={exportForgeData} onDelete={deleteForgeData} onOpenBudget={() => setOperatingBudgetOpen(true)} onOpenGlp1Support={() => setGlp1SupportOpen(true)} glp1SupportEnabled={Boolean(glp1Support?.enabled)} appearancePreference={appearancePreference} onAppearanceChange={setAppearancePreference} unitPreference={unitPreference} onUnitPreferenceChange={setUnitPreference} canDeleteCloud={auth.status === 'signed-in' || auth.status === 'development'} showOperationsBudget={showOperationsBudget} />}
       {operatingBudgetOpen && <Suspense fallback={<div className="workout-backdrop"><div className="budget-loading" role="status">Loading operating budget…</div></div>}><OperatingBudgetPanel onClose={() => setOperatingBudgetOpen(false)} /></Suspense>}
       {glp1SupportOpen && <Suspense fallback={<div className="workout-backdrop"><div className="budget-loading" role="status">Loading GLP-1 support…</div></div>}><Glp1SupportPanel {...(glp1Support ? { profile: glp1Support } : {})} onSave={saveGlp1Support} onClose={() => setGlp1SupportOpen(false)} /></Suspense>}

@@ -5,7 +5,8 @@ import { createFoodEntry } from './foodLog.js';
 import { FoodDataClient, FoodDataError, type MealPhotoAnalysis, type MealPhotoItem } from './foodDataClient.js';
 import { useAccessibleDialog } from './useAccessibleDialog.js';
 
-interface DraftItem extends MealPhotoItem { selected: boolean; edited?: boolean; }
+interface PortionBasis { estimatedGrams: number; caloriesKcal: number; proteinG: number; carbsG: number; fatG: number; }
+interface DraftItem extends MealPhotoItem { selected: boolean; edited?: boolean; portionEdited?: boolean; portionBasis?: PortionBasis; }
 interface Props { date: string; meal: MealType; client: FoodDataClient; onAdd(entries: FoodEntry[]): void; onClose(): void; }
 
 export function constrainedPhotoDimensions(width: number, height: number, maximum = 1280) {
@@ -52,7 +53,7 @@ export async function prepareMealPhoto(file: File): Promise<string> {
 export function entriesFromMealPhoto(items: DraftItem[], date: string, meal: MealType, now = Date.now()): FoodEntry[] {
   return items.filter((item) => item.selected).map((item, index) => createFoodEntry(date, meal, {
     name: item.name.trim() || 'Meal item',
-    serving: `${Math.max(1, Math.round(item.estimatedGrams))} g estimated from photo`,
+    serving: `${Math.max(1, Math.round(item.estimatedGrams))} g ${item.portionEdited ? 'reviewed portion' : 'estimated from photo'}`,
     caloriesKcal: Math.max(0, Math.round(item.caloriesKcal)),
     proteinG: Math.max(0, Math.round(item.proteinG * 10) / 10),
     carbsG: Math.max(0, Math.round(item.carbsG * 10) / 10),
@@ -62,10 +63,28 @@ export function entriesFromMealPhoto(items: DraftItem[], date: string, meal: Mea
 }
 
 export function updateMealPhotoItem(item: DraftItem, field: keyof DraftItem, value: string | boolean): DraftItem {
+  if (typeof item[field] === 'number' && (typeof value !== 'string' || !value.trim() || !Number.isFinite(Number(value)))) return item;
+  if (field === 'estimatedGrams') {
+    const grams = Number(value);
+    if (grams < 1 || grams > 2_000 || item.estimatedGrams <= 0) return item;
+    const basis = item.portionBasis ?? {
+      estimatedGrams: item.estimatedGrams, caloriesKcal: item.caloriesKcal,
+      proteinG: item.proteinG, carbsG: item.carbsG, fatG: item.fatG,
+    };
+    const factor = grams / basis.estimatedGrams;
+    return {
+      ...item, estimatedGrams: grams, portionBasis: basis, portionEdited: true,
+      caloriesKcal: Math.round(basis.caloriesKcal * factor),
+      proteinG: Math.round(basis.proteinG * factor * 10) / 10,
+      carbsG: Math.round(basis.carbsG * factor * 10) / 10,
+      fatG: Math.round(basis.fatG * factor * 10) / 10,
+    };
+  }
   const updated = { ...item, [field]: typeof item[field] === 'number' ? Math.max(0, Number(value)) : value };
   if (field === 'name' || field === 'caloriesKcal' || field === 'proteinG' || field === 'carbsG' || field === 'fatG') {
     delete updated.referenceFoodId;
     delete updated.referenceFoodName;
+    delete updated.portionBasis;
     updated.nutritionSource = 'ai-estimate';
     updated.edited = true;
   }
@@ -164,10 +183,10 @@ export function MealPhotoLogger({ date, meal, client, onAdd, onClose }: Props) {
         <div className="meal-photo-fields">
           <div className="meal-photo-food-title"><input aria-label={`Food ${index + 1} name`} value={item.name} onChange={(event) => update(index, 'name', event.target.value)} /><strong>{Math.round(item.caloriesKcal)} kcal</strong></div>
           <div className="meal-photo-badges"><span className={`confidence-badge ${mealPhotoConfidence(item.confidence).tone}`}>{mealPhotoConfidence(item.confidence).label}</span><span className={`source-badge ${item.nutritionSource}`}>{item.edited ? 'User edited' : item.nutritionSource === 'usda' ? 'USDA matched' : 'Visual estimate'}</span></div>
-          <p>{item.portionDescription} · approximately {Math.round(item.estimatedGrams)}g</p>
+          <p>{item.portionDescription} · {item.portionEdited ? 'reviewed portion' : 'approximately'} {Math.round(item.estimatedGrams)}g</p>
           <div className="meal-photo-item-macros"><span><b>{Math.round(item.proteinG)}g</b> protein</span><span><b>{Math.round(item.carbsG)}g</b> carbs</span><span><b>{Math.round(item.fatG)}g</b> fat</span></div>
-          <details className="meal-photo-edit"><summary><Pencil size={13} /> Edit nutrition details</summary><div>
-            <label>Serving (g)<input type="number" min="1" value={item.estimatedGrams} onChange={(event) => update(index, 'estimatedGrams', event.target.value)} /></label><label>Calories<input type="number" min="0" value={item.caloriesKcal} onChange={(event) => update(index, 'caloriesKcal', event.target.value)} /></label><label>Protein (g)<input type="number" min="0" step="0.1" value={item.proteinG} onChange={(event) => update(index, 'proteinG', event.target.value)} /></label><label>Carbs (g)<input type="number" min="0" step="0.1" value={item.carbsG} onChange={(event) => update(index, 'carbsG', event.target.value)} /></label><label>Fat (g)<input type="number" min="0" step="0.1" value={item.fatG} onChange={(event) => update(index, 'fatG', event.target.value)} /></label>
+          <details className="meal-photo-edit"><summary><Pencil size={13} /> Edit nutrition details</summary><p>Changing the serving weight scales calories and macros. You can also correct each value below.</p><div>
+            <label>Serving (g)<input type="number" min="1" max="2000" step="1" value={item.estimatedGrams} onChange={(event) => update(index, 'estimatedGrams', event.target.value)} /></label><label>Calories<input type="number" min="0" value={item.caloriesKcal} onChange={(event) => update(index, 'caloriesKcal', event.target.value)} /></label><label>Protein (g)<input type="number" min="0" step="0.1" value={item.proteinG} onChange={(event) => update(index, 'proteinG', event.target.value)} /></label><label>Carbs (g)<input type="number" min="0" step="0.1" value={item.carbsG} onChange={(event) => update(index, 'carbsG', event.target.value)} /></label><label>Fat (g)<input type="number" min="0" step="0.1" value={item.fatG} onChange={(event) => update(index, 'fatG', event.target.value)} /></label>
           </div></details>
         </div>
         <button className="meal-photo-remove" onClick={() => setItems((current) => current.filter((_, itemIndex) => itemIndex !== index))} aria-label={`Remove ${item.name}`}><Trash2 size={15} /></button>

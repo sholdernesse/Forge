@@ -4,7 +4,7 @@
 
 **Current checkpoint:** Sprint 4.97 on PR #2
 **Product stage:** Release Candidate 1 hardening and physical acceptance
-**Last reviewed:** October 2, 2026
+**Last reviewed:** October 25, 2026
 
 ## 1. North star
 
@@ -123,7 +123,7 @@ See [Sprint 4 architecture](./architecture/sprint-4.md) for package and data-flo
 - Food search, quick foods, favorites, quantities, custom foods, saved meals, meal periods, and removal.
 - Provider-neutral barcode boundary with safe unknown-food behavior.
 - Opt-in meal-photo analysis with metadata-stripped upload, structured food detection, USDA enrichment, visibly labeled AI fallback, editable portions/macros, uncertainty notes, and explicit approval before logging.
-- USDA photo enrichment now requires an unbranded food-name and preparation match; otherwise the visual estimate remains labeled. The interface names visual confidence separately from macro accuracy. Controlled photo-versus-weighed-meal validation is still required before making accuracy claims or treating camera estimates as release-ready.
+- USDA photo enrichment now requires an unbranded food-name and preparation match; otherwise the visual estimate remains labeled. The interface names visual confidence separately from macro accuracy. The owner confirmed functional meal-photo review PASSED for beta testing on October 25; see [acceptance record](./acceptance/meal-photo-accuracy.md). Controlled photo-versus-weighed-meal validation remains separate and is required before making quantitative accuracy claims. Other deployed release gates remain open.
 - Immediate daily totals and Digital Twin updates.
 - Low-friction daily water logging with bounded quick-add entries and cross-device persistence.
 
@@ -153,6 +153,12 @@ PR #2 should deliver a coherent, testable Forge web candidate with:
 - responsive desktop and phone behavior;
 - safe empty, offline, invalid-data, and legacy-data handling;
 - documented deployment and recovery boundaries.
+
+### October 25 beta optimizations
+
+- Correcting a meal-photo portion now scales calories and macros together, retains a valid USDA match, and marks the saved serving as reviewed. An original nutrition basis prevents cumulative rounding drift; manual macro corrections establish a new basis for later portion edits.
+- Food logging and camera UI load on demand, with an accessible loading dialog, cancel control, and retry on download failure. The production build emits a separate food-logging chunk.
+- The confirmed PowerShell API-key override fix is documented in [local HTTPS troubleshooting](./development/local-https.md).
 
 ### Remaining release blockers
 
