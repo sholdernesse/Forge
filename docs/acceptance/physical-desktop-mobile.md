@@ -55,9 +55,10 @@ The repository-level acceptance tests cover authenticated hydration, stale-revis
 - [ ] With more than 20 events, load older agreements, add a new event on another device, and verify older pagination has no duplicates or missing original records. A failed history request must show a retry state without erasing already loaded receipts.
 
 
-## International adult beta admission
+## U.S.-only adult beta admission
 
-- [ ] Apply migration 003 twice, record the enabled country list and candidate, and provision an invitation for the verified test subject.
+- [ ] Apply migration 003 twice, record `US` as the only enabled country and the candidate, and provision an invitation for the verified test subject.
+- [ ] Confirm non-U.S. invitations remain blocked even with confirmed adulthood.
 - [ ] Confirm uninvited and revoked accounts cannot open personal features or directly call dashboard/food/photo APIs.
 - [ ] Confirm adulthood and residence start unchecked; incomplete, incorrect-country, offline, and failed submissions never grant access.
 - [ ] Confirm the same account's admission persists across desktop/phone, while a second account remains gated.

@@ -11,7 +11,7 @@ export function BetaEligibilityForm({ status, busy, onConfirm }: { status: BetaS
   const country = status.country ? new Intl.DisplayNames([navigator.language || 'en'], { type: 'region' }).of(status.country) : '';
   return <form onSubmit={event => { event.preventDefault(); if (adult && resident) onConfirm(); }}>
     <h1>Your Forge beta invitation</h1>
-    <p>Forge by gnosislab.io is welcoming adult testers internationally in stages.</p>
+    <p>Forge by gnosislab.io is currently inviting U.S. residents aged 18 or older to test the beta.</p>
     <p>Your invitation is for {country}. Confirm these details before reviewing your Forge agreements.</p>
     <label className="consent-choice"><input type="checkbox" checked={adult} disabled={busy} onChange={event => setAdult(event.target.checked)} /><span>I am 18 years of age or older.</span></label>
     <label className="consent-choice"><input type="checkbox" checked={resident} disabled={busy} onChange={event => setResident(event.target.checked)} /><span>I currently reside in {country}.</span></label>
@@ -55,8 +55,8 @@ export function BetaGate({ auth, environment, children }: { auth: Auth; environm
     finally { setBusy(false); }
   }
   return <div className="public-document-shell"><main className="public-document consent-gate">
-    {!status ? <><h1>Forge international beta</h1><p role="status">{error ? 'Personal features are paused.' : 'Checking your beta invitation…'}</p></> :
-      !status.invited ? <><h1>Forge international beta</h1><p>Beta access is by invitation. Contact support to express interest and include your country of residence. Please do not send health information.</p></> :
+    {!status ? <><h1>Forge U.S. beta</h1><p role="status">{error ? 'Personal features are paused.' : 'Checking your beta invitation…'}</p></> :
+      !status.invited ? <><h1>Forge U.S. beta</h1><p>Beta access is by invitation and currently limited to U.S. residents aged 18 or older. Contact support to express interest. Please do not send health information.</p></> :
       !status.countryEnabled ? <><h1>Your beta country is not open yet</h1><p>We are opening Forge to testers in stages. Your invitation is saved; support can help with availability.</p></> :
       <BetaEligibilityForm status={status} busy={busy} onConfirm={() => void confirm()} />}
     {error && <p role="alert">{error}</p>}

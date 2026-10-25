@@ -1,6 +1,6 @@
-# International adult beta
+# U.S.-only initial adult beta; international expansion later
 
-Approved rollout direction (October 25, 2026): Forge by **gnosislab.io** welcomes international testers through country-specific invitations, restricted to adults aged 18 or older. This is a staged rollout, not unrestricted worldwide availability. The registered contracting entity and final agreement approval remain separate release decisions.
+Approved rollout direction (October 25, 2026): Forge by **gnosislab.io** initially admits **U.S. residents aged 18 or older, by invitation only**. This supersedes the earlier international first-cohort plan. International expansion remains a later phase; the country-aware architecture is retained. The registered contracting entity and final agreement approval remain separate release decisions.
 
 ## Implemented controls
 
@@ -9,15 +9,15 @@ Approved rollout direction (October 25, 2026): Forge by **gnosislab.io** welcome
 - A tester must separately confirm adulthood and residence in the invitation's country. The server stores the first confirmation timestamp; no birth date is requested. This is self-attestation, not independent identity/age verification.
 - Admission is checked on every protected API request. Revoking an invitation or removing its country from the enabled list pauses personal access. The UI rechecks on focus/visibility recovery.
 - Consent review/history, withdrawal, support, and authenticated dashboard deletion remain reachable when beta access is paused. Beta eligibility does not substitute for agreement acceptance.
-- Production starts closed with an empty enabled-country list. No countries or tester accounts are automatically approved by this implementation.
+- Deployment templates default to `US`. Tester accounts still require explicit invitations; the API also denies non-U.S. invitations independently of the enabled-country list. An empty list pauses all admission.
 
 ## Deployment configuration
 
 The API migration now includes `003_beta_invitations.sql`. Run migrations before serving the updated API; the API container runs them at startup.
 
-Set `FORGE_BETA_COUNTRIES` to comma-separated, two-letter ISO country codes **only for countries cleared by the release owner**. Azure reads this from the repository/environment variable of the same name and passes it through `infra/apps.bicep`. Render's dormant blueprint includes the same setting. An empty list admits nobody. Changing the list requires redeploying/restarting the API. Invalid code syntax prevents startup.
+Set `FORGE_BETA_COUNTRIES=US` for this initial beta. Any non-U.S. code is rejected at startup; expanding countries requires a separately reviewed policy change. Azure reads this from the repository/environment variable of the same name and passes it through `infra/apps.bicep`. Render's dormant blueprint includes the same setting. An empty list admits nobody. Changing the list requires redeploying/restarting the API. Invalid or non-U.S. country codes prevent startup. The Azure workflow uses `US` when no repository variable is configured; to pause admission there, explicitly deploy `betaCountries` as an empty string or revoke invitations.
 
-For local preview set both `FORGE_BETA_REQUIRED=true` and `VITE_FORGE_BETA_PREVIEW=true` in the root `.env.local`, set the intended test country list, apply migrations, and restart `corepack pnpm dev:https`. Ordinary development keeps its existing bypass. Production enforcement cannot be disabled by `FORGE_BETA_REQUIRED=false`.
+For local preview with a U.S. test invitation, set both `FORGE_BETA_REQUIRED=true` and `VITE_FORGE_BETA_PREVIEW=true` in the root `.env.local`, set `FORGE_BETA_COUNTRIES=US`, apply migrations, and restart `corepack pnpm dev:https`. Ordinary development keeps its existing bypass. Production enforcement cannot be disabled by `FORGE_BETA_REQUIRED=false`.
 
 ## Issue invitations through an authorized database session
 
@@ -38,7 +38,7 @@ Sign in → invitation check → confirm age 18+ and residence → review/accept
 
 ## Acceptance before opening a cohort
 
-1. Confirm the legal operator, approved agreements, privacy disclosures, processing/provider availability, and support coverage for each enabled country. The country list is an operational admission control, not proof of legal compliance.
+1. Confirm the legal operator, approved agreements, privacy disclosures, processing/provider availability, and support coverage for the U.S. beta before any external invitations. The country list is an operational admission control, not proof of legal compliance.
 2. Run migration twice to verify idempotency. Confirm adult attestation survives API restart and remains account-scoped.
 3. On desktop and phone, test missing invitation, wrong country, unchecked eligibility, failed/offline confirmation, valid invitation, country pause, revocation, and switching accounts.
 4. Verify direct dashboard and photo API calls cannot bypass admission. Confirm accepted beta eligibility still cannot bypass consent.

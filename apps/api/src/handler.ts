@@ -97,7 +97,7 @@ export function createApiHandler(dependencies: ApiDependencies) {
       if (Buffer.byteLength(text) > 1024) return response({ error: 'payload_too_large' }, 413, corsOrigin);
       let body: { country?: unknown; adultConfirmed?: unknown };
       try { body = JSON.parse(text); } catch { return response({ error: 'invalid_json' }, 400, corsOrigin); }
-      if (!body || body.adultConfirmed !== true || typeof body.country !== 'string' || !beta.countries.has(body.country)) return response({ error: 'beta_eligibility_incomplete' }, 400, corsOrigin);
+      if (!body || body.adultConfirmed !== true || body.country !== 'US' || !beta.countries.has(body.country)) return response({ error: 'beta_eligibility_incomplete' }, 400, corsOrigin);
       if (!await beta.repository.confirmAdult(user.id, body.country)) return response({ error: 'beta_invitation_required' }, 403, corsOrigin);
       return response(betaStatus(beta, await beta.repository.invitation(user.id)), 200, corsOrigin);
     }

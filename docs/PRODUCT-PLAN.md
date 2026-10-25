@@ -162,12 +162,12 @@ PR #2 should deliver a coherent, testable Forge web candidate with:
 - Development startup warns when a terminal API key masks a different root `.env.local` value without printing secrets.
 - The confirmed PowerShell API-key override fix is documented in [local HTTPS troubleshooting](./development/local-https.md).
 
-### International beta direction — October 25
+### U.S.-only initial beta — October 25
 
-- Owner approved an international, invitation-based beta for adults 18+, with countries enabled in stages. Public-facing brand: **gnosislab.io**. This is not an unrestricted worldwide launch.
-- Account-bound invitations, country eligibility, separate adulthood/residence confirmations, durable server timestamps, and server-side admission checks are implemented. Countries default to closed; no tester or country is automatically enabled.
+- Owner selected **U.S. residents only**, aged **18+**, for the initial invitation-based beta. Public-facing brand: **gnosislab.io**. This supersedes the earlier international initial-beta direction; international expansion remains a later phase.
+- Account-bound invitations, country eligibility, separate adulthood/residence confirmations, durable server timestamps, and server-side admission checks are implemented. Deployment templates select `US`; no testers are automatically invited. The API denies non-U.S. invitations even if a country list is misconfigured. An empty country list pauses admission.
 - The UI keeps consent/history, withdrawal, deletion and support available when access is paused. Production smoke tests now verify beta enforcement.
-- See [international beta operations and acceptance](./deployment/international-beta.md). The registered contracting entity, approved legal/privacy text, first enabled-country list, invitation provisioning, and deployed physical acceptance remain required before opening external access.
+- See [international beta operations and acceptance](./deployment/international-beta.md). The registered contracting entity, approved legal/privacy text, invitation provisioning, and deployed physical acceptance remain required before opening external access.
 
 ### Remaining release blockers
 

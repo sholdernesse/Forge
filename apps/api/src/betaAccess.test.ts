@@ -4,7 +4,7 @@ import { createApiHandler } from './handler.js';
 import { MemoryDashboardRepository } from './memoryRepository.js';
 
 function setup() {
-  const invitations = new Map<string, BetaInvitation>([['alice', { country: 'AU', adultConfirmedAt: null, revoked: false }]]);
+  const invitations = new Map<string, BetaInvitation>([['alice', { country: 'US', adultConfirmedAt: null, revoked: false }]]);
   const repository: BetaRepository = {
     invitation: async id => invitations.get(id) ?? null,
     confirmAdult: async (id, country) => {
@@ -13,7 +13,7 @@ function setup() {
       invite.adultConfirmedAt ??= new Date().toISOString(); return true;
     },
   };
-  const countries = new Set(['AU', 'US']);
+  const countries = new Set(['US']);
   const handle = createApiHandler({ auth: { verify: async token => token ? { id: token } : null }, dashboards: new MemoryDashboardRepository(), beta: { required: true, countries, repository } });
   const request = (path = '/v1/beta', method = 'GET', user = 'alice', body?: unknown) => handle(new Request(`http://api.test${path}`, {
     method, headers: user ? { authorization: user } : {}, ...(body === undefined ? {} : { body: JSON.stringify(body) }),
@@ -27,8 +27,9 @@ describe('international adult beta admission', () => {
     expect(betaRequired({ NODE_ENV: 'development' })).toBe(false);
     expect(betaRequired({ FORGE_BETA_REQUIRED: 'true' })).toBe(true);
     expect([...betaCountries(undefined)]).toEqual([]);
-    expect([...betaCountries(' us, au,US ')]).toEqual(['US', 'AU']);
+    expect([...betaCountries(' us, US ')]).toEqual(['US']);
     expect(() => betaCountries('ALL')).toThrow();
+    expect(() => betaCountries('US,AU')).toThrow('US residents only');
   });
   it('denies anonymous access and never exposes another account invitation', async () => {
     const { request } = setup();
@@ -39,27 +40,27 @@ describe('international adult beta admission', () => {
   it('requires affirmative adulthood and the invitation country before personal access', async () => {
     const { request } = setup();
     expect((await request('/v1/dashboard')).status).toBe(403);
-    for (const body of [{ country: 'AU' }, { country: 'AU', adultConfirmed: false }, { country: 'AU', adultConfirmed: 'true' }]) {
+    for (const body of [{ country: 'US' }, { country: 'US', adultConfirmed: false }, { country: 'US', adultConfirmed: 'true' }]) {
       expect((await request('/v1/beta', 'POST', 'alice', body)).status).toBe(400);
     }
-    expect((await request('/v1/beta', 'POST', 'alice', { country: 'US', adultConfirmed: true })).status).toBe(403);
-    expect(await (await request('/v1/beta', 'POST', 'alice', { country: 'AU', adultConfirmed: true })).json()).toMatchObject({ admitted: true });
+    expect((await request('/v1/beta', 'POST', 'alice', { country: 'GB', adultConfirmed: true })).status).toBe(400);
+    expect(await (await request('/v1/beta', 'POST', 'alice', { country: 'US', adultConfirmed: true })).json()).toMatchObject({ admitted: true });
     expect((await request('/v1/dashboard')).status).toBe(404);
   });
   it('cannot self-invite or confirm on behalf of another account', async () => {
     const { request } = setup();
-    expect((await request('/v1/beta', 'POST', 'bob', { userId: 'alice', country: 'AU', adultConfirmed: true })).status).toBe(403);
+    expect((await request('/v1/beta', 'POST', 'bob', { userId: 'alice', country: 'US', adultConfirmed: true })).status).toBe(403);
     expect(await (await request()).json()).toMatchObject({ adultConfirmed: false });
   });
   it('enforces revocation and country pauses immediately on every personal route', async () => {
     const { request, invitations, countries } = setup();
-    await request('/v1/beta', 'POST', 'alice', { country: 'AU', adultConfirmed: true });
-    countries.delete('AU');
+    await request('/v1/beta', 'POST', 'alice', { country: 'US', adultConfirmed: true });
+    countries.delete('US');
     expect((await request('/v1/dashboard')).status).toBe(403);
     expect((await request('/v1/foods/search?q=oats')).status).toBe(403);
     expect((await request('/v1/foods/photo-analysis', 'POST', 'alice', {})).status).toBe(403);
-    expect((await request('/v1/beta', 'POST', 'alice', { country: 'AU', adultConfirmed: true })).status).toBe(400);
-    countries.add('AU'); invitations.get('alice')!.revoked = true;
+    expect((await request('/v1/beta', 'POST', 'alice', { country: 'US', adultConfirmed: true })).status).toBe(400);
+    countries.add('US'); invitations.get('alice')!.revoked = true;
     expect((await request('/v1/dashboard')).status).toBe(403);
     expect((await request('/v1/dashboard', 'DELETE')).status).toBe(204);
     // Consent history is reachable; 503 means the test did not configure a repository, rather than beta denying it.
@@ -73,8 +74,8 @@ describe('international adult beta admission', () => {
   it('never substitutes beta admission for current legal consent', async () => {
     const handle = createApiHandler({
       auth: { verify: async () => ({ id: 'alice' }) }, dashboards: new MemoryDashboardRepository(),
-      beta: { required: true, countries: new Set(['AU']), repository: {
-        invitation: async () => ({ country: 'AU', adultConfirmedAt: '2026-10-25T12:00:00Z', revoked: false }), confirmAdult: async () => true,
+      beta: { required: true, countries: new Set(['US']), repository: {
+        invitation: async () => ({ country: 'US', adultConfirmedAt: '2026-10-25T12:00:00Z', revoked: false }), confirmAdult: async () => true,
       } },
       consent: { required: true, policy: { approved: true, documents: [{ id: 'terms', title: 'Test', version: '1', text: 'Test only' }] }, repository: {
         latest: async () => null, append: async () => undefined, history: async () => ({ events: [], nextCursor: null }),
@@ -85,6 +86,15 @@ describe('international adult beta admission', () => {
     expect(await (await request('/v1/dashboard')).json()).toMatchObject({ error: 'consent_required' });
     expect((await request('/v1/consent')).status).toBe(200);
     expect((await request('/v1/consent', 'DELETE')).status).toBe(200);
+  });
+
+  it('denies non-US invitations even if an injected country list contains them', async () => {
+    const { request, invitations, countries } = setup();
+    invitations.set('alice', { country: 'AU', adultConfirmedAt: '2026-10-25T12:00:00Z', revoked: false });
+    countries.add('AU');
+    expect(await (await request()).json()).toMatchObject({ countryEnabled: false, admitted: false });
+    expect((await request('/v1/dashboard')).status).toBe(403);
+    expect((await request('/v1/beta', 'POST', 'alice', { country: 'AU', adultConfirmed: true })).status).toBe(400);
   });
 
 });

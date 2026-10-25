@@ -16,7 +16,7 @@ param oidcJwksUrl string
 param oidcRequiredScope string = 'access_as_user'
 param openAiVisionModel string
 param mealPhotoHourlyLimit int = 10
-param betaCountries string = ''
+param betaCountries string = 'US'
 param minimumReplicas int = 0
 param maximumReplicas int = 3
 param tags object = {}

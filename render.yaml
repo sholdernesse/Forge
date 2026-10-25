@@ -32,7 +32,7 @@ services:
       - key: USDA_FOODDATA_API_KEY
         sync: false
       - key: FORGE_BETA_COUNTRIES
-        sync: false
+        value: US
       - key: MEAL_PHOTO_HOURLY_LIMIT
         value: 10
 

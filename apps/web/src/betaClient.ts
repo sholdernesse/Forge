@@ -5,6 +5,7 @@ export function validBetaStatus(value: unknown): value is BetaStatus {
   const status = value as BetaStatus;
   if (!['required', 'invited', 'countryEnabled', 'adultConfirmed', 'admitted'].every(key => typeof (value as Record<string, unknown>)[key] === 'boolean')) return false;
   if (status.invited ? typeof status.country !== 'string' || !/^[A-Z]{2}$/.test(status.country) : status.country !== null || status.countryEnabled || status.adultConfirmed) return false;
+  if (status.countryEnabled && status.country !== 'US') return false;
   return status.admitted === (!status.required || (status.invited && status.countryEnabled && status.adultConfirmed));
 }
 export class BetaClient {

@@ -135,7 +135,7 @@ jobs:
         id: apps
         shell: bash
         env:
-          BETA_COUNTRIES: ${{ vars.FORGE_BETA_COUNTRIES }}
+          BETA_COUNTRIES: ${{ vars.FORGE_BETA_COUNTRIES || 'US' }}
           RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
         run: |
           deployment="forge-${{ inputs.environment }}-apps-${GITHUB_RUN_NUMBER}"
