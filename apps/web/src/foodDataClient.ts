@@ -13,6 +13,32 @@ export class FoodDataError extends Error {
   }
 }
 
+/** Bound the entire response, including its JSON body, and release timers/listeners. */
+async function foodRequest<T>(operation: (signal: AbortSignal) => Promise<T>, caller?: AbortSignal, timeoutMs = 15_000): Promise<T> {
+  const controller = new AbortController();
+  let timedOut = false;
+  const cancel = () => controller.abort(caller?.reason);
+  if (caller?.aborted) cancel();
+  else caller?.addEventListener('abort', cancel, { once: true });
+  const timer = setTimeout(() => { timedOut = true; controller.abort(); }, timeoutMs);
+  let rejectOnAbort: (() => void) | undefined;
+  try {
+    controller.signal.throwIfAborted();
+    const aborted = new Promise<never>((_resolve, reject) => {
+      rejectOnAbort = () => reject(controller.signal.reason);
+      controller.signal.addEventListener('abort', rejectOnAbort, { once: true });
+    });
+    return await Promise.race([operation(controller.signal), aborted]);
+  } catch (error) {
+    if (timedOut) throw new FoodDataError(408, 'request_timeout');
+    throw error;
+  } finally {
+    clearTimeout(timer);
+    caller?.removeEventListener('abort', cancel);
+    if (rejectOnAbort) controller.signal.removeEventListener('abort', rejectOnAbort);
+  }
+}
+
 interface ProviderFood {
   id?: unknown;
   source?: unknown;
@@ -118,8 +144,8 @@ function normalizeMealPhotoAnalysis(value: unknown): MealPhotoAnalysis | undefin
 export class FoodDataClient {
   constructor(private readonly config: FoodDataConfig, private readonly request: typeof fetch = fetch) {}
 
-  async search(query: string): Promise<FoodDefinition[]> {
-    const payload = await this.get(`/v1/foods/search?q=${encodeURIComponent(query)}`) as { foods?: unknown };
+  async search(query: string, signal?: AbortSignal): Promise<FoodDefinition[]> {
+    const payload = await this.get(`/v1/foods/search?q=${encodeURIComponent(query)}`, false, signal) as { foods?: unknown };
     return Array.isArray(payload.foods) ? payload.foods.map((food) => normalizeFood(food as ProviderFood)).filter((food): food is FoodDefinition => food !== undefined) : [];
   }
 
@@ -128,19 +154,21 @@ export class FoodDataClient {
     return payload?.food ? normalizeFood(payload.food as ProviderFood) : undefined;
   }
 
-  async analyzeMealPhoto(imageDataUrl: string): Promise<MealPhotoAnalysis> {
-    const payload = await this.post('/v1/foods/photo-analysis', { imageDataUrl }) as { analysis?: unknown };
+  async analyzeMealPhoto(imageDataUrl: string, signal?: AbortSignal): Promise<MealPhotoAnalysis> {
+    const payload = await this.post('/v1/foods/photo-analysis', { imageDataUrl }, signal) as { analysis?: unknown };
     const analysis = normalizeMealPhotoAnalysis(payload.analysis);
     if (!analysis) throw new FoodDataError(502);
     return analysis;
   }
 
-  async mealPhotoAvailable(): Promise<boolean> {
+  async mealPhotoAvailable(signal?: AbortSignal): Promise<boolean> {
     try {
-      const response = await this.request(`${this.config.baseUrl}/health`);
-      if (!response.ok) return false;
-      const payload = await response.json() as { capabilities?: { mealPhotoAnalysis?: unknown } };
-      return payload.capabilities?.mealPhotoAnalysis === true;
+      return await foodRequest(async requestSignal => {
+        const response = await this.request(`${this.config.baseUrl}/health`, { signal: requestSignal });
+        if (!response.ok) return false;
+        const payload = await response.json() as { capabilities?: { mealPhotoAnalysis?: unknown } };
+        return payload.capabilities?.mealPhotoAnalysis === true;
+      }, signal, 10_000);
     } catch {
       return false;
     }
@@ -150,36 +178,46 @@ export class FoodDataClient {
     if (!this.config.diagnostics) return undefined;
     const route = `${this.config.baseUrl}/health`;
     try {
-      const response = await this.request(route);
-      return `Route ${this.config.baseUrl}; health ${response.status}.`;
+      return await foodRequest(async signal => {
+        const response = await this.request(route, { signal });
+        return `Route ${this.config.baseUrl}; health ${response.status}.`;
+      }, undefined, 10_000);
     } catch (error) {
       const reason = error instanceof Error ? error.name : 'unknown error';
       return `Route ${this.config.baseUrl}; health unreachable (${reason}).`;
     }
   }
 
-  private async get(path: string, allowMissing = false): Promise<unknown> {
-    const token = await this.config.accessToken();
-    const response = await this.request(`${this.config.baseUrl}${path}`, { headers: { authorization: `Bearer ${token}` } });
-    if (allowMissing && response.status === 404) return undefined;
-    if (!response.ok) throw new FoodDataError(response.status);
-    return response.json();
+  private async get(path: string, allowMissing = false, caller?: AbortSignal): Promise<unknown> {
+    return foodRequest(async signal => {
+      const token = await this.config.accessToken();
+      signal.throwIfAborted();
+      const response = await this.request(`${this.config.baseUrl}${path}`, { headers: { authorization: `Bearer ${token}` }, signal });
+      if (allowMissing && response.status === 404) return undefined;
+      if (!response.ok) throw new FoodDataError(response.status);
+      return response.json();
+    }, caller);
   }
 
-
-  private async post(path: string, body: unknown): Promise<unknown> {
-    const token = await this.config.accessToken();
-    const response = await this.request(`${this.config.baseUrl}${path}`, { method: 'POST', headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' }, body: JSON.stringify(body) });
-    if (!response.ok) {
-      let reason: string | undefined;
-      try {
-        const payload = await response.json() as { reason?: unknown; error?: unknown };
-        reason = typeof payload.reason === 'string' ? payload.reason : typeof payload.error === 'string' ? payload.error : undefined;
-      } catch { /* An error response is not required to include JSON. */ }
-      throw new FoodDataError(response.status, reason);
-    }
-    return response.json();
+  private async post(path: string, body: unknown, caller?: AbortSignal): Promise<unknown> {
+    // Allow the API's maximum 120-second provider window plus transport overhead.
+    return foodRequest(async signal => {
+      const token = await this.config.accessToken();
+      signal.throwIfAborted();
+      const response = await this.request(`${this.config.baseUrl}${path}`, { method: 'POST', headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' }, body: JSON.stringify(body), signal });
+      if (!response.ok) {
+        let reason: string | undefined;
+        try {
+          const payload = await response.json() as { reason?: unknown; error?: unknown };
+          reason = typeof payload.reason === 'string' ? payload.reason : typeof payload.error === 'string' ? payload.error : undefined;
+        } catch { /* An error response is not required to include JSON. */ }
+        signal.throwIfAborted();
+        throw new FoodDataError(response.status, reason);
+      }
+      return response.json();
+    }, caller, 130_000);
   }
+
 }
 
 export function foodDataConfig(environment: Record<string, unknown>, accessToken?: () => Promise<string>): FoodDataConfig | null {

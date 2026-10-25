@@ -61,6 +61,8 @@ If analysis returns `503`, Forge reports a safe provider reason in the app and A
 
 Confirmed during local testing on October 25, 2026: meal-photo analysis continued to report an OpenAI API-key rejection after the root `.env.local` was updated and Forge restarted. Clearing the inherited PowerShell key and restarting resolved it.
 
+Forge now warns at startup when the terminal key differs from the root `.env.local` key, without printing either value.
+
 An existing `OPENAI_API_KEY` in the terminal's process environment takes precedence over the value loaded from `.env.local`. A restart from that same terminal can therefore keep using the old key. Clearing the browser or Vite cache does not remove this environment variable.
 
 1. Stop Forge with **Ctrl+C**.

@@ -1,9 +1,13 @@
 import { spawn, spawnSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
+import { localEnvironmentWarnings } from './local-environment.mjs';
 import { fileURLToPath } from 'node:url';
 
 const localEnvironmentPath = fileURLToPath(new URL('../.env.local', import.meta.url));
-if (existsSync(localEnvironmentPath)) process.loadEnvFile(localEnvironmentPath);
+if (existsSync(localEnvironmentPath)) {
+  for (const warning of localEnvironmentWarnings(readFileSync(localEnvironmentPath, 'utf8'), process.env)) console.warn(warning);
+  process.loadEnvFile(localEnvironmentPath);
+}
 
 const isWindows = process.platform === 'win32';
 const developmentEnvironment = {

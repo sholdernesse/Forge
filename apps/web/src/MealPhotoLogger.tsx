@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AlertTriangle, Camera, Check, Database, ImagePlus, LoaderCircle, Pencil, Sparkles, Trash2, Utensils, X } from 'lucide-react';
 import type { FoodEntry, MealType } from './foodLog.js';
 import { createFoodEntry } from './foodLog.js';
@@ -115,6 +115,7 @@ export function mealPhotoErrorMessage(error: unknown) {
   if (error instanceof FoodDataError && error.reason === 'provider_timeout') return 'OpenAI did not finish the analysis within Forge’s configured time limit. Try a clearer photo or increase OPENAI_MEAL_PHOTO_TIMEOUT_MS.';
   if (error instanceof FoodDataError && error.reason === 'provider_unreachable') return 'Forge could not reach OpenAI. Check the computer network or firewall and try again.';
   if (error instanceof FoodDataError && error.reason === 'provider_invalid_response') return 'OpenAI returned an unusable meal estimate. Try a clearer photo.';
+  if (error instanceof FoodDataError && error.reason === 'request_timeout') return 'The connection timed out. Check your network and try again.';
   if (error instanceof FoodDataError && error.status === 503) return 'Photo analysis is configured, but the provider is temporarily unavailable.';
   if (error instanceof FoodDataError && error.status === 413) return 'The prepared photo is too large. Try a closer photo.';
   if (error instanceof FoodDataError && error.status === 429) return 'You have reached the hourly photo-analysis limit. Review an earlier meal or try again later.';
@@ -125,6 +126,8 @@ export function mealPhotoErrorMessage(error: unknown) {
 export function MealPhotoLogger({ date, meal, client, onAdd, onClose }: Props) {
   const dialogRef = useAccessibleDialog(onClose);
   const inputRef = useRef<HTMLInputElement>(null);
+  const analysisRequest = useRef<AbortController | null>(null);
+  useEffect(() => () => { analysisRequest.current?.abort(); }, []);
   const [preview, setPreview] = useState<string>();
   const [analysis, setAnalysis] = useState<MealPhotoAnalysis>();
   const [items, setItems] = useState<DraftItem[]>([]);
@@ -137,17 +140,32 @@ export function MealPhotoLogger({ date, meal, client, onAdd, onClose }: Props) {
   const usdaMatches = selected.filter((item) => item.nutritionSource === 'usda').length;
   const macroBreakdown = combinedMacroBreakdown(totals.protein, totals.carbs, totals.fat);
 
+  function cancelAnalysis() {
+    analysisRequest.current?.abort();
+    analysisRequest.current = null;
+    setStatus('idle');
+    setMessage('Analysis canceled. Take or choose a photo to try again.');
+  }
+
   async function analyze(file?: File) {
-    if (!file) return;
+    if (!file || analysisRequest.current) return;
+    const controller = new AbortController();
+    analysisRequest.current = controller;
     setAnalysis(undefined); setItems([]); setStatus('preparing'); setMessage('Preparing a private, metadata-free copy…');
     try {
       const imageDataUrl = await prepareMealPhoto(file);
+      if (controller.signal.aborted) return;
       setPreview(imageDataUrl); setStatus('analyzing'); setMessage('Identifying foods and estimating visible portions…');
-      const result = await client.analyzeMealPhoto(imageDataUrl);
+      const result = await client.analyzeMealPhoto(imageDataUrl, controller.signal);
+      if (controller.signal.aborted) return;
       setAnalysis(result); setItems(result.items.map((item) => ({ ...item, selected: true }))); setMessage('Your estimate is ready. Confirm the foods and portions before adding it.');
     } catch (error) {
-      setMessage(mealPhotoErrorMessage(error));
-    } finally { setStatus('idle'); }
+      if (!controller.signal.aborted) setMessage(mealPhotoErrorMessage(error));
+    } finally {
+      if (!controller.signal.aborted) setStatus('idle');
+      if (analysisRequest.current === controller) analysisRequest.current = null;
+      if (inputRef.current) inputRef.current.value = '';
+    }
   }
 
   function update(index: number, field: keyof DraftItem, value: string | boolean) {
@@ -163,8 +181,9 @@ export function MealPhotoLogger({ date, meal, client, onAdd, onClose }: Props) {
   return <div className="barcode-scanner-backdrop" onMouseDown={onClose}><section ref={dialogRef} className="meal-photo-logger" role="dialog" aria-modal="true" aria-labelledby="meal-photo-title" tabIndex={-1} onMouseDown={(event) => event.stopPropagation()}>
     <header><div><span className="section-label">ASSISTED MEAL ESTIMATE</span><h3 id="meal-photo-title">Analyze a meal photo</h3></div><button onClick={onClose} aria-label="Close meal photo analysis"><X size={18} /></button></header>
     <input ref={inputRef} className="meal-photo-input" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" onChange={(event) => void analyze(event.target.files?.[0])} />
-    {!preview ? <button className="meal-photo-capture" onClick={() => inputRef.current?.click()}><Camera size={24} /><span><b>Take or choose a photo</b><small>The image is resized, metadata is removed, and the photo itself is not saved to your Forge history.</small></span></button> : <div className="meal-photo-preview"><img src={preview} alt="Meal selected for nutrition analysis" /><button onClick={() => inputRef.current?.click()}><ImagePlus size={16} /> Replace photo</button></div>}
+    {!preview ? <button className="meal-photo-capture" disabled={status !== 'idle'} onClick={() => inputRef.current?.click()}><Camera size={24} /><span><b>Take or choose a photo</b><small>The image is resized, metadata is removed, and the photo itself is not saved to your Forge history.</small></span></button> : <div className="meal-photo-preview"><img src={preview} alt="Meal selected for nutrition analysis" /><button disabled={status !== 'idle'} onClick={() => inputRef.current?.click()}><ImagePlus size={16} /> Replace photo</button></div>}
     <p className={`meal-photo-message ${status !== 'idle' ? 'working' : ''}`}>{status !== 'idle' && <LoaderCircle size={16} />} {message}</p>
+    {status !== 'idle' && <button type="button" className="log-food-button" onClick={cancelAnalysis}>Cancel analysis</button>}
     {items.length > 0 && <>
       <section className="meal-photo-summary" aria-label="Estimated meal summary">
         <div className="meal-photo-summary-heading"><span><Utensils size={16} /> MEAL ESTIMATE</span><b className={`confidence-badge ${confidence.tone}`}>{confidence.label}</b></div>

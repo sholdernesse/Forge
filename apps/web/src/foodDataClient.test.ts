@@ -13,7 +13,7 @@ describe('food data client', () => {
       expect.objectContaining({ id: 'usda-1', category: 'other', fiberG: 10.6, ironMg: 4.7, potassiumMg: 429 }),
       expect.not.objectContaining({ calciumMg: expect.anything() }),
     ]);
-    expect(request).toHaveBeenCalledWith('https://api.forge.test/v1/foods/search?q=oats', { headers: { authorization: 'Bearer token' } });
+    expect(request).toHaveBeenCalledWith('https://api.forge.test/v1/foods/search?q=oats', { headers: { authorization: 'Bearer token' }, signal: expect.any(AbortSignal) });
   });
 
   it('treats a missing barcode as an ordinary empty result', async () => {
@@ -30,7 +30,7 @@ describe('food data client', () => {
     const request = vi.fn(async () => Response.json({ analysis: { items: [{ name: 'Chicken', portionDescription: 'one breast', estimatedGrams: 150, confidence: .9, caloriesKcal: 248, proteinG: 46.5, carbsG: 0, fatG: 5.4, nutritionSource: 'usda', referenceFoodId: 'usda-1' }], assumptions: [], warnings: ['Confirm oil.'] } }));
     const client = new FoodDataClient({ baseUrl: '/api', accessToken: async () => 'token' }, request as typeof fetch);
     await expect(client.analyzeMealPhoto('data:image/jpeg;base64,YWJj')).resolves.toMatchObject({ items: [{ name: 'Chicken', nutritionSource: 'usda' }] });
-    expect(request).toHaveBeenCalledWith('/api/v1/foods/photo-analysis', { method: 'POST', headers: { authorization: 'Bearer token', 'content-type': 'application/json' }, body: JSON.stringify({ imageDataUrl: 'data:image/jpeg;base64,YWJj' }) });
+    expect(request).toHaveBeenCalledWith('/api/v1/foods/photo-analysis', { method: 'POST', headers: { authorization: 'Bearer token', 'content-type': 'application/json' }, body: JSON.stringify({ imageDataUrl: 'data:image/jpeg;base64,YWJj' }), signal: expect.any(AbortSignal) });
   });
 
   it('preserves a safe meal-photo provider failure reason', async () => {
@@ -52,7 +52,7 @@ describe('food data client', () => {
     const config = foodDataConfig({ DEV: true, VITE_FORGE_SYNC_URL: 'http://localhost:8787' }, async () => 'secret');
     const client = new FoodDataClient(config!, request as typeof fetch);
     await expect(client.connectionDiagnostic()).resolves.toBe('Route /api; health 200.');
-    expect(request).toHaveBeenCalledWith('/api/health');
+    expect(request).toHaveBeenCalledWith('/api/health', { signal: expect.any(AbortSignal) });
   });
 
   it('keeps connection diagnostics disabled outside development', async () => {
@@ -68,4 +68,84 @@ describe('food data client', () => {
     expect(foodDataConfig({ DEV: true, VITE_FORGE_SYNC_URL: 'http://localhost:8787' }, async () => 'token')?.baseUrl).toBe('/api');
     expect(foodDataConfig({})).toBeNull();
   });
+  function waitingRequest(_url: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+    return new Promise((_resolve, reject) => {
+      const signal = init!.signal!;
+      if (signal.aborted) reject(signal.reason);
+      else signal.addEventListener('abort', () => reject(signal.reason), { once: true });
+    });
+  }
+
+  it('cancels an obsolete food search and clears its timer', async () => {
+    vi.useFakeTimers();
+    try {
+      const caller = new AbortController();
+      const client = new FoodDataClient({ baseUrl: '/api', accessToken: async () => 'token' }, waitingRequest);
+      const result = client.search('oats', caller.signal);
+      const assertion = expect(result).rejects.toMatchObject({ name: 'AbortError' });
+      await Promise.resolve();
+      caller.abort();
+      await assertion;
+      expect(vi.getTimerCount()).toBe(0);
+    } finally { vi.useRealTimers(); }
+  });
+
+  it('bounds slow food lookups and health checks without retrying', async () => {
+    vi.useFakeTimers();
+    try {
+      const request = vi.fn(waitingRequest);
+      const client = new FoodDataClient({ baseUrl: '/api', accessToken: async () => 'token' }, request);
+      const lookup = expect(client.barcode('0123456789012')).rejects.toEqual(new FoodDataError(408, 'request_timeout'));
+      await vi.advanceTimersByTimeAsync(15_000);
+      await lookup;
+      const capability = client.mealPhotoAvailable();
+      await vi.advanceTimersByTimeAsync(10_000);
+      await expect(capability).resolves.toBe(false);
+      expect(request).toHaveBeenCalledTimes(2);
+      expect(vi.getTimerCount()).toBe(0);
+    } finally { vi.useRealTimers(); }
+  });
+
+  it('keeps photo analysis within its longer window and allows caller cancellation', async () => {
+    vi.useFakeTimers();
+    try {
+      const caller = new AbortController();
+      const request = vi.fn(waitingRequest);
+      const client = new FoodDataClient({ baseUrl: '/api', accessToken: async () => 'token' }, request);
+      const result = expect(client.analyzeMealPhoto('data:image/jpeg;base64,YWJj', caller.signal)).rejects.toMatchObject({ name: 'AbortError' });
+      await vi.advanceTimersByTimeAsync(90_000);
+      caller.abort();
+      await result;
+      expect(request).toHaveBeenCalledTimes(1);
+      expect(vi.getTimerCount()).toBe(0);
+    } finally { vi.useRealTimers(); }
+  });
+
+  it('does not send a canceled request after delayed token acquisition', async () => {
+    let resolveToken!: (value: string) => void;
+    const request = vi.fn();
+    const caller = new AbortController();
+    const client = new FoodDataClient({ baseUrl: '/api', accessToken: () => new Promise(resolve => { resolveToken = resolve; }) }, request);
+    const result = expect(client.search('oats', caller.signal)).rejects.toMatchObject({ name: 'AbortError' });
+    caller.abort();
+    resolveToken('token');
+    await result;
+    expect(request).not.toHaveBeenCalled();
+  });
+
+  it('keeps the timeout active while reading a stalled response body', async () => {
+    vi.useFakeTimers();
+    try {
+      const request: typeof fetch = async (_url, init) => ({
+        ok: true,
+        json: () => new Promise((_resolve, reject) => init!.signal!.addEventListener('abort', () => reject(init!.signal!.reason), { once: true })),
+      } as Response);
+      const client = new FoodDataClient({ baseUrl: '/api', accessToken: async () => 'token' }, request);
+      const result = expect(client.search('oats')).rejects.toEqual(new FoodDataError(408, 'request_timeout'));
+      await vi.advanceTimersByTimeAsync(15_000);
+      await result;
+      expect(vi.getTimerCount()).toBe(0);
+    } finally { vi.useRealTimers(); }
+  });
+
 });

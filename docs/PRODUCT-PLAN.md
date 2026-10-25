@@ -158,6 +158,8 @@ PR #2 should deliver a coherent, testable Forge web candidate with:
 
 - Correcting a meal-photo portion now scales calories and macros together, retains a valid USDA match, and marks the saved serving as reviewed. An original nutrition basis prevents cumulative rounding drift; manual macro corrections establish a new basis for later portion edits.
 - Food logging and camera UI load on demand, with an accessible loading dialog, cancel control, and retry on download failure. The production build emits a separate food-logging chunk.
+- Food search cancels obsolete requests; lookups and health checks have bounded waits. Photo submission has a cancel control, prevents overlapping requests, and ignores late results after cancel/close. No photo request is automatically retried.
+- Development startup warns when a terminal API key masks a different root `.env.local` value without printing secrets.
 - The confirmed PowerShell API-key override fix is documented in [local HTTPS troubleshooting](./development/local-https.md).
 
 ### Remaining release blockers

@@ -41,11 +41,13 @@ export function FoodLogger({ date, entries, favoriteFoodIds, savedMeals, foodDat
   useEffect(() => {
     if (!foodDataClient || query.trim().length < 2) { setRemoteFoods([]); setSearchState('idle'); return; }
     let active = true;
+    const controller = new AbortController();
+    setRemoteFoods([]);
     setSearchState('searching');
     const timer = window.setTimeout(() => {
-      void foodDataClient.search(query.trim()).then((foods) => { if (active) { setRemoteFoods(foods); setSearchState('idle'); } }).catch(() => { if (active) { setRemoteFoods([]); setSearchState('unavailable'); } });
+      void foodDataClient.search(query.trim(), controller.signal).then((foods) => { if (active) { setRemoteFoods(foods); setSearchState('idle'); } }).catch(() => { if (active) { setRemoteFoods([]); setSearchState('unavailable'); } });
     }, 250);
-    return () => { active = false; window.clearTimeout(timer); };
+    return () => { active = false; controller.abort(); window.clearTimeout(timer); };
   }, [foodDataClient, query]);
 
   function addCatalogFood(foodId: string) { const food = results.find((candidate) => candidate.id === foodId); if (food) onChange([...entries, createFoodEntry(date, meal, scaleFood(food, quantity))]); }
