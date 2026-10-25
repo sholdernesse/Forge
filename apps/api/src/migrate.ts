@@ -11,7 +11,7 @@ const pool = new Pool({
 });
 
 try {
-  for (const name of ['001_dashboard_snapshots.sql', '002_consent_events.sql']) {
+  for (const name of ['001_dashboard_snapshots.sql', '002_consent_events.sql', '003_beta_invitations.sql']) {
     const migrationUrl = new URL(`../migrations/${name}`, import.meta.url);
     await pool.query(await readFile(fileURLToPath(migrationUrl), 'utf8'));
     console.log(`Applied ${name}`);

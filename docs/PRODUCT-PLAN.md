@@ -164,11 +164,10 @@ PR #2 should deliver a coherent, testable Forge web candidate with:
 
 ### International beta direction — October 25
 
-- Owner identifies the operating brand as **gnosislab.io** and wants international exposure and beta feedback. A U.S.-only beta restriction is not approved.
-- The exact contracting legal entity behind that brand remains to be confirmed; do not substitute the domain for a verified legal entity or activate draft agreements.
-- Recommended rollout, pending owner acceptance: international expressions of interest with minimal contact/country data, followed by invitation-based cohorts in countries whose provider availability, privacy disclosures, consent, and support requirements have been checked. Do not interpret this plan as all-country availability.
-- Recommend an adults-only (18+) initial beta; this age scope still needs owner confirmation.
-- Country eligibility and regional units/time zones should support staged international expansion. No country gate, waitlist, invitation system, or legal-policy approval is implemented by this planning update.
+- Owner approved an international, invitation-based beta for adults 18+, with countries enabled in stages. Public-facing brand: **gnosislab.io**. This is not an unrestricted worldwide launch.
+- Account-bound invitations, country eligibility, separate adulthood/residence confirmations, durable server timestamps, and server-side admission checks are implemented. Countries default to closed; no tester or country is automatically enabled.
+- The UI keeps consent/history, withdrawal, deletion and support available when access is paused. Production smoke tests now verify beta enforcement.
+- See [international beta operations and acceptance](./deployment/international-beta.md). The registered contracting entity, approved legal/privacy text, first enabled-country list, invitation provisioning, and deployed physical acceptance remain required before opening external access.
 
 ### Remaining release blockers
 

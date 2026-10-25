@@ -1,3 +1,4 @@
+import { betaStatus, type BetaAccess } from './betaAccess.js';
 import { consentPolicy, policyDigest, hasCurrentConsent, type ConsentRepository, type ConsentPolicy } from './consent.js';
 import { RevisionConflictError, type AuthVerifier, type DashboardRepository } from './types.js';
 import type { FoodProvider } from './foodProvider.js';
@@ -9,6 +10,7 @@ const MAX_DASHBOARD_BYTES = 1_000_000;
 const MAX_MEAL_PHOTO_BODY_BYTES = 1_000_000;
 
 export interface ApiDependencies {
+  beta?: BetaAccess;
   auth: AuthVerifier;
   dashboards: DashboardRepository;
   allowedOrigin?: string;
@@ -79,11 +81,31 @@ export function createApiHandler(dependencies: ApiDependencies) {
       } });
     }
 
-    if (url.pathname === '/health' && request.method === 'GET') return response({ status: 'ok', capabilities: { mealPhotoAnalysis: Boolean(dependencies.mealPhotoAnalyzer), consentEnforced: dependencies.consent?.required === true, consentPolicyApproved: (dependencies.consent?.policy ?? consentPolicy).approved } }, 200, corsOrigin);
+    if (url.pathname === '/health' && request.method === 'GET') return response({ status: 'ok', capabilities: { mealPhotoAnalysis: Boolean(dependencies.mealPhotoAnalyzer), betaEnforced: dependencies.beta?.required === true, consentEnforced: dependencies.consent?.required === true, consentPolicyApproved: (dependencies.consent?.policy ?? consentPolicy).approved } }, 200, corsOrigin);
     const user = await dependencies.auth.verify(request.headers.get('authorization'));
     if (!user) return response({ error: 'unauthorized' }, 401, corsOrigin);
     const requestId = request.headers.get('x-request-id') ?? 'direct-request';
     const auditDashboardWrite = (outcome: DashboardAuditOutcome, reason: DashboardAuditReason) => dependencies.audit?.dashboardWrite({ requestId, actorId: user.id, outcome, reason });
+
+    const beta = dependencies.beta;
+    if (url.pathname === '/v1/beta') {
+      if (!beta) return response({ error: 'beta_not_configured' }, 503, corsOrigin);
+      if (request.method === 'GET') return response(betaStatus(beta, await beta.repository.invitation(user.id)), 200, corsOrigin);
+      if (request.method !== 'POST') return response({ error: 'method_not_allowed' }, 405, corsOrigin);
+      if (Number(request.headers.get('content-length') ?? 0) > 1024) return response({ error: 'payload_too_large' }, 413, corsOrigin);
+      const text = await request.text();
+      if (Buffer.byteLength(text) > 1024) return response({ error: 'payload_too_large' }, 413, corsOrigin);
+      let body: { country?: unknown; adultConfirmed?: unknown };
+      try { body = JSON.parse(text); } catch { return response({ error: 'invalid_json' }, 400, corsOrigin); }
+      if (!body || body.adultConfirmed !== true || typeof body.country !== 'string' || !beta.countries.has(body.country)) return response({ error: 'beta_eligibility_incomplete' }, 400, corsOrigin);
+      if (!await beta.repository.confirmAdult(user.id, body.country)) return response({ error: 'beta_invitation_required' }, 403, corsOrigin);
+      return response(betaStatus(beta, await beta.repository.invitation(user.id)), 200, corsOrigin);
+    }
+    // Access management and deletion remain reachable after a country is paused or an invite revoked.
+    const betaProtected = url.pathname === '/v1/dashboard' || url.pathname.startsWith('/v1/foods/');
+    if (beta?.required && betaProtected && !(url.pathname === '/v1/dashboard' && request.method === 'DELETE')) {
+      if (!betaStatus(beta, await beta.repository.invitation(user.id)).admitted) return response({ error: 'beta_access_required' }, 403, corsOrigin);
+    }
 
     const consent = dependencies.consent;
     const policy = consent?.policy ?? consentPolicy;

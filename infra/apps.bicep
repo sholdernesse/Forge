@@ -16,6 +16,7 @@ param oidcJwksUrl string
 param oidcRequiredScope string = 'access_as_user'
 param openAiVisionModel string
 param mealPhotoHourlyLimit int = 10
+param betaCountries string = ''
 param minimumReplicas int = 0
 param maximumReplicas int = 3
 param tags object = {}
@@ -132,6 +133,10 @@ resource api 'Microsoft.App/containerApps@2024-03-01' = {
             {
               name: 'USDA_FOODDATA_API_KEY'
               secretRef: 'usda-fooddata-api-key'
+            }
+            {
+              name: 'FORGE_BETA_COUNTRIES'
+              value: betaCountries
             }
             {
               name: 'MEAL_PHOTO_HOURLY_LIMIT'

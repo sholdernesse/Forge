@@ -5,6 +5,7 @@ import test from 'node:test';
 import { createRequire } from 'node:module';
 import { createApiHandler } from '../../apps/api/dist/handler.js';
 import { PostgresConsentRepository } from '../../apps/api/dist/postgresConsentRepository.js';
+import { PostgresBetaRepository } from '../../apps/api/dist/postgresBetaRepository.js';
 import { MemoryDashboardRepository } from '../../apps/api/dist/memoryRepository.js';
 import { policyDigest } from '../../apps/api/dist/consent.js';
 const require = createRequire(new URL('../../apps/api/package.json', import.meta.url));
@@ -28,16 +29,31 @@ test('PostgreSQL migration, durable account consent and historical receipts', { 
   const schema = `consent_test_${randomUUID().replaceAll('-', '')}`;
   const admin = new Pool({ connectionString, ssl: false, max: 1 });
   let repository;
+  let betaRepository;
   let migration;
   try {
     await admin.query(`CREATE SCHEMA "${schema}"`);
     const config = { connectionString, ssl: false, options: `-c search_path=${schema}`, max: 2 };
     migration = new Pool(config);
     for (let repeat = 0; repeat < 2; repeat++) {
-      for (const file of ['001_dashboard_snapshots.sql', '002_consent_events.sql']) {
+      for (const file of ['001_dashboard_snapshots.sql', '002_consent_events.sql', '003_beta_invitations.sql']) {
         await migration.query(await readFile(new URL(`../../apps/api/migrations/${file}`, import.meta.url), 'utf8'));
       }
     }
+    betaRepository = new PostgresBetaRepository(config);
+    await migration.query('INSERT INTO beta_invitations (user_id, country) VALUES ($1, $2)', ['beta-tester', 'AU']);
+    assert.equal((await betaRepository.invitation('beta-tester')).adultConfirmedAt, null);
+    assert.equal(await betaRepository.confirmAdult('other-account', 'AU'), false);
+    assert.equal(await betaRepository.confirmAdult('beta-tester', 'US'), false);
+    assert.equal(await betaRepository.confirmAdult('beta-tester', 'AU'), true);
+    const confirmed = (await betaRepository.invitation('beta-tester')).adultConfirmedAt;
+    await betaRepository.close();
+    betaRepository = new PostgresBetaRepository(config);
+    assert.equal((await betaRepository.invitation('beta-tester')).adultConfirmedAt, confirmed);
+    assert.equal(await betaRepository.confirmAdult('beta-tester', 'AU'), true);
+    assert.equal((await betaRepository.invitation('beta-tester')).adultConfirmedAt, confirmed);
+    await migration.query('UPDATE beta_invitations SET revoked = true WHERE user_id = $1', ['beta-tester']);
+    assert.equal(await betaRepository.confirmAdult('beta-tester', 'AU'), false);
     repository = new PostgresConsentRepository(config);
     const policy = { approved: true, documents: [{ id: 'terms', version: 'test-1', title: 'Test terms', text: 'Exact isolated test text' }] };
     const handler = createApiHandler({ auth: { verify: async token => token ? { id: token } : null }, dashboards: new MemoryDashboardRepository(),
@@ -77,6 +93,7 @@ test('PostgreSQL migration, durable account consent and historical receipts', { 
     assert.equal((await repository.history('bob', first.nextCursor)).events.length, 0);
   } finally {
     await repository?.close();
+    await betaRepository?.close();
     await migration?.end();
     try { await admin.query(`DROP SCHEMA IF EXISTS "${schema}" CASCADE`); } finally { await admin.end(); }
   }

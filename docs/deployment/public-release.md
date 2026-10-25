@@ -10,6 +10,10 @@ Because Vite embeds `VITE_*` values during the image build, changing the support
 
 The build also writes `/release-config.json` with the public support address and exact 40-character release commit. Set `VITE_FORGE_RELEASE_SHA` to the commit used for the image; Azure does this automatically with `GITHUB_SHA`. The dormant Render Blueprint requires the same value when it is deliberately activated.
 
+## International beta admission
+
+Configure the closed-by-default [international adult beta gate](./international-beta.md), provision account-specific invitations, and complete its physical acceptance checks before opening a country cohort. Beta admission and legal consent are separate required gates.
+
 ## Automated candidate check
 
 Run the smoke gate before physical acceptance:

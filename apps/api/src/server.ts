@@ -1,3 +1,5 @@
+import { betaCountries, betaRequired } from './betaAccess.js';
+import { PostgresBetaRepository } from './postgresBetaRepository.js';
 import { consentRequired } from './consent.js';
 import { PostgresConsentRepository } from './postgresConsentRepository.js';
 import { createServer } from 'node:http';
@@ -27,7 +29,10 @@ const dashboards = new PostgresDashboardRepository({
 });
 const consents = new PostgresConsentRepository({ connectionString,
   ssl: process.env.DATABASE_SSL === 'disable' ? false : { rejectUnauthorized: false }, max: 2 });
+const betaInvitations = new PostgresBetaRepository({ connectionString,
+  ssl: process.env.DATABASE_SSL === 'disable' ? false : { rejectUnauthorized: false }, max: 2 });
 const handle = createApiHandler({
+  beta: { required: betaRequired(process.env), countries: betaCountries(process.env.FORGE_BETA_COUNTRIES), repository: betaInvitations },
   consent: { required: consentRequired(process.env), repository: consents },
   auth: authVerifierFromEnvironment(process.env),
   dashboards,
@@ -77,6 +82,7 @@ async function shutdown() {
   server.close();
   await dashboards.close();
   await consents.close();
+  await betaInvitations.close();
 }
 
 process.on('SIGINT', () => void shutdown());

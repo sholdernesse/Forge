@@ -19,6 +19,7 @@ export function createRequestId(): string {
 }
 
 export function requestRoute(pathname: string): string {
+  if (pathname === '/v1/beta') return '/v1/beta';
   if (pathname === '/v1/consent/history') return '/v1/consent/history';
   if (pathname === '/v1/consent') return '/v1/consent';
   if (pathname === '/health') return '/health';

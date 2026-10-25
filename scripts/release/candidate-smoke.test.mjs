@@ -16,7 +16,7 @@ function response(body, { status = 200, type = 'text/html', headers = {} } = {})
 
 function healthyFetch(url) {
   const path = new URL(url).pathname;
-  if (path === '/health') return Promise.resolve(response(JSON.stringify({ status: 'ok', capabilities: { mealPhotoAnalysis: true, consentEnforced: true, consentPolicyApproved: true } }), { type: 'application/json' }));
+  if (path === '/health') return Promise.resolve(response(JSON.stringify({ status: 'ok', capabilities: { mealPhotoAnalysis: true, betaEnforced: true, consentEnforced: true, consentPolicyApproved: true } }), { type: 'application/json' }));
   if (path === '/release-config.json') return Promise.resolve(response(JSON.stringify({ releaseSha: commit, supportEmail: 'support@forge.test' }), { type: 'application/json', headers: { 'cache-control': 'no-store' } }));
   if (path === '/v1/dashboard') return Promise.resolve(response('{}', { status: 401, type: 'application/json' }));
   if (path.startsWith('/assets/')) return Promise.resolve(response('asset', { type: 'text/javascript', headers: { 'cache-control': 'public, max-age=31536000, immutable' } }));
@@ -39,7 +39,7 @@ test('passes a healthy deployed candidate', async () => {
   const result = await smokeCandidate({ deploymentUrl: 'https://forge.test', expectedCommit: commit, fetchImpl: healthyFetch });
   assert.equal(result.releaseSha, commit);
   assert.deepEqual(result.checks, [
-    'API health, meal-photo capability, and approved consent gate',
+    'API health, meal-photo capability, beta invitations, and approved consent gate',
     'release identity and support contact',
     'public pages and SPA fallback',
     'versioned asset caching',
@@ -60,8 +60,17 @@ for (const field of ['consentEnforced', 'consentPolicyApproved']) {
   test(`blocks candidate without ${field}`, async () => {
     const fetchImpl = async url => {
       if (new URL(url).pathname !== '/health') return healthyFetch(url);
-      return response(JSON.stringify({ status: 'ok', capabilities: { mealPhotoAnalysis: true, consentEnforced: true, consentPolicyApproved: true, [field]: false } }), { type: 'application/json' });
+      return response(JSON.stringify({ status: 'ok', capabilities: { mealPhotoAnalysis: true, betaEnforced: true, consentEnforced: true, consentPolicyApproved: true, [field]: false } }), { type: 'application/json' });
     };
     await assert.rejects(() => smokeCandidate({ deploymentUrl: 'https://forge.test', expectedCommit: commit, fetchImpl }), /consent/);
   });
 }
+
+
+test('blocks a candidate without enforced beta invitations', async () => {
+  const fetchImpl = async url => {
+    if (new URL(url).pathname !== '/health') return healthyFetch(url);
+    return response(JSON.stringify({ status: 'ok', capabilities: { mealPhotoAnalysis: true, betaEnforced: false, consentEnforced: true, consentPolicyApproved: true } }), { type: 'application/json' });
+  };
+  await assert.rejects(() => smokeCandidate({ deploymentUrl: 'https://forge.test', expectedCommit: commit, fetchImpl }), /beta invitations/);
+});

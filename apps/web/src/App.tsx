@@ -1,3 +1,4 @@
+import { BetaGate } from './BetaGate.js';
 import { ConsentGate } from './ConsentGate.js';
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { CoachService, type CoachActionType } from '@forge/coach';
@@ -137,7 +138,7 @@ interface SyncConflictActions {
 export function App() {
   const environment = (import.meta as ImportMeta & { env: Record<string, unknown> }).env;
   const auth = useForgeAuth(environment);
-  return <ConsentGate key={auth.accountId ?? auth.status} auth={auth} environment={environment}><PersonalApp auth={auth} environment={environment} /></ConsentGate>;
+  return <BetaGate key={auth.accountId ?? auth.status} auth={auth} environment={environment}><ConsentGate auth={auth} environment={environment}><PersonalApp auth={auth} environment={environment} /></ConsentGate></BetaGate>;
 }
 
 function PersonalApp({ auth, environment }: { auth: ReturnType<typeof useForgeAuth>; environment: Record<string, unknown> }) {

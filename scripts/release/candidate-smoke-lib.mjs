@@ -66,8 +66,9 @@ export async function smokeCandidate({ deploymentUrl, expectedCommit = '', fetch
   requireCondition(healthPayload.capabilities?.mealPhotoAnalysis === true, '/health reports meal-photo analysis is not configured');
   requireCondition(healthPayload.capabilities?.consentEnforced === true, '/health reports signup consent is not enforced');
   requireCondition(healthPayload.capabilities?.consentPolicyApproved === true, '/health reports consent policy is not approved');
+  requireCondition(healthPayload.capabilities?.betaEnforced === true, '/health reports beta invitations are not enforced');
   validateSecurityHeaders(health, '/health');
-  checks.push('API health, meal-photo capability, and approved consent gate');
+  checks.push('API health, meal-photo capability, beta invitations, and approved consent gate');
 
   const configResponse = await request(fetchImpl, baseUrl, '/release-config.json');
   requireCondition(configResponse.status === 200, `/release-config.json returned ${configResponse.status}`);

@@ -53,3 +53,14 @@ The repository-level acceptance tests cover authenticated hydration, stale-revis
 
 - [ ] At /agreements, inspect and download the original receipt after a newer version is accepted or consent is withdrawn. Verify exact text, version, timestamp and acceptance/withdrawal label; no other account’s receipt may appear.
 - [ ] With more than 20 events, load older agreements, add a new event on another device, and verify older pagination has no duplicates or missing original records. A failed history request must show a retry state without erasing already loaded receipts.
+
+
+## International adult beta admission
+
+- [ ] Apply migration 003 twice, record the enabled country list and candidate, and provision an invitation for the verified test subject.
+- [ ] Confirm uninvited and revoked accounts cannot open personal features or directly call dashboard/food/photo APIs.
+- [ ] Confirm adulthood and residence start unchecked; incomplete, incorrect-country, offline, and failed submissions never grant access.
+- [ ] Confirm the same account's admission persists across desktop/phone, while a second account remains gated.
+- [ ] Pause the country or revoke the invitation and confirm the next API request is denied; refocusing the browser shows paused access.
+- [ ] Confirm beta admission still requires approved current agreements before personal use.
+- [ ] After access is paused, verify agreement history, withdrawal, support, and dashboard deletion remain available.
