@@ -19,18 +19,32 @@ Set `FORGE_BETA_COUNTRIES=US` for this initial beta. Any non-U.S. code is reject
 
 For local preview with a U.S. test invitation, set both `FORGE_BETA_REQUIRED=true` and `VITE_FORGE_BETA_PREVIEW=true` in the root `.env.local`, set `FORGE_BETA_COUNTRIES=US`, apply migrations, and restart `corepack pnpm dev:https`. Ordinary development keeps its existing bypass. Production enforcement cannot be disabled by `FORGE_BETA_REQUIRED=false`.
 
-## Issue invitations through an authorized database session
+## Manage invitations with the operator tool
 
-Verify the tester's exact subject ID from the configured identity provider; do not assume an email address is the subject. Confirm the residence country with the tester and check it is enabled. Use parameterized administrative database tooling to insert an invitation:
+Verify the tester's exact subject ID from the configured identity provider; do not assume an email address is the subject. Confirm U.S. residence with the tester. Use an authorized administrative database session; the app exposes no public invitation-creation endpoint.
 
-```sql
-INSERT INTO beta_invitations (user_id, country)
-VALUES ($1, $2);
+The tool uses the existing API `pg` dependency and `DATABASE_URL` / `DATABASE_SSL` settings. It does not automatically load `.env.local`, send emails, or enable beta countries. Do not paste credentials into commands or support messages. Set `FORGE_BETA_SUBJECT` locally to the verified account subject, then run from the repository root:
+
+```powershell
+# Preview: no database connection or change.
+corepack pnpm beta:invitation invite
+
+# Apply after checking the subject and target database.
+corepack pnpm beta:invitation invite --apply
+
+# Read-only invitation status.
+corepack pnpm beta:invitation status
+
+# Preview and then apply revocation.
+corepack pnpm beta:invitation revoke
+corepack pnpm beta:invitation revoke --apply
 ```
 
-`$1` is the verified subject, `$2` the uppercase country code. These are bind parameters, not literal values. There is deliberately no public invitation-creation endpoint and no reusable invitation code. Do not send tokens or credentials to support or place invitation records in public CI logs.
+`--subject <verified-id>` is also accepted, though the environment variable avoids putting the ID in shell history. Only `--country US` is supported (also the default). Writes require `--apply`; status is always read-only. Output omits the subject and database credentials. A missing row is reported as `found:false`.
 
-To revoke an invitation, set `revoked = true` for that subject. To reinvite or correct a country, set the reviewed country, `revoked = false`, and `adult_confirmed_at = NULL` together, requiring a fresh eligibility confirmation. Do not fabricate confirmation timestamps on the user's behalf. Invitation data retention and account closure must be aligned with the final privacy notice before inviting outside users; dashboard deletion alone does not remove invitation/consent records.
+Repeated invitation of an active U.S. account preserves its adult confirmation. Reinviting a revoked account or changing a prior country to `US` clears its confirmation so the tester must attest again. The tool never fabricates adult confirmation on the tester's behalf. Revoke access promptly for an incorrectly provisioned subject and invite the correct one separately.
+
+Invitation data retention and account closure must be aligned with the final privacy notice before inviting outside users; dashboard deletion alone does not remove invitation/consent records. The tool does not approve agreements or bypass release checks.
 
 ## Tester flow
 

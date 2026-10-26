@@ -3,13 +3,14 @@ import { randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import { createRequire } from 'node:module';
+import { manageInvitation, parseInvitationCommand } from '../beta/invitation-admin.mjs';
 import { createApiHandler } from '../../apps/api/dist/handler.js';
 import { PostgresConsentRepository } from '../../apps/api/dist/postgresConsentRepository.js';
 import { PostgresBetaRepository } from '../../apps/api/dist/postgresBetaRepository.js';
 import { MemoryDashboardRepository } from '../../apps/api/dist/memoryRepository.js';
 import { policyDigest } from '../../apps/api/dist/consent.js';
 const require = createRequire(new URL('../../apps/api/package.json', import.meta.url));
-const { Pool } = require('pg');
+const { Pool, Client } = require('pg');
 
 function isolatedDatabase(environment) {
   if (environment.FORGE_DATABASE_TESTS !== 'isolated' || !environment.DATABASE_URL) throw new Error('Explicit isolated database test configuration is required');
@@ -54,6 +55,20 @@ test('PostgreSQL migration, durable account consent and historical receipts', { 
     assert.equal((await betaRepository.invitation('beta-tester')).adultConfirmedAt, confirmed);
     await migration.query('UPDATE beta_invitations SET revoked = true WHERE user_id = $1', ['beta-tester']);
     assert.equal(await betaRepository.confirmAdult('beta-tester', 'AU'), false);
+    const connectAdmin = async () => { const client = new Client(config); await client.connect(); return client; };
+    const issue = parseInvitationCommand(['invite', '--subject', 'beta-tester', '--apply'], {});
+    // Reinviting a prior-country/revoked account must clear its old age confirmation.
+    const invited = await manageInvitation(issue, connectAdmin);
+    assert.equal(invited.country, 'US');
+    assert.equal(invited.adultConfirmed, false);
+    assert.equal(await betaRepository.confirmAdult('beta-tester', 'US'), true);
+    const firstConfirmation = (await betaRepository.invitation('beta-tester')).adultConfirmedAt;
+    await manageInvitation(issue, connectAdmin);
+    assert.equal((await betaRepository.invitation('beta-tester')).adultConfirmedAt, firstConfirmation);
+    await manageInvitation({ ...issue, action: 'revoke' }, connectAdmin);
+    assert.equal((await betaRepository.invitation('beta-tester')).revoked, true);
+    await manageInvitation(issue, connectAdmin);
+    assert.equal((await betaRepository.invitation('beta-tester')).adultConfirmedAt, null);
     repository = new PostgresConsentRepository(config);
     const policy = { approved: true, documents: [{ id: 'terms', version: 'test-1', title: 'Test terms', text: 'Exact isolated test text' }] };
     const handler = createApiHandler({ auth: { verify: async token => token ? { id: token } : null }, dashboards: new MemoryDashboardRepository(),
