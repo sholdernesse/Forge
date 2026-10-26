@@ -1,6 +1,6 @@
 # U.S.-only initial adult beta; international expansion later
 
-Approved rollout direction (October 25, 2026): Forge by **gnosislab.io** initially admits **U.S. residents aged 18 or older, by invitation only**. This supersedes the earlier international first-cohort plan. International expansion remains a later phase; the country-aware architecture is retained. The owner confirmed the registered business on October 26 as **Patriot Technology Access and Identity Solutions, trading as gnosislab.io**. Final agreement approval remains outstanding.
+Approved rollout direction (October 25, 2026): Forge by **gnosislab.io** initially admits **U.S. residents aged 18 or older, by invitation only**. This supersedes the earlier international first-cohort plan. International expansion remains a later phase; the country-aware architecture is retained. The owner clarified on October 26 that the planned business is **Patriot Technology Access and Identity Solutions LLC, trading as gnosislab.io**, with LLC registration pending. Confirm formation and the exact filed name before finalizing the operator in agreements. Final agreement approval remains outstanding.
 
 ## Implemented controls
 

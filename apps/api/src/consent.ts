@@ -7,6 +7,8 @@ export interface ConsentEvent extends ConsentRecord { eventId: string }
 export interface ConsentHistoryPage { events: ConsentEvent[]; nextCursor: string | null }
 export interface ConsentRepository { history(userId: string, before?: string): Promise<ConsentHistoryPage>; latest(userId: string): Promise<ConsentRecord | null>; append(userId: string, record: ConsentRecord): Promise<void>; close?(): Promise<void> }
 
+// Intended operator: Patriot Technology Access and Identity Solutions LLC, trading as gnosislab.io.
+// LLC formation is pending. Confirm the filed name before adding the LLC suffix or approving these drafts.
 // Release owner must replace/review these texts and approve the versioned policy.
 // No environment flag can turn draft wording into approved legal text.
 export const consentPolicy: ConsentPolicy = {
