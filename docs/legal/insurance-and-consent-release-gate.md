@@ -1,6 +1,8 @@
 # Forge insurance and consent release gate
 
 **Prepared:** October 5, 2026  
+**Operator confirmed October 26:** Patriot Technology Access and Identity Solutions, trading as gnosislab.io. Initial scope: invitation-only U.S. beta, ages 18+.
+
 **Status:** Planning and broker/counsel review. The waiver draft is [fitness-participation-consent.DRAFT.md](./fitness-participation-consent.DRAFT.md).
 
 ## Insurance to quote before a public beta
@@ -31,7 +33,8 @@ The current Forge branch has public beta Terms and Privacy pages and a four-step
 
 ## Release owner checklist
 
-- [ ] Confirm operating entity, launch jurisdictions, adult-only policy, and any human coaching/dietetic scope.
+- [x] Owner confirmed the operating business/trading name and U.S.-only, 18+ beta scope.
+- [ ] Confirm any human coaching/dietetic scope.
 - [ ] Obtain written broker quotes for technology/professional liability and cyber; assess general liability and employment coverages.
 - [ ] Have counsel approve exact agreement text, consent flow, privacy disclosures, and version-retention policy.
 - [ ] Implement and verify the server-side consent gate and account-bound audit record.

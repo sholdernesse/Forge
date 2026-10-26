@@ -4,7 +4,7 @@
 
 **Current checkpoint:** Sprint 4.97 on PR #2
 **Product stage:** Release Candidate 1 hardening and physical acceptance
-**Last reviewed:** October 25, 2026
+**Last reviewed:** October 26, 2026
 
 ## 1. North star
 
@@ -164,11 +164,11 @@ PR #2 should deliver a coherent, testable Forge web candidate with:
 
 ### U.S.-only initial beta — October 25
 
-- Owner selected **U.S. residents only**, aged **18+**, for the initial invitation-based beta. Public-facing brand: **gnosislab.io**. This supersedes the earlier international initial-beta direction; international expansion remains a later phase.
+- Owner selected **U.S. residents only**, aged **18+**, for the initial invitation-based beta. Operator: **Patriot Technology Access and Identity Solutions, trading as gnosislab.io** (confirmed October 26). This supersedes the earlier international initial-beta direction; international expansion remains a later phase.
 - Account-bound invitations, country eligibility, separate adulthood/residence confirmations, durable server timestamps, and server-side admission checks are implemented. Deployment templates select `US`; no testers are automatically invited. The API denies non-U.S. invitations even if a country list is misconfigured. An empty country list pauses admission.
 - The UI keeps consent/history, withdrawal, deletion and support available when access is paused. Production smoke tests now verify beta enforcement.
 - An operator invitation tool supports preview, invite, status, and revoke using parameterized SQL; output omits credentials and account subjects. Reinvitation after revocation requires fresh adulthood confirmation.
-- See [international beta operations and acceptance](./deployment/international-beta.md). The registered contracting entity, approved legal/privacy text, invitation provisioning, and deployed physical acceptance remain required before opening external access.
+- See [international beta operations and acceptance](./deployment/international-beta.md). Approved legal/privacy text, invitation provisioning, and deployed physical acceptance remain required before opening external access.
 
 ### Remaining release blockers
 

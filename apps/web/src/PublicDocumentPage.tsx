@@ -15,7 +15,7 @@ export function supportEmailFromEnvironment(environment: Record<string, unknown>
   return typeof value === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim()) ? value.trim() : null;
 }
 
-const effectiveDate = 'September 21, 2026';
+const effectiveDate = 'October 26, 2026';
 
 function Privacy({ supportEmail }: { supportEmail: string | null }) {
   return <>
@@ -60,7 +60,7 @@ export function PublicDocumentPage({ kind, supportEmail }: { kind: PublicDocumen
   useEffect(() => { document.title = `${title} — Forge`; }, [title]);
   return <div className="public-document-shell">
     <header><a className="public-document-brand" href="/"><span>F</span><b>FORGE</b></a><a href="/">Return to Forge</a></header>
-    <main className="public-document"><div className="public-document-meta">FORGE PUBLIC BETA · EFFECTIVE {effectiveDate.toUpperCase()}</div>{kind === 'privacy' ? <Privacy supportEmail={supportEmail} /> : kind === 'terms' ? <Terms supportEmail={supportEmail} /> : <Support supportEmail={supportEmail} />}</main>
+    <main className="public-document"><div className="public-document-meta">FORGE PUBLIC BETA · EFFECTIVE {effectiveDate.toUpperCase()}</div><p>Forge is operated by Patriot Technology Access and Identity Solutions, trading as gnosislab.io. The initial beta is by invitation for U.S. residents aged 18 or older.</p>{kind === 'privacy' ? <Privacy supportEmail={supportEmail} /> : kind === 'terms' ? <Terms supportEmail={supportEmail} /> : <Support supportEmail={supportEmail} />}</main>
     <footer><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/support">Support</a><span>© 2026 Forge</span></footer>
   </div>;
 }
