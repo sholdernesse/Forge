@@ -1,0 +1,67 @@
+# Physical desktop/mobile acceptance
+
+This checklist is the remaining human acceptance gate for PR #2. It must be run against the deployed candidate with a physical desktop browser and phone; automated clients are supporting evidence, not a substitute.
+
+## Preparation
+
+- [ ] Record candidate commit, deployment URL, UTC start time, desktop/browser version, phone/OS/browser version, and network used.
+- [ ] Confirm both devices use the same authorized test account and that no production account or health data is involved.
+- [ ] Keep developer tools open on desktop and preserve redacted screenshots or recordings for failures. Never capture access tokens.
+- [ ] Start each isolation scenario from a signed-out/private window so cached local state cannot mask a server failure.
+
+## Desktop to mobile continuity
+
+- [ ] Sign in on desktop, create a check-in, complete a workout with at least two movements, and record the visible values and UTC time.
+- [ ] Sign in on the phone and confirm the check-in, completed workout, exercise summaries, and Strength Progress records hydrate without a manual re-entry.
+- [ ] On the phone, inspect a strength leader, its chronological timeline, personal-record marker, and estimated-max trend; confirm a one-record movement shows the safe no-trend state.
+- [ ] On the phone, change the check-in and add a completed session. Refresh desktop and confirm the new server revision appears.
+- [ ] Navigate Previous and Next across matching workouts on both viewports; confirm search, sort, range, pagination, and export scope remain unchanged.
+- [ ] Confirm controls remain usable without horizontal page scrolling at the phone's normal portrait zoom and after one orientation change.
+
+## Nutrition camera workflows
+
+- [x] Owner functional meal-photo review passed for beta testing on October 25, 2026 after reviewing multiple images. See [beta acceptance record](meal-photo-accuracy.md#owner-beta-acceptance--october-25-2026). This records the reported functional result; the detailed device, sync, privacy, barcode, and error-path checks below remain individually tracked.
+
+- [ ] On the phone, photograph a non-sensitive test plate with two or more distinct foods. Confirm Forge previews the prepared image and returns editable items, portions, confidence, nutrition source, assumptions, and warnings.
+- [ ] Correct one portion or macro, exclude one detected item, and add the reviewed meal. Confirm only selected items enter the chosen meal period and daily totals update immediately.
+- [ ] Refresh the phone and desktop. Confirm approved nutrition entries synchronize, while the submitted photograph does not appear in history, exports, browser storage, API logs, or the synchronized dashboard.
+- [ ] Scan one packaged-food barcode after the photo test to confirm the shared camera permission still permits the existing barcode workflow.
+- [ ] Confirm an unsupported image and a provider-unavailable response produce actionable messages without adding nutrition entries.
+
+## Conflict and isolation
+
+- [ ] Load the same revision on both devices, save a change on the phone, then attempt a stale desktop save. Confirm the phone's newer data is not overwritten and the conflict is visible/recoverable.
+- [ ] Sign out on both devices. Confirm protected dashboard reads are unavailable after refresh and browser back navigation.
+- [ ] Sign in with a second authorized test account in a private window. Confirm it cannot read or mutate the first account's dashboard.
+- [ ] Attempt the deployed API from an unapproved origin and without a token; record the expected denial without logging credentials.
+
+## Evidence and disposition
+
+Record evidence links, defects, and the final `PASS`, `FAIL`, or `BLOCKED` decision in the PR. Any failure affecting authentication, account isolation, revision protection, or data durability blocks release. Delete test health data after evidence is retained.
+
+The repository-level acceptance tests cover authenticated hydration, stale-revision rejection, and subject isolation. They should pass immediately before and after this physical run.
+
+## Versioned signup consent (October 12 milestone)
+
+- [ ] Apply migration 002 and deploy approved policy text to the candidate; record its digest. Draft text must return a blocked release state, never a successful signature.
+- [ ] A new account must review separate unchecked Terms, fitness acknowledgment, and health-data consent before personal onboarding, sync, food lookup, or photo analysis. Test readable full text and keyboard operation on desktop and phone.
+- [ ] Decline/sign out: no personal dashboard or health-data entry mounts. Failed writes and offline startup must never show successful acceptance.
+- [ ] Accept on desktop, then sign in with the same account on the phone; verify durable acceptance and exact version receipt at /agreements. A different account must still be gated.
+- [ ] Revise the policy version/text: stale submissions must fail and personal API requests must require the new version.
+- [ ] Withdraw through /agreements; personal API access must stop. Recheck the second device on focus. Deleting synchronized dashboard data must remain available without consent.
+- [ ] Confirm public Terms/Privacy match approved acceptance text, actual operator, recipients, retention and withdrawal controls.
+
+- [ ] At /agreements, inspect and download the original receipt after a newer version is accepted or consent is withdrawn. Verify exact text, version, timestamp and acceptance/withdrawal label; no other account’s receipt may appear.
+- [ ] With more than 20 events, load older agreements, add a new event on another device, and verify older pagination has no duplicates or missing original records. A failed history request must show a retry state without erasing already loaded receipts.
+
+
+## U.S.-only adult beta admission
+
+- [ ] Apply migration 003 twice, record `US` as the only enabled country and the candidate, and provision an invitation for the verified test subject.
+- [ ] Confirm non-U.S. invitations remain blocked even with confirmed adulthood.
+- [ ] Confirm uninvited and revoked accounts cannot open personal features or directly call dashboard/food/photo APIs.
+- [ ] Confirm adulthood and residence start unchecked; incomplete, incorrect-country, offline, and failed submissions never grant access.
+- [ ] Confirm the same account's admission persists across desktop/phone, while a second account remains gated.
+- [ ] Pause the country or revoke the invitation and confirm the next API request is denied; refocusing the browser shows paused access.
+- [ ] Confirm beta admission still requires approved current agreements before personal use.
+- [ ] After access is paused, verify agreement history, withdrawal, support, and dashboard deletion remain available.
