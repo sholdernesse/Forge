@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { betaPreflight, deploymentInputs, policyFromSource, preflightText } from './beta-preflight.mjs';
 
 function source(approved = true) {
@@ -59,12 +60,12 @@ test('text and JSON reports contain no configuration values or raw parser errors
   assert.ok(!output.includes('private-policy-parser-sentinel'));
 });
 test('actual CLI reads the canonical repository policy and rejects secret-bearing arguments without echoing them', () => {
-  const script = new URL('./beta-preflight.mjs', import.meta.url);
-  const result = spawnSync(process.execPath, [script.pathname, '--json'], { env: { ...process.env, ...configured() }, encoding: 'utf8' });
+  const script = fileURLToPath(new URL('./beta-preflight.mjs', import.meta.url));
+  const result = spawnSync(process.execPath, [script, '--json'], { env: { ...process.env, ...configured() }, encoding: 'utf8' });
   const expected = betaPreflight(configured(), readFileSync(new URL('../../apps/api/src/consent.ts', import.meta.url), 'utf8'));
   assert.equal(result.status, expected.configurationStatus === 'PASS' ? 0 : 2);
   assert.deepEqual(JSON.parse(result.stdout), expected);
-  const invalid = spawnSync(process.execPath, [script.pathname, '--key=private-argument-sentinel'], { encoding: 'utf8' });
+  const invalid = spawnSync(process.execPath, [script, '--key=private-argument-sentinel'], { encoding: 'utf8' });
   assert.equal(invalid.status, 2);
   assert.ok(!(invalid.stderr + invalid.stdout).includes('private-argument-sentinel'));
 });
