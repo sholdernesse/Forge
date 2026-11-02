@@ -19,7 +19,10 @@ export function MovementLibrary({ onClose }: MovementLibraryProps) {
   useEffect(() => { searchRef.current?.focus(); }, []);
   const entries = useMemo(exerciseLookupEntries, []);
   const results = useMemo(() => findExercises(entries, query, equipment, muscle), [entries, query, equipment, muscle]);
-  function clearFilters() { setQuery(''); setEquipment('all'); setMuscle('all'); }
+  function clearFilters() {
+    setQuery(''); setEquipment('all'); setMuscle('all');
+    searchRef.current?.focus();
+  }
 
   return <>
     <div className="movement-library-backdrop" onMouseDown={onClose}>

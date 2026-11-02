@@ -15,7 +15,9 @@ test('exercise lookup is independent of the daily plan on desktop and mobile', a
   await lookup.getByRole('button', { name: 'View Barbell Romanian deadlift guide', exact: true }).click();
   const guide = page.getByRole('dialog', { name: 'Barbell Romanian deadlift', exact: true });
   await expect(guide).toBeVisible();
-  await expect(guide.getByRole('img')).toHaveCount(2);
+  const illustrations = guide.locator('figure img');
+  await expect(illustrations).toHaveCount(2);
+  await expect.poll(() => illustrations.evaluateAll(images => images.every(image => (image as HTMLImageElement).naturalWidth > 0))).toBe(true);
   await guide.getByRole('button', { name: 'Movement', exact: true }).click();
   await expect(guide.locator('.guide-steps li').first()).toBeVisible();
   await guide.getByRole('button', { name: 'I feel discomfort' }).click();
@@ -23,11 +25,13 @@ test('exercise lookup is independent of the daily plan on desktop and mobile', a
   await guide.getByRole('button', { name: 'Close form guide' }).click();
   await expect(lookup.getByRole('searchbox')).toHaveValue('RDL');
   await lookup.getByRole('button', { name: 'Clear filters' }).click();
+  await expect(lookup.getByRole('searchbox')).toBeFocused();
   await lookup.getByLabel('Equipment', { exact: true }).selectOption('Dumbbells');
   await lookup.getByRole('searchbox').fill('DB shoulder press');
   await expect(lookup.getByRole('status')).toHaveText('1 of 32 exercises');
   await lookup.getByRole('searchbox').fill('unknown exercise');
   await lookup.getByRole('button', { name: 'Show all 32 exercises' }).click();
+  await expect(lookup.getByRole('searchbox')).toBeFocused();
   await expect(lookup.getByRole('status')).toHaveText('32 of 32 exercises');
   await info.attach('desktop-lookup', { body: await page.screenshot(), contentType: 'image/png' });
   await lookup.getByRole('button', { name: 'Close exercise lookup' }).click();
