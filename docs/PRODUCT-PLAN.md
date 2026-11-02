@@ -2,9 +2,9 @@
 
 > **Living plan:** This is the canonical product and delivery plan for Forge. Update it whenever scope, priorities, sequencing, or release status changes. Individual sprint files remain the implementation record.
 
-**Current checkpoint:** Sprint 4.97 on PR #2
+**Current checkpoint:** RC1 beta hardening on PR #2
 **Product stage:** Release Candidate 1 hardening and physical acceptance
-**Last reviewed:** October 26, 2026
+**Last reviewed:** November 1, 2026
 
 ## 1. North star
 
@@ -62,7 +62,8 @@ The interface should never require fitness expertise to understand the next acti
 | Recovery | Record signals and receive conservative adjustments | Functional |
 | Progress | Understand strength, volume, quality, and session trends | Functional |
 | Coach | Understand why Forge changed the plan and act directly | Functional prototype |
-| Movement guidance | Learn setup, range, tempo, and working muscles visually | Interim still-image system |
+| Movement guidance | Learn setup, range, tempo, and working muscles visually | 32 paired visual guides; independent exercise lookup with aliases and filters |
+| Beta admission | Admit and revoke invited US adult testers | Implemented; deployed acceptance pending |
 | Account and sync | Continue securely across devices | Automated recovery hardened; deployed desktop/mobile revalidation remains |
 
 ## 6. Architecture guardrails
@@ -82,6 +83,9 @@ See [Sprint 4 architecture](./architecture/sprint-4.md) for package and data-flo
 ## 7. Delivered capability
 
 ### Foundation
+
+- Bounded provider/gateway/sync requests, shared PostgreSQL pooling and durable photo quotas (migration 004), pending-save coalescing, and deferred secondary screens; documented in [beta performance](./development/beta-performance.md).
+- Read-only deployment preflight blocks draft policy or invalid configuration before Azure sign-in/provisioning; identity scope is passed consistently to the API. Deployed acceptance remains pending.
 
 - Monorepo with shared, Digital Twin, recommendation, coach, API, and web packages.
 - Explainable recommendations with evidence and confidence.
@@ -105,6 +109,8 @@ See [Sprint 4 architecture](./architecture/sprint-4.md) for package and data-flo
 - Four-step personal plan setup that supplies validated inputs, previews the starting direction, explains adaptation boundaries, and requires explicit approval before activation.
 
 ### Training
+
+- Independent Exercise lookup from header and desktop/mobile navigation, with aliases, equipment/muscle filters, and all 32 existing visual guides; browsing leaves the workout and saved history unchanged. See [acceptance](./acceptance/exercise-lookup.md).
 
 - Adaptive recovery, upper-strength, and lower-strength planning.
 - Readiness, training frequency, muscle-volume, schedule, equipment, and constraint awareness.

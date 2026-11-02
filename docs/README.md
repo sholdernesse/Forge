@@ -29,3 +29,5 @@ Recovery evidence: [PostgreSQL recovery drill record](./deployment/postgres-reco
 Physical release gate: [desktop/mobile acceptance checklist](./acceptance/physical-desktop-mobile.md).
 
 Signup consent and receipt history: [October 12 consent milestone](./legal/consent-milestone-2026-10-12.md).
+
+RC1 hardening: [runtime optimizations](./development/beta-performance.md), [independent exercise lookup](./acceptance/exercise-lookup.md), and [read-only deployment preflight](./deployment/azure.md#read-only-preflight).

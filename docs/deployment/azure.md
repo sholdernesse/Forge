@@ -62,10 +62,39 @@ VITE_FORGE_SUPPORT_EMAIL
 OIDC_ISSUER
 OIDC_AUDIENCE
 OIDC_JWKS_URL
+OIDC_REQUIRED_SCOPE
+FORGE_BETA_COUNTRIES
 OPENAI_VISION_MODEL
 ```
 
 The Entra SPA values and support address are public application configuration. `VITE_FORGE_SUPPORT_EMAIL` must be a verified, monitored mailbox and is compiled into the public Privacy, Terms, and Support pages. The OIDC values tell the API which issuer, audience, signing keys, and delegated scope to accept. `OPENAI_VISION_MODEL` selects the approved image-capable server model without exposing the API key.
+
+## Read-only preflight
+
+Run `corepack pnpm beta:preflight` (or append `--json`) with the intended
+configuration supplied through your current environment. The command does not
+load `.env.local` automatically and does not read GitHub environment secrets.
+A missing local setting does not prove the GitHub environment lacks it. Do not
+pass secret values as command arguments or paste them into support reports.
+
+The report lists configuration names and corrective actions without their values.
+Exit 0 means configuration prerequisites pass; exit 2 means blocked or invalid
+input. It checks required Azure/Entra/provider settings, HTTPS identity endpoints,
+audit-key length, support-contact format, US-only admission, delegated-scope
+alignment, and the actual canonical consent approval flag. It makes no network
+requests, provisions nothing, applies no migrations, and grants no invitations.
+It does not prove credentials work, that a mailbox is monitored, or that a
+candidate passed operational acceptance.
+
+The Azure workflow runs this same check against the selected GitHub environment
+**before Azure sign-in or any resource provisioning**. Draft/unreadable policy
+or invalid configuration stops the run before billable changes. The existing
+post-deployment smoke check remains required.
+
+`OIDC_REQUIRED_SCOPE` defaults to `access_as_user` and is passed to the API
+through Bicep. It must match the delegated scope suffix in
+`VITE_ENTRA_API_SCOPE`; configure both when using a custom permission name.
+`FORGE_BETA_COUNTRIES` defaults to `US` in the deployment workflow.
 
 ## Deploy
 
