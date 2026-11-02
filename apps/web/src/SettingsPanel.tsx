@@ -3,6 +3,7 @@ import { CircleDollarSign, Download, Globe2, HeartPulse, Monitor, Moon, RefreshC
 import { useAccessibleDialog } from './useAccessibleDialog.js';
 import type { AppearancePreference } from './appearance.js';
 import type { UnitPreference } from './region.js';
+import { SupportReport } from './SupportReport.js';
 
 interface Props { onClose(): void; onGeneratePlan(): void; onReset(): void; onExport(): void; onDelete(): Promise<void>; onOpenBudget(): void; onOpenGlp1Support(): void; glp1SupportEnabled: boolean; appearancePreference: AppearancePreference; onAppearanceChange(preference: AppearancePreference): void; unitPreference: UnitPreference; onUnitPreferenceChange(preference: UnitPreference): void; canDeleteCloud: boolean; showOperationsBudget: boolean; }
 
@@ -19,6 +20,7 @@ export function SettingsPanel({ onClose, onGeneratePlan, onReset, onExport, onDe
       <div className="settings-action"><RefreshCw size={21} /><span><b>Generate a new plan</b><small>Re-run today’s adaptive planner and discard workout completion state. Your check-ins, food, and history remain.</small></span><button onClick={() => { onGeneratePlan(); onClose(); }}>Generate</button></div>
       <div className="settings-safety"><ShieldCheck size={18} /><span>Active workouts are normally locked. Generating a new plan is an explicit override.</span></div>
       <p><a href="/agreements">Review or withdraw your Forge agreements</a></p>
+      <SupportReport />
       <div className="settings-section-label"><span>PERSONALIZATION</span><small>Optional support that changes how Forge builds your plan.</small></div>
       <div className="settings-appearance"><div><Sun size={21} /><span><b>Appearance</b><small>Choose the Forge palette for this device.</small></span></div><div className="appearance-options" role="group" aria-label="Appearance theme">
         <button type="button" aria-pressed={appearancePreference === 'dark'} className={appearancePreference === 'dark' ? 'active' : ''} onClick={() => onAppearanceChange('dark')}><Moon size={16} /> Dark</button>

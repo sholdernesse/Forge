@@ -49,7 +49,7 @@ function Support({ supportEmail }: { supportEmail: string | null }) {
   return <>
     <h1>Forge support</h1>
     <p className="public-document-lead">For beta access, account, synchronization, food lookup, data-export, or deletion assistance, contact the Forge support team.</p>
-    <section><h2>Before contacting support</h2><ul><li>Record the time and device where the problem occurred.</li><li>Include the visible error message and the page or action involved.</li><li>Do not send passwords, access tokens, or unnecessary health information.</li><li>For synchronization issues, confirm whether the status says offline, reconnecting, or needs attention.</li></ul></section>
+    <section><h2>Before contacting support</h2><ul><li>In Forge settings, choose Prepare support report. Review and copy the build, UTC time, browser, and connection details into your message.</li><li>Include the visible error message and the action involved. If Settings is unavailable, record the time and browser manually.</li><li>Do not send passwords, access tokens, or unnecessary health information.</li><li>For synchronization issues, confirm whether the status says offline, reconnecting, or needs attention.</li></ul></section>
     <section><h2>Contact</h2><p>{supportEmail ? <a className="public-document-contact" href={`mailto:${supportEmail}?subject=Forge beta support`}>{supportEmail}</a> : 'Support email is not configured. Public release is blocked until a verified address is provided.'}</p></section>
     <section><h2>Urgent situations</h2><p>Forge does not provide emergency or medical support. For a medical emergency, contact local emergency services. For immediate mental-health crisis support in the United States, call or text 988.</p></section>
   </>;

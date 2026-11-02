@@ -28,6 +28,26 @@ The check blocks release when the deployment serves the wrong commit, lacks a va
 
 ## Release-owner checklist
 
+### Beta issue reports
+
+Settings → **Prepare support report** generates a reviewable text report with the
+exact build SHA (or an explicit development/unrecorded label), UTC capture time,
+recognized browser family and major version, and browser-reported online/offline
+state. Online does not establish API availability. Preparing or copying sends
+nothing; testers decide what to share with the support mailbox. Clipboard denial
+leaves the selectable report available for manual copying.
+
+The report does not read account identity, dashboard or health records, storage,
+page URLs, full user-agent strings, or error payloads. Ask the tester to describe
+the action, expected behavior, and visible sync status separately. Do not request
+tokens, passwords, or health-data exports to diagnose a routine beta issue.
+
+CI exercises preparation, copying, denied-clipboard fallback, phone width, and
+keyboard close/focus. Verify it on the deployed desktop and phone browsers before
+inviting testers, including that the displayed SHA matches the candidate.
+
+### Deployed acceptance
+
 - Open `/privacy`, `/terms`, and `/support` on the deployed hostname without signing in.
 - Confirm the automated candidate smoke gate passes for the recorded commit.
 - Complete [known-portion meal-photo validation](../acceptance/meal-photo-accuracy.md) and attach the measured accuracy report to physical acceptance evidence.

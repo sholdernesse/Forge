@@ -20,6 +20,8 @@ Privacy operations: [Data controls and retention](./deployment/privacy-retention
 
 Public release operations: [Public beta release](./deployment/public-release.md).
 
+Beta issue reporting: [Reviewable support reports](./deployment/public-release.md#beta-issue-reports).
+
 Standby recovery: [Render activation and failover](./deployment/render-standby.md).
 
 Database recovery: [PostgreSQL backup and restore](./deployment/postgres-recovery.md).
