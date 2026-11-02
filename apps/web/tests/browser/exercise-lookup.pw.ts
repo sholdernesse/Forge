@@ -27,6 +27,7 @@ test('exercise lookup is independent of the daily plan on desktop and mobile', a
   await lookup.getByRole('button', { name: 'Clear filters' }).click();
   await expect(lookup.getByRole('searchbox')).toBeFocused();
   await lookup.getByLabel('Equipment', { exact: true }).selectOption('Dumbbells');
+  await lookup.getByLabel('Muscles worked', { exact: true }).selectOption('Shoulders');
   await lookup.getByRole('searchbox').fill('DB shoulder press');
   await expect(lookup.getByRole('status')).toHaveText('1 of 32 exercises');
   await lookup.getByRole('searchbox').fill('unknown exercise');

@@ -5,7 +5,7 @@ export default defineConfig({
   timeout: 60_000,
   workers: 1,
   reporter: 'list',
-  use: { baseURL: 'http://127.0.0.1:4173', viewport: { width: 1366, height: 900 }, screenshot: 'only-on-failure',
+  use: { actionTimeout: 10_000, baseURL: 'http://127.0.0.1:4173', viewport: { width: 1366, height: 900 }, screenshot: 'only-on-failure',
     ...(process.env.FORGE_BROWSER_CHANNEL ? { channel: process.env.FORGE_BROWSER_CHANNEL } : {}) },
   webServer: {
     command: 'pnpm exec vite --host 127.0.0.1 --port 4173 --strictPort',

@@ -34,8 +34,8 @@ export function MovementLibrary({ onClose }: MovementLibraryProps) {
         <div className="movement-library-controls">
           <label><Search size={16} /><span className="sr-only">Search exercises, common names, or muscles</span><input ref={searchRef} type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Try RDL, DB shoulder press, or chest" /></label>
           <div className="exercise-lookup-filters">
-            <label>Equipment<select value={equipment} onChange={event => setEquipment(event.target.value as ExerciseEquipment | 'all')}><option value="all">All equipment</option>{equipmentOptions.map(option => <option key={option}>{option}</option>)}</select></label>
-            <label>Muscles worked<select value={muscle} onChange={event => setMuscle(event.target.value as ExerciseMuscle | 'all')}><option value="all">All muscles</option>{muscleOptions.map(option => <option key={option}>{option}</option>)}</select></label>
+            <label>Equipment<select aria-label="Equipment" value={equipment} onChange={event => setEquipment(event.target.value as ExerciseEquipment | 'all')}><option value="all">All equipment</option>{equipmentOptions.map(option => <option key={option}>{option}</option>)}</select></label>
+            <label>Muscles worked<select aria-label="Muscles worked" value={muscle} onChange={event => setMuscle(event.target.value as ExerciseMuscle | 'all')}><option value="all">All muscles</option>{muscleOptions.map(option => <option key={option}>{option}</option>)}</select></label>
             {(query || equipment !== 'all' || muscle !== 'all') && <button onClick={clearFilters}>Clear filters</button>}
           </div>
         </div>
