@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" role="img" aria-labelledby="title desc">
+  <title id="title">Hip thrust positions</title>
+  <desc id="desc">Side-by-side lowered and locked-out positions for a barbell hip thrust.</desc>
+  <rect width="960" height="540" fill="#07130f"/>
+  <g font-family="Arial,sans-serif" fill="#bfe8ce" font-weight="700" text-anchor="middle"><text x="240" y="50" font-size="22">LOWER</text><text x="720" y="50" font-size="22">LOCKOUT</text></g>
+  <g stroke="#315447" stroke-width="3" fill="#0d211a"><rect x="35" y="70" width="410" height="420" rx="20"/><rect x="515" y="70" width="410" height="420" rx="20"/></g>
+  <g fill="#1b3b30" stroke="#58756a" stroke-width="7"><rect x="75" y="270" width="135" height="55" rx="9"/><rect x="555" y="270" width="135" height="55" rx="9"/></g>
+  <g stroke="#83f8aa" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <circle cx="170" cy="235" r="29" stroke-width="9"/><path d="M195 255 L290 340 L365 340 M290 340 L330 435 M365 340 L395 435 M155 265 L235 305"/>
+    <circle cx="650" cy="235" r="29" stroke-width="9"/><path d="M675 255 L790 280 L855 350 M790 280 L825 430 M855 350 L875 435 M635 265 L730 280"/>
+  </g>
+  <g stroke="#ffb36c" stroke-width="10" fill="none"><path d="M240 305 h105 M270 285 v40 M315 285 v40"/><path d="M730 280 h105 M760 260 v40 M805 260 v40"/></g>
+  <g stroke="#76fba5" stroke-width="3" stroke-dasharray="8 8"><path d="M680 250 H860"/></g>
+  <g fill="#78958a" font-family="Arial,sans-serif" font-size="17" text-anchor="middle"><text x="240" y="470">Lower under control</text><text x="720" y="470">Shoulders, hips and knees align</text></g>
+</svg>
