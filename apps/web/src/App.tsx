@@ -55,7 +55,7 @@ const SettingsPanel = deferredPanel(() => import('./SettingsPanel.js').then(modu
 
 const CoachPanel = deferredPanel(() => import('./CoachPanel.js').then(module => module.CoachPanel), 'Coach');
 
-const MovementLibrary = deferredPanel(() => import('./MovementLibrary.js').then(module => module.MovementLibrary), 'Movement guides');
+const MovementLibrary = deferredPanel(() => import('./MovementLibrary.js').then(module => module.MovementLibrary), 'Exercise lookup');
 
 const OnboardingFlow = deferredPanel(() => import('./OnboardingFlow.js').then(module => module.OnboardingFlow), 'Your starting plan');
 
@@ -739,6 +739,7 @@ function PersonalApp({ auth, environment }: { auth: ReturnType<typeof useForgeAu
           <a href="#nutrition"><Utensils size={19} /><span>Nutrition</span></a>
           <a href="#training"><Dumbbell size={19} /><span>Training</span></a>
           <a href="#progress"><Activity size={19} /><span>Progress</span></a>
+          <button className="sidebar-exercises" onClick={() => setMovementLibraryOpen(true)} aria-label="Open exercise lookup" title="Exercise lookup"><BookOpen size={19} /><span>Exercises</span></button>
           <button className="sidebar-coach" onClick={() => setCoachOpen(true)}><Brain size={19} /><span>Coach</span></button>
         </nav>
         <div className="sidebar-bottom">
@@ -753,6 +754,7 @@ function PersonalApp({ auth, environment }: { auth: ReturnType<typeof useForgeAu
           <div className="topbar-actions">
             <span className={`save-status sync-${syncStatus}`}>{syncStatus === 'offline' ? <CloudOff size={15} /> : syncStatus === 'conflict' ? <ShieldAlert size={15} /> : syncStatus === 'local' ? <Save size={15} /> : <Cloud size={15} />} {syncStatus === 'syncing' ? 'Syncing…' : syncStatus === 'connecting' ? 'Connecting…' : syncStatus === 'reconnecting' ? 'Reconnecting · saved locally' : syncStatus === 'synced' ? 'Synced across devices' : syncStatus === 'conflict' ? 'Sync needs attention' : syncStatus === 'offline' ? 'Offline · saved locally' : savedAt ? 'Saved on this device' : demoMode ? 'Demo data' : 'Ready to set up'}</span>
             {auth.status === 'signed-out' ? <button className="auth-button" onClick={() => void auth.signIn()}>Sign in</button> : auth.status === 'signed-in' ? <button className="auth-button signed-in" onClick={() => void auth.signOut()} title="Sign out">{auth.name ?? auth.username ?? 'Account'}</button> : null}
+            <button className="exercise-lookup-button" onClick={() => setMovementLibraryOpen(true)}><BookOpen size={18} /> Exercise lookup</button>
             <button className="topbar-settings" onClick={() => setSettingsOpen(true)} aria-label="Open Forge settings"><Settings size={18} /></button>
             <button className="checkin-button" disabled={firstRun} onClick={openCheckIn}><Plus size={18} /> Morning check-in</button>
           </div>
@@ -817,7 +819,7 @@ function PersonalApp({ auth, environment }: { auth: ReturnType<typeof useForgeAu
                 return <div key={exercise.id}><span>{String(index + 1).padStart(2, '0')}</span><div><strong>{exercise.name}</strong><small>{workingSets} working set{workingSets === 1 ? '' : 's'}{warmupSets ? ` + ${warmupSets} warm-up` : ''} · {exercise.detail}</small></div><ChevronRight size={18} /></div>;
               })}
             </div>
-            <div className="workout-actions"><button className="primary-action" onClick={openWorkout}><Dumbbell size={18} /> {workout.status === 'not-started' ? 'Start workout' : workout.status === 'completed' ? 'Review workout' : 'Resume workout'} <ArrowRight size={18} /></button><button className="movement-library-button" onClick={() => setMovementLibraryOpen(true)}><BookOpen size={18} /> Explore movement guides</button></div>
+            <div className="workout-actions"><button className="primary-action" onClick={openWorkout}><Dumbbell size={18} /> {workout.status === 'not-started' ? 'Start workout' : workout.status === 'completed' ? 'Review workout' : 'Resume workout'} <ArrowRight size={18} /></button><button className="movement-library-button" onClick={() => setMovementLibraryOpen(true)}><BookOpen size={18} /> Look up an exercise</button></div>
           </article>
 
           <article className="panel trend-panel" id="progress">
@@ -963,7 +965,7 @@ function PersonalApp({ auth, environment }: { auth: ReturnType<typeof useForgeAu
       {coachOpen && <CoachPanel twin={twin} messages={coachMessages} onMessagesChange={updateCoachMessages} onAction={handleCoachAction} onClose={() => setCoachOpen(false)} />}
       {movementLibraryOpen && <MovementLibrary onClose={() => setMovementLibraryOpen(false)} />}
 
-      <nav className="mobile-nav" aria-label="Mobile navigation"><a className="active" href="#today"><Home size={20} /><span>Today</span></a><a href="#training"><Dumbbell size={20} /><span>Train</span></a><button disabled={firstRun} onClick={openCheckIn} aria-label="Open daily check-in"><Plus size={22} /></button><a href="#nutrition"><Apple size={20} /><span>Nutrition</span></a><button className="mobile-coach" onClick={() => setCoachOpen(true)}><Brain size={20} /><span>Coach</span></button></nav>
+      <nav className="mobile-nav" aria-label="Mobile navigation"><a className="active" href="#today"><Home size={20} /><span>Today</span></a><a href="#training"><Dumbbell size={20} /><span>Train</span></a><button disabled={firstRun} onClick={openCheckIn} aria-label="Open daily check-in"><Plus size={22} /></button><a href="#nutrition"><Apple size={20} /><span>Nutrition</span></a><button className="mobile-exercises" onClick={() => setMovementLibraryOpen(true)}><BookOpen size={20} /><span>Exercises</span></button><button className="mobile-coach" onClick={() => setCoachOpen(true)}><Brain size={20} /><span>Coach</span></button></nav>
     </div>
   );
 }

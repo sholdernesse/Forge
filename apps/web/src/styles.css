@@ -461,6 +461,25 @@ h1 { font-size: clamp(28px, 3vw, 40px); letter-spacing: -.04em; margin-top: 5px;
 
 /* Sprint 4.30: end-of-day reflection */
 .movement-library-controls{display:block}
+.exercise-lookup-button { display: inline-flex; align-items: center; gap: 7px; padding: 10px 12px; border: 1px solid #315d4c; border-radius: 9px; background: #10251e; color: #b5edc8; font: inherit; font-size: 11px; font-weight: 700; cursor: pointer; }
+.exercise-lookup-button:hover { background: #193b2d; border-color: #76fba5; }
+.topbar-actions { flex-wrap: wrap; max-width: 100%; }
+.movement-library-controls .exercise-lookup-filters { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; align-items: end; }
+.exercise-lookup-filters label { display: grid; gap: 5px; color: #a7c4b7; font-size: 11px; }
+.exercise-lookup-filters select { max-width: 100%; border: 1px solid #315447; border-radius: 8px; padding: 9px 11px; background: #10251e; color: #dbeee3; font: inherit; min-height: 40px; }
+.exercise-equipment { color: #91bca5; font-size: 10px; }
+.movement-library-controls input:focus-visible, .exercise-lookup-filters select:focus-visible, .exercise-lookup-button:focus-visible { outline: 2px solid #76fba5; outline-offset: 3px; }
+@media(max-width:1050px) { .sidebar-exercises span { display: none; } .sidebar nav>.sidebar-exercises { justify-content: center; } }
+@media(max-width:720px) {
+  .mobile-nav { grid-template-columns: repeat(6,minmax(0,1fr)); }
+  .mobile-nav .mobile-exercises { width: auto; height: auto; margin: 0; border-radius: 0; background: transparent; color: #67857a; display: grid; justify-items: center; gap: 3px; font-size: 9px; }
+  .exercise-lookup-filters label { flex: 1 1 130px; min-width: 0; }
+  .movement-library-summary small { line-height: 1.5; }
+}
+html[data-theme="light-gradient"] .exercise-lookup-button,
+html[data-theme="light-gradient"] .exercise-lookup-filters select { border-color: #cbded5; background: #f5faf7; color: #28533e; }
+html[data-theme="light-gradient"] .exercise-lookup-filters label,
+html[data-theme="light-gradient"] .exercise-equipment { color: #426b55; }
 
 .reflection-drawer label small {
   display: block;
@@ -1293,3 +1312,5 @@ html[data-theme="light-gradient"] .mobile-nav a.active { color:#087b50; }
 .agreement-receipt { border-top: 1px solid var(--border, #667085); padding: 1rem 0; overflow-wrap: anywhere; }
 .agreement-receipt h2 { margin-top: 0.5rem; }
 @media print { .consent-gate button { display: none; } }
+
+html[data-theme="light-gradient"] .mobile-nav .mobile-exercises { color: #5e796e; }

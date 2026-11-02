@@ -11,3 +11,7 @@ coverage
 backups/
 apps/web/.cert/
 /sprint-3.1/
+
+# Local browser QA output
+**/test-results/
+**/playwright-report/

@@ -44,8 +44,8 @@ export function ExerciseGuide({ guide, onClose }: ExerciseGuideProps) {
         <button className={tab === 'mistakes' ? 'active' : ''} onClick={() => setTab('mistakes')}>Avoid</button>
       </nav>
       <ol className={`guide-steps ${tab === 'mistakes' ? 'mistakes' : ''}`}>{content.map((item) => <li key={item}>{tab === 'mistakes' ? <AlertTriangle size={17} /> : tab === 'check' ? <Eye size={17} /> : <CheckCircle2 size={17} />}<span>{item}</span></li>)}</ol>
-      <div className="guide-safety"><ShieldAlert size={18} /><span>{guide.safetyNote}</span></div>
-      {discomfort ? <div className="discomfort-advice" role="alert"><b>Stop this exercise for now.</b><span>Reduce the load or range only if normal movement is comfortable. Choose another movement or seek qualified medical guidance if pain is sharp, worsening, or persistent.</span></div> : <button className="discomfort-button" onClick={() => setDiscomfort(true)}>I feel discomfort</button>}
+      <div className="guide-safety"><ShieldAlert size={18} /><span><strong>Stop immediately if you feel discomfort.</strong> Seek medical advice from your doctor before resuming. {guide.safetyNote}</span></div>
+      {discomfort ? <div className="discomfort-advice" role="alert"><b>Stop this exercise for now.</b><span>Stop immediately and seek medical advice from your doctor before resuming. For severe symptoms or a possible emergency, seek emergency medical care immediately.</span></div> : <button className="discomfort-button" onClick={() => setDiscomfort(true)}>I feel discomfort</button>}
     </section>
   </div>;
 }
