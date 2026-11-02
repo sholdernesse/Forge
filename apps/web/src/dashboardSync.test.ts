@@ -12,7 +12,7 @@ describe('dashboard sync', () => {
     const request = vi.fn(async () => new Response(JSON.stringify({ state, updatedAt: '2026-08-12T12:00:00.000Z', revision: 'rev-1' }), { status: 200 }));
     const client = new DashboardSyncClient({ baseUrl: 'https://sync.forge.test', accessToken: async () => 'secret' }, request as typeof fetch);
     await expect(client.load()).resolves.toMatchObject({ revision: 'rev-1', state });
-    expect(request).toHaveBeenCalledWith('https://sync.forge.test/v1/dashboard', { headers: { authorization: 'Bearer secret' } });
+    expect(request).toHaveBeenCalledWith('https://sync.forge.test/v1/dashboard', expect.objectContaining({ headers: { authorization: 'Bearer secret' }, signal: expect.any(AbortSignal) }));
   });
 
   it('sends the loaded revision when saving to prevent lost updates', async () => {
@@ -34,7 +34,7 @@ describe('dashboard sync', () => {
     await client.load();
     await client.delete();
     await client.save(state, '2026-08-12T12:01:00.000Z');
-    expect(request.mock.calls[1]).toEqual(['https://sync.forge.test/v1/dashboard', { method: 'DELETE', headers: { authorization: 'Bearer secret' } }]);
+    expect(request.mock.calls[1]).toEqual(['https://sync.forge.test/v1/dashboard', expect.objectContaining({ method: 'DELETE', headers: { authorization: 'Bearer secret' } })]);
     expect(request.mock.calls[2]?.[1]).not.toHaveProperty('headers.if-match');
   });
 

@@ -3,7 +3,11 @@ import type { ConsentRecord, ConsentRepository, ConsentHistoryPage } from './con
 
 export class PostgresConsentRepository implements ConsentRepository {
   private readonly pool: Pool;
-  constructor(config: PoolConfig) { this.pool = new Pool(config); }
+  private readonly ownsPool: boolean;
+  constructor(config: PoolConfig | Pool) {
+    this.ownsPool = !(config instanceof Pool);
+    this.pool = config instanceof Pool ? config : new Pool(config);
+  }
   async latest(userId: string): Promise<ConsentRecord | null> {
     const result = await this.pool.query<{ record: ConsentRecord }>(
       'SELECT record FROM consent_events WHERE user_id = $1 ORDER BY id DESC LIMIT 1', [userId]);
@@ -20,5 +24,5 @@ export class PostgresConsentRepository implements ConsentRepository {
   async append(userId: string, record: ConsentRecord): Promise<void> {
     await this.pool.query('INSERT INTO consent_events (user_id, record) VALUES ($1, $2::jsonb)', [userId, JSON.stringify(record)]);
   }
-  async close() { await this.pool.end(); }
+  async close() { if (this.ownsPool) await this.pool.end(); }
 }

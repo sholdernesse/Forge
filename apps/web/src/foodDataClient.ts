@@ -200,7 +200,7 @@ export class FoodDataClient {
   }
 
   private async post(path: string, body: unknown, caller?: AbortSignal): Promise<unknown> {
-    // Allow the API's maximum 120-second provider window plus transport overhead.
+    // Cover the 120-second provider cap, bounded enrichment and admission checks.
     return foodRequest(async signal => {
       const token = await this.config.accessToken();
       signal.throwIfAborted();
@@ -215,7 +215,7 @@ export class FoodDataClient {
         throw new FoodDataError(response.status, reason);
       }
       return response.json();
-    }, caller, 130_000);
+    }, caller, 150_000);
   }
 
 }

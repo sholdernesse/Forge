@@ -40,7 +40,7 @@ jobs:
         env:
           DATABASE_URL: postgresql://forge_test:isolated-ci-only@127.0.0.1:5432/forge_test
           FORGE_DATABASE_TESTS: isolated
-        run: node --test scripts/postgres/consent-integration.test.mjs scripts/release/candidate-smoke.test.mjs scripts/nutrition/meal-photo-accuracy.test.mjs scripts/local-environment.test.mjs scripts/beta/invitation-admin.test.mjs
+        run: node --test scripts/postgres/consent-integration.test.mjs scripts/postgres/runtime-integration.test.mjs scripts/release/candidate-smoke.test.mjs scripts/nutrition/meal-photo-accuracy.test.mjs scripts/local-environment.test.mjs scripts/beta/invitation-admin.test.mjs
       - name: Validate deployment security boundaries
         run: scripts/deployment/validate-security.sh
       - name: Validate recovery and release scripts
@@ -76,3 +76,7 @@ jobs:
         run: docker build --file apps/api/Dockerfile --tag forge-api:ci .
       - name: Build web gateway container
         run: docker build --file apps/web/Dockerfile --tag forge-web:ci .
+      - name: Exercise slow photo analysis through the built gateway
+        env:
+          FORGE_GATEWAY_TESTS: isolated
+        run: node --test scripts/release/gateway-integration.test.mjs

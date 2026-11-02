@@ -1,3 +1,4 @@
+import { deferredPanel } from './deferredPanel.js';
 import { BetaGate } from './BetaGate.js';
 import { ConsentGate } from './ConsentGate.js';
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
@@ -11,7 +12,6 @@ import {
 import { demoGoals, demoHistory, demoProfile } from './demoData.js';
 import { cacheDashboardState, clearDashboardDeletionMarker, clearDashboardState, dashboardDeletionPending, dashboardStateUpdatedAt, DASHBOARD_SAVED_EVENT, loadDashboardState, markDashboardDeletionPending, saveDashboardState, type CheckIn, type CoachMessage, type DashboardSaveEventDetail, type DashboardState } from './dashboardStorage.js';
 import { DashboardSyncClient, DashboardSyncConflictError, dashboardSyncConfig, newerThanLocal, syncFailureStatus, type RemoteDashboard, type SyncStatus } from './dashboardSync.js';
-import { WorkoutPlayer } from './WorkoutPlayer.js';
 import { clearWorkoutRest, completedSetCount, isWorkingSet, createTodayWorkout, totalSetCount, workoutElapsedMinutes, type WorkoutFeedback, type WorkoutSession } from './workoutSession.js';
 import { demoExerciseHistory, exerciseProgressTimeline, recordPerformances, strongestMovements, type ExercisePerformance } from './progression.js';
 import { demoTrainingPreferences, generateTrainingPlan } from './trainingPlanner.js';
@@ -23,9 +23,7 @@ import { demoFoodEntries, foodTotals, type FoodEntry, type SavedMeal } from './f
 import { micronutrientCoverage, weeklyNutritionStory } from './micronutrients.js';
 import { demoSavedMeals } from './foodCatalog.js';
 import { freshWorkoutPlan } from './prototypeActions.js';
-import { SettingsPanel } from './SettingsPanel.js';
 import { useForgeAuth } from './useForgeAuth.js';
-import { CoachPanel } from './CoachPanel.js';
 import { trainingHistoryEntries, type TrainingHistorySort } from './trainingHistory.js';
 import { trainingTrendSummary } from './trainingAnalytics.js';
 import { trainingHistoryCsv, trainingHistoryExcelFilename, trainingHistoryExcelXml, trainingHistoryExportFilename, type TrainingHistoryExportScope } from './trainingExport.js';
@@ -35,11 +33,9 @@ import { compareTrainingSession, trainingSessionNeighbors } from './trainingComp
 import { trainingComparisonStory } from './trainingComparisonStory.js';
 import { workoutCarryForward } from './workoutFocus.js';
 import { todayCoachAction } from './todayCoachAction.js';
-import { MovementLibrary } from './MovementLibrary.js';
 import { reflectionTrend } from './reflectionHistory.js';
 import { greetingForHour, localDateHeading, localDateKey, userFirstName, withTodaySnapshot } from './appContext.js';
 import { experienceMode, isFirstRun } from './firstRun.js';
-import { OnboardingFlow } from './OnboardingFlow.js';
 import { goalsFromOnboarding, trainingPreferencesFromOnboarding, userProfileFromOnboarding, type OnboardingProfile } from './onboarding.js';
 import { useAccessibleDialog } from './useAccessibleDialog.js';
 import { nextBlockProposal, plannedDeloadWeek, startingBlockFor, startingBlockReview } from './startingBlock.js';
@@ -52,6 +48,16 @@ import { operatingBudgetEnabled } from './operatingBudget.js';
 import type { Glp1SupportProfile } from './glp1Support.js';
 import { applyAppearance, loadAppearancePreference, saveAppearancePreference, type AppearancePreference } from './appearance.js';
 import { formatWeight, loadUnitPreference, resolveWeightUnit, saveUnitPreference, weightInputBounds, weightValueFromKg, weightValueToKg, type UnitPreference } from './region.js';
+
+const WorkoutPlayer = deferredPanel(() => import('./WorkoutPlayer.js').then(module => module.WorkoutPlayer), 'Workout');
+
+const SettingsPanel = deferredPanel(() => import('./SettingsPanel.js').then(module => module.SettingsPanel), 'Settings');
+
+const CoachPanel = deferredPanel(() => import('./CoachPanel.js').then(module => module.CoachPanel), 'Coach');
+
+const MovementLibrary = deferredPanel(() => import('./MovementLibrary.js').then(module => module.MovementLibrary), 'Movement guides');
+
+const OnboardingFlow = deferredPanel(() => import('./OnboardingFlow.js').then(module => module.OnboardingFlow), 'Your starting plan');
 
 const OperatingBudgetPanel = lazy(async () => ({ default: (await import('./OperatingBudgetPanel.js')).OperatingBudgetPanel }));
 const Glp1SupportPanel = lazy(async () => ({ default: (await import('./Glp1SupportPanel.js')).Glp1SupportPanel }));

@@ -185,7 +185,12 @@ export function createApiHandler(dependencies: ApiDependencies) {
       try { body = JSON.parse(bodyText) as { imageDataUrl?: unknown }; }
       catch { return response({ error: 'invalid_json' }, 400, corsOrigin); }
       if (!validMealPhotoDataUrl(body.imageDataUrl)) return response({ error: 'invalid_meal_photo' }, 400, corsOrigin);
-      if (dependencies.mealPhotoRateLimiter && !dependencies.mealPhotoRateLimiter.allow(user.id)) return response({ error: 'meal_photo_rate_limited' }, 429, corsOrigin);
+      try {
+        if (dependencies.mealPhotoRateLimiter && !await dependencies.mealPhotoRateLimiter.allow(user.id)) return response({ error: 'meal_photo_rate_limited' }, 429, corsOrigin);
+      } catch {
+        // A database outage must not bypass a paid provider's spending control.
+        return response({ error: 'meal_photo_rate_limit_unavailable' }, 503, corsOrigin);
+      }
       try {
         return response({ analysis: await dependencies.mealPhotoAnalyzer.analyze(body.imageDataUrl) }, 200, corsOrigin);
       } catch (error) {

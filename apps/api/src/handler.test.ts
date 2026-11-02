@@ -130,6 +130,18 @@ describe('dashboard API', () => {
     expect(analyze).not.toHaveBeenCalled();
   });
 
+  it('awaits shared photo quota and fails closed when its store is unavailable', async () => {
+    const analyze = vi.fn();
+    for (const allow of [async () => false, async () => { throw new Error('database unavailable'); }]) {
+      const handle = createApiHandler({ auth: new DevelopmentTokenVerifier('test-token', 'user-a'),
+        dashboards: new MemoryDashboardRepository(), mealPhotoAnalyzer: { analyze }, mealPhotoRateLimiter: { allow } });
+      const response = await handle(new Request('http://api.test/v1/foods/photo-analysis', { method: 'POST',
+        headers: { authorization: 'Bearer test-token' }, body: JSON.stringify({ imageDataUrl: validMealPhoto }) }));
+      expect([429, 503]).toContain(response.status);
+    }
+    expect(analyze).not.toHaveBeenCalled();
+  });
+
   it('returns a safe provider failure reason for meal-photo troubleshooting', async () => {
     const analyze = vi.fn(async () => { throw new MealPhotoAnalysisError('provider_quota_or_rate_limit', 429); });
     const log = vi.spyOn(console, 'error').mockImplementation(() => undefined);

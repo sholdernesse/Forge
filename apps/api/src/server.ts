@@ -9,7 +9,8 @@ import { createApiHandler } from './handler.js';
 import { PostgresDashboardRepository } from './postgresRepository.js';
 import { HybridFoodProvider } from './foodProvider.js';
 import { mealPhotoAnalyzerFromEnvironment } from './mealPhotoAnalyzer.js';
-import { InMemoryWindowRateLimiter } from './rateLimit.js';
+import { Pool } from 'pg';
+import { PostgresWindowRateLimiter } from './postgresRateLimiter.js';
 import { createRequestId, errorType, requestLog, requestRoute, writeApiLog } from './observability.js';
 import { auditRecorderFromEnvironment } from './audit.js';
 
@@ -20,17 +21,21 @@ const usdaApiKey = process.env.USDA_FOODDATA_API_KEY
   ?? (process.env.NODE_ENV !== 'production' ? 'DEMO_KEY' : undefined);
 const foodProvider = new HybridFoodProvider(usdaApiKey);
 const mealPhotoAnalyzer = mealPhotoAnalyzerFromEnvironment(process.env, foodProvider);
-const mealPhotoRateLimiter = new InMemoryWindowRateLimiter(Number(process.env.MEAL_PHOTO_HOURLY_LIMIT ?? 10), 60 * 60 * 1_000);
-
-const dashboards = new PostgresDashboardRepository({
+const poolSize = Number(process.env.DATABASE_POOL_SIZE ?? 10);
+if (!Number.isInteger(poolSize) || poolSize < 1 || poolSize > 50) throw new Error('DATABASE_POOL_SIZE must be an integer from 1 to 50');
+const pool = new Pool({
   connectionString,
   ssl: process.env.DATABASE_SSL === 'disable' ? false : { rejectUnauthorized: false },
-  max: Number(process.env.DATABASE_POOL_SIZE ?? 10),
+  max: poolSize,
+  connectionTimeoutMillis: 3_000,
+  statement_timeout: 4_000,
+  query_timeout: 5_000,
+  idleTimeoutMillis: 30_000,
 });
-const consents = new PostgresConsentRepository({ connectionString,
-  ssl: process.env.DATABASE_SSL === 'disable' ? false : { rejectUnauthorized: false }, max: 2 });
-const betaInvitations = new PostgresBetaRepository({ connectionString,
-  ssl: process.env.DATABASE_SSL === 'disable' ? false : { rejectUnauthorized: false }, max: 2 });
+const mealPhotoRateLimiter = new PostgresWindowRateLimiter(pool, Number(process.env.MEAL_PHOTO_HOURLY_LIMIT ?? 10), 60 * 60 * 1_000);
+const dashboards = new PostgresDashboardRepository(pool);
+const consents = new PostgresConsentRepository(pool);
+const betaInvitations = new PostgresBetaRepository(pool);
 const handle = createApiHandler({
   beta: { required: betaRequired(process.env), countries: betaCountries(process.env.FORGE_BETA_COUNTRIES), repository: betaInvitations },
   consent: { required: consentRequired(process.env), repository: consents },
@@ -79,10 +84,8 @@ const server = createServer(async (incoming, outgoing) => {
 server.listen(port, () => console.log(`Forge API listening on http://localhost:${port}`));
 
 async function shutdown() {
-  server.close();
-  await dashboards.close();
-  await consents.close();
-  await betaInvitations.close();
+  await new Promise<void>((resolve) => server.close(() => resolve()));
+  await pool.end();
 }
 
 process.on('SIGINT', () => void shutdown());

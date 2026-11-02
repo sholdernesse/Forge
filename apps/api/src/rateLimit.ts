@@ -1,5 +1,5 @@
 export interface RequestRateLimiter {
-  allow(key: string): boolean;
+  allow(key: string): boolean | Promise<boolean>;
 }
 
 export class InMemoryWindowRateLimiter implements RequestRateLimiter {

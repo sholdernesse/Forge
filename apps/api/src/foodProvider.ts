@@ -1,3 +1,5 @@
+import { requestDeadline } from './requestDeadline.js';
+
 export interface FoodSearchResult {
   id: string;
   source: 'usda' | 'open-food-facts';
@@ -109,19 +111,44 @@ function offFood(code: string, value: unknown): FoodSearchResult | undefined {
 }
 
 export class HybridFoodProvider implements FoodProvider {
-  constructor(private readonly usdaApiKey: string | undefined, private readonly request: Request = fetch) {}
+  private readonly searches = new Map<string, { expires: number; foods: FoodSearchResult[] }>();
+  private readonly pending = new Map<string, Promise<FoodSearchResult[]>>();
+  constructor(private readonly usdaApiKey: string | undefined, private readonly request: Request = fetch,
+    private readonly options: { timeoutMs?: number; now?: () => number } = {}) {}
 
   async search(query: string): Promise<FoodSearchResult[]> {
     if (!this.usdaApiKey) return [];
-    const response = await this.request(`https://api.nal.usda.gov/fdc/v1/foods/search?api_key=${encodeURIComponent(this.usdaApiKey)}&query=${encodeURIComponent(query)}&pageSize=20`);
+    const key = query.trim().replace(/\s+/g, ' ').toLowerCase();
+    const now = this.options.now?.() ?? Date.now();
+    const cached = this.searches.get(key);
+    if (cached && cached.expires > now) return structuredClone(cached.foods);
+    const pending = this.pending.get(key);
+    if (pending) return structuredClone(await pending);
+    const operation = requestDeadline(this.options.timeoutMs ?? 5_000, signal => this.searchRemote(key, signal));
+    this.pending.set(key, operation);
+    try {
+      const foods = await operation;
+      this.searches.delete(key);
+      if (this.searches.size >= 128) this.searches.delete(this.searches.keys().next().value!);
+      this.searches.set(key, { expires: (this.options.now?.() ?? Date.now()) + 5 * 60_000, foods });
+      return structuredClone(foods);
+    } finally { this.pending.delete(key); }
+  }
+
+  private async searchRemote(query: string, signal: AbortSignal): Promise<FoodSearchResult[]> {
+    const response = await this.request(`https://api.nal.usda.gov/fdc/v1/foods/search?api_key=${encodeURIComponent(this.usdaApiKey!)}&query=${encodeURIComponent(query)}&pageSize=20`, { signal });
     if (!response.ok) throw new Error(`USDA food search failed with ${response.status}`);
     const payload = await response.json() as { foods?: unknown[] };
     return (payload.foods ?? []).map(usdaFood).filter((food): food is FoodSearchResult => food !== undefined);
   }
 
-  async barcode(code: string): Promise<FoodSearchResult | undefined> {
+  barcode(code: string): Promise<FoodSearchResult | undefined> {
+    return requestDeadline(this.options.timeoutMs ?? 5_000, signal => this.barcodeRemote(code, signal));
+  }
+
+  private async barcodeRemote(code: string, signal: AbortSignal): Promise<FoodSearchResult | undefined> {
     const fields = 'product_name,brands,serving_size,nutriments';
-    const response = await this.request(`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(code)}?fields=${fields}`, { headers: { 'user-agent': 'Forge/0.1 (food lookup)' } });
+    const response = await this.request(`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(code)}?fields=${fields}`, { headers: { 'user-agent': 'Forge/0.1 (food lookup)' }, signal });
     if (response.ok) {
       const food = offFood(code, await response.json());
       if (food) return food;
@@ -130,7 +157,7 @@ export class HybridFoodProvider implements FoodProvider {
     }
 
     if (!this.usdaApiKey) return undefined;
-    const usdaResponse = await this.request(`https://api.nal.usda.gov/fdc/v1/foods/search?api_key=${encodeURIComponent(this.usdaApiKey)}&query=${encodeURIComponent(code)}&pageSize=20&dataType=Branded`);
+    const usdaResponse = await this.request(`https://api.nal.usda.gov/fdc/v1/foods/search?api_key=${encodeURIComponent(this.usdaApiKey!)}&query=${encodeURIComponent(code)}&pageSize=20&dataType=Branded`, { signal });
     if (!usdaResponse.ok) throw new Error(`USDA barcode lookup failed with ${usdaResponse.status}`);
     const payload = await usdaResponse.json() as { foods?: unknown[] };
     const exact = (payload.foods ?? []).find((item) => {

@@ -18,8 +18,10 @@ function envelope(row: DashboardRow): DashboardEnvelope {
 
 export class PostgresDashboardRepository implements DashboardRepository {
   private readonly pool: Pool;
+  private readonly ownsPool: boolean;
 
   constructor(config: PoolConfig | Pool) {
+    this.ownsPool = !(config instanceof Pool);
     this.pool = config instanceof Pool ? config : new Pool(config);
   }
 
@@ -58,6 +60,6 @@ export class PostgresDashboardRepository implements DashboardRepository {
   }
 
   async close(): Promise<void> {
-    await this.pool.end();
+    if (this.ownsPool) await this.pool.end();
   }
 }

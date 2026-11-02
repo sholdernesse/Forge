@@ -1,3 +1,4 @@
+import { requestDeadline } from './requestDeadline.js';
 import type { FoodProvider, FoodSearchResult } from './foodProvider.js';
 
 export interface MealPhotoItem {
@@ -202,52 +203,54 @@ export class OpenAiMealPhotoAnalyzer implements MealPhotoAnalyzer {
   }
 
   async analyze(imageDataUrl: string): Promise<MealPhotoAnalysis> {
-    let response: Response;
-    try {
-      response = await this.request(this.endpoint, {
-        method: 'POST',
-        headers: { authorization: `Bearer ${this.options.apiKey}`, 'content-type': 'application/json' },
-        body: JSON.stringify({
-          model: this.options.model,
-          store: false,
-          input: [
-            { role: 'system', content: instructions },
-            { role: 'user', content: [{ type: 'input_text', text: 'Identify the foods and estimate the visible portions in this meal.' }, { type: 'input_image', image_url: imageDataUrl, detail: 'high' }] },
-          ],
-          text: { format: { type: 'json_schema', name: 'forge_meal_photo_analysis', strict: true, schema: mealSchema } },
-        }),
-        signal: AbortSignal.timeout(this.options.timeoutMs ?? defaultMealPhotoTimeoutMs),
-      });
-    } catch (error) {
-      const errorName = error instanceof Error ? error.name : '';
-      throw new MealPhotoAnalysisError(errorName === 'AbortError' || errorName === 'TimeoutError' ? 'provider_timeout' : 'provider_unreachable');
-    }
-    if (!response.ok) {
-      const reason: MealPhotoFailureReason = response.status === 401
-        ? 'provider_authentication_failed'
-        : response.status === 403
-          ? 'provider_access_denied'
-          : response.status === 404
-            ? 'provider_model_unavailable'
-            : response.status === 429
-              ? 'provider_quota_or_rate_limit'
-              : response.status >= 500
-                ? 'provider_unavailable'
-                : 'provider_request_rejected';
-      throw new MealPhotoAnalysisError(reason, response.status);
-    }
     let detected: DetectedMeal;
     try {
-      const text = responseText(await response.json());
-      if (!text) throw new Error('Missing structured output');
-      detected = parseDetectedMeal(JSON.parse(text));
-    } catch {
-      throw new MealPhotoAnalysisError('provider_invalid_response');
+      detected = await requestDeadline(this.options.timeoutMs ?? defaultMealPhotoTimeoutMs, async signal => {
+        const response = await this.request(this.endpoint, {
+          method: 'POST',
+          headers: { authorization: `Bearer ${this.options.apiKey}`, 'content-type': 'application/json' },
+          body: JSON.stringify({
+            model: this.options.model,
+            store: false,
+            input: [
+              { role: 'system', content: instructions },
+              { role: 'user', content: [{ type: 'input_text', text: 'Identify the foods and estimate the visible portions in this meal.' }, { type: 'input_image', image_url: imageDataUrl, detail: 'high' }] },
+            ],
+            text: { format: { type: 'json_schema', name: 'forge_meal_photo_analysis', strict: true, schema: mealSchema } },
+          }),
+          signal,
+        });
+        if (!response.ok) {
+          const reason: MealPhotoFailureReason = response.status === 401
+            ? 'provider_authentication_failed'
+            : response.status === 403
+              ? 'provider_access_denied'
+              : response.status === 404
+                ? 'provider_model_unavailable'
+                : response.status === 429
+                  ? 'provider_quota_or_rate_limit'
+                  : response.status >= 500
+                    ? 'provider_unavailable'
+                    : 'provider_request_rejected';
+          throw new MealPhotoAnalysisError(reason, response.status);
+        }
+        try {
+          const text = responseText(await response.json());
+          if (!text) throw new Error('Missing structured output');
+          return parseDetectedMeal(JSON.parse(text));
+        } catch {
+          throw new MealPhotoAnalysisError('provider_invalid_response');
+        }
+      });
+    } catch (error) {
+      if (error instanceof MealPhotoAnalysisError) throw error;
+      const errorName = error instanceof Error ? error.name : '';
+      throw new MealPhotoAnalysisError(errorName === 'AbortError' || errorName === 'TimeoutError' ? 'provider_timeout' : 'provider_unreachable');
     }
     const enriched = await Promise.all(detected.items.map(async (item): Promise<MealPhotoItem> => {
       if (!this.options.foodProvider) return { ...item, nutritionSource: 'ai-estimate' };
       try {
-        const match = selectMealPhotoReference(item.name, await this.options.foodProvider.search(item.name));
+        const match = selectMealPhotoReference(item.name, await requestDeadline(5_000, () => this.options.foodProvider!.search(item.name)));
         const nutrition = match ? scaledNutrition(match, item.estimatedGrams) : undefined;
         return match && nutrition ? { ...item, ...nutrition, nutritionSource: 'usda', referenceFoodId: match.id, referenceFoodName: match.name } : { ...item, nutritionSource: 'ai-estimate' };
       } catch {
