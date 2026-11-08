@@ -1,0 +1,13 @@
+{
+  "name": "@forge/ios",
+  "private": true,
+  "scripts": {
+    "prepare:preview": "pnpm --filter @forge/web build:ios-preview && cap copy ios",
+    "open:xcode": "cap open ios"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.6.0",
+    "@capacitor/core": "8.6.0",
+    "@capacitor/ios": "8.6.0"
+  }
+}
