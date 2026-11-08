@@ -44,6 +44,13 @@ jobs:
             pnpm --filter @forge/web exec playwright install --with-deps chromium
             pnpm --filter @forge/web exec playwright test
           fi
+      - name: Verify the bundled offline iPhone preview in a browser
+        run: |
+          pnpm --filter @forge/web build:ios-preview
+          if command -v google-chrome >/dev/null 2>&1; then
+            export FORGE_BROWSER_CHANNEL=chrome
+          fi
+          pnpm --filter @forge/web exec playwright test --config playwright.ios-preview.config.ts
       - name: Exercise isolated PostgreSQL consent and release smoke
         env:
           DATABASE_URL: postgresql://forge_test:isolated-ci-only@127.0.0.1:5432/forge_test

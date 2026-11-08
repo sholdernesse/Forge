@@ -84,6 +84,8 @@ See [Sprint 4 architecture](./architecture/sprint-4.md) for package and data-flo
 
 ### Foundation
 
+- An [iPhone simulator preview](./deployment/ios-preview.md) packages the exercise library for offline use. Native sign-in, sync, camera access, signing, and TestFlight acceptance remain separate milestones.
+
 - Settings offers a reviewable, manually shared beta support report with build SHA, UTC capture time, browser family/major version and browser connection status. It excludes health/account records, URLs, raw errors and tokens; clipboard fallback and phone/keyboard behavior are covered by browser acceptance.
 
 - Bounded provider/gateway/sync requests, shared PostgreSQL pooling and durable photo quotas (migration 004), pending-save coalescing, and deferred secondary screens; documented in [beta performance](./development/beta-performance.md).
