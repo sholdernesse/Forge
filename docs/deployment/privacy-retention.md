@@ -21,7 +21,13 @@ The deletion control does not delete the user’s Microsoft Entra identity becau
 | Azure PostgreSQL backups | Infrastructure-configured seven days | Backup recovery points expire on schedule; individual rows are not edited inside immutable recovery points. |
 | API and mutation logs | Infrastructure-configured 30 days | Expire through Log Analytics retention; access remains role-limited. |
 | User exports | Controlled by the user | Forge does not receive or retain the downloaded file. |
-| Submitted meal photo | Request lifetime only in Forge | Not persisted by Forge. The prepared image is released after the vision request; provider handling follows the approved API account configuration and contract. |
+| Submitted meal photo | Request lifetime only in Forge | Not persisted by Forge. The prepared image is released after the vision request; the Responses request uses `store: false`. OpenAI default abuse-monitoring logs may contain customer content for up to 30 days, with stated exceptions. Verify the configured API project's actual retention controls before release. |
+| Agreement acceptance and withdrawal receipts | Retained independently of dashboard rows | Dashboard deletion does not erase receipts. Define and approve their retention/deletion schedule before external beta. |
+
+OpenAI's [API data controls](https://developers.openai.com/api/docs/guides/your-data)
+describe the default abuse-monitoring period, `store: false` behavior for the
+Responses API, and exceptions for flagged image inputs. Provider documentation
+does not establish which retention controls are enabled for Forge's API project.
 
 ## Recovery requirement
 

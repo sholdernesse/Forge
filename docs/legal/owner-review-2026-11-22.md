@@ -27,3 +27,14 @@ and only then set the canonical approval flag. Validate the final deployed
 candidate and obtain qualified counsel review before general availability or
 multi-jurisdiction launch. No external invitation or signed acceptance should
 be possible from this record alone.
+
+## Follow-up candidate
+
+Candidate `2026-11-22-candidate-1` incorporates the repository's configured
+Azure retention periods, the existing withdrawal/deletion behavior, and
+OpenAI's published default abuse-monitoring retention. Its substantive
+health-data consent and public privacy disclosures differ from the source
+identified above; the earlier owner approval does not silently extend to these
+changes. The canonical policy stays unapproved while the actual support mailbox,
+deployed provider settings, consent-receipt retention, and legal operating name
+are verified. The separate draft file remains historical working material.
