@@ -32,11 +32,28 @@ simulator running. This artifact cannot be installed on a physical iPhone or
 uploaded to TestFlight. Linux browser CI separately tests the built web bundle;
 that test is not native device acceptance.
 
+The workflow also checks an unsigned device-target compilation. This catches
+iPhone SDK build errors but produces neither an installable device app nor a
+signed distribution archive.
+
+## Run the preview on a physical iPhone
+
+On a Mac, sign in to Xcode with the owner's Apple Developer account, open the
+`App` scheme, select the connected iPhone, and allow automatic signing. The
+project selects team `TC7649HF43` and uses `io.gnosislab.forge.preview`; Xcode
+may register that separate preview identifier with the team. If signing
+reports an unavailable identifier, check the team and register the preview ID
+under that team. Record the device and iOS version and run the exercise library
+offline before treating device acceptance as passed. Do not upload this preview
+as the full Forge app.
+
 ## Before a full TestFlight build
 
-- Confirm Apple Developer enrollment is active before configuring TestFlight.
-- Configure the release app identifier, App Store Connect record, and signing
-  on the owner's Apple team. Keep signing secrets outside Git.
+- The release identifier `io.gnosislab.forge` was reported registered by the
+  owner. Create a separate full-app iOS build with that exact identifier and
+  team `TC7649HF43`, then create its App Store Connect record. The current
+  project contains only the offline preview, even in its Release configuration.
+  Keep signing secrets outside Git.
 - Validate native browser-based sign-in and secure token handling, a deployed
   HTTPS backend, and the existing server-side invitation and consent gates.
 - Validate camera/barcode access, local data handling, account isolation, and
