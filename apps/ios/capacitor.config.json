@@ -1,0 +1,5 @@
+{
+  "appId": "io.gnosislab.forge.preview",
+  "appName": "Forge Preview",
+  "webDir": "../web/dist-ios-preview"
+}

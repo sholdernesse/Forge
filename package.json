@@ -5,9 +5,14 @@
   "scripts": {
     "build": "turbo build",
     "dev": "turbo dev --parallel",
+    "dev:https": "node scripts/dev-https.mjs",
+    "beta:invitation": "node scripts/beta/invitation-admin.mjs",
     "lint": "turbo lint",
     "test": "turbo test",
-    "typecheck": "turbo typecheck"
+    "test:meal-photo-accuracy": "node --test scripts/nutrition/meal-photo-accuracy.test.mjs",
+    "evaluate:meal-photo": "node scripts/nutrition/meal-photo-accuracy.mjs",
+    "typecheck": "turbo typecheck",
+    "beta:preflight": "node scripts/deployment/beta-preflight.mjs"
   },
   "devDependencies": {
     "turbo": "^2.3.3",
