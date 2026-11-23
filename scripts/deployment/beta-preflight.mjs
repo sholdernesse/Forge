@@ -60,8 +60,12 @@ export function betaPreflight(environment, policySource) {
     const policy = policyFromSource(policySource);
     add('versioned_policy_approval', policy.approved === true,
       'Finalize the reviewed versioned agreements and record approval in the canonical policy commit before deploying an external beta candidate.');
+    add('policy_publication_readiness', policy.documents.every(document =>
+      !/draft/i.test(document.version) && !/\b(the final notice must|before approval)\b/i.test(document.text)),
+      'Replace draft versions and unresolved publication instructions with reviewed, accurate disclosures before enabling consent.');
   } catch {
     add('versioned_policy_approval', false, 'Restore a readable canonical policy with Terms, fitness release, and health-data documents. No approval is inferred.');
+    add('policy_publication_readiness', false, 'Restore a readable canonical policy before publication review.');
   }
   return {
     configurationStatus: checks.every(check => check.result === 'PASS') ? 'PASS' : 'BLOCKED',

@@ -81,7 +81,8 @@ The report lists configuration names and corrective actions without their values
 Exit 0 means configuration prerequisites pass; exit 2 means blocked or invalid
 input. It checks required Azure/Entra/provider settings, HTTPS identity endpoints,
 audit-key length, support-contact format, US-only admission, delegated-scope
-alignment, and the actual canonical consent approval flag. It makes no network
+alignment, the actual canonical consent approval flag, and draft or unresolved
+instructions in the agreement documents. It makes no network
 requests, provisions nothing, applies no migrations, and grants no invitations.
 It does not prove credentials work, that a mailbox is monitored, or that a
 candidate passed operational acceptance.

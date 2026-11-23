@@ -29,6 +29,12 @@ test('accepts configured prerequisites without claiming deployment or release re
 });
 test('blocks missing settings and a draft policy even with otherwise complete configuration', () => {
   assert.equal(betaPreflight(configured(), source(false)).checks.find(check => check.name === 'versioned_policy_approval').result, 'BLOCKED');
+  for (const invalid of [source().replace('reviewed-test-1', '2026-10-26-draft-3'),
+    source().replace('Synthetic test agreement', 'The final notice must confirm recipients before approval.')]) {
+    const report = betaPreflight(configured(), invalid);
+    assert.equal(report.checks.find(check => check.name === 'policy_publication_readiness').result, 'BLOCKED');
+    assert.equal(report.configurationStatus, 'BLOCKED');
+  }
   const report = betaPreflight({}, source(false));
   for (const name of deploymentInputs) assert.equal(report.checks.find(check => check.name === name).result, 'BLOCKED');
   assert.equal(report.configurationStatus, 'BLOCKED');
